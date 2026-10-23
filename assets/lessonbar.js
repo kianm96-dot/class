@@ -57,6 +57,7 @@
       if (has('act')) L.push(['act', '🧩 활동', base + 'act.html#' + n]);
       if (has('ws')) L.push(['ws', '📄 학습지', base + 'worksheet.html#' + n]);
       if (has('prob')) L.push(['prob', '✍ 문제', base + 'prob' + n + '.html']);
+      if (has('ppt') && (window.ROLE === 'teacher' || window.ROLE === 'board')) L.push(['pptv', '▶ 수업 PPT', '/ppt/view?f=' + encodeURIComponent('/' + h.key + '/ppt' + n + '.pptx')]);   // 화면에서 재생(교사 잠금 서버)
       if (has('ppt') && window.IS_TEACHER !== false) L.push(['ppt', '📥 수업 PPT', base + 'ppt' + n + '.pptx', book.book + ' ' + ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ'][unit.no - 1] + '단원 ' + n + '차시 수업 PPT.pptx']);   // 교과서 수업 PPT + 새 장, 교사만
       if (ph) L.push(['philo', ph.emoji + ' ' + ph.name + ' 톡', ROOT + 'philo/' + ph.id + '.html']);
     }
