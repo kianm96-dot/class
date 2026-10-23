@@ -1,0 +1,71 @@
+/* 중학교 도덕 수업실 · 첫 화면 (과학 수업실처럼 검색 → 책 → 단원 카드).
+   밝은 크림색 바탕, 둥근 카드, 영역 색: 자신(분홍) · 타인(살구) · 사회(하늘) · 자연(연두). */
+:root{--bg:#fff8ef;--surface:#ffffff;--ink:#3b2f2c;--muted:#8a7a72;--line:#f0e2d4;--soft:#fff3e6;--dot:#f6e6d4;
+  --coral:#ff7a6b;--peach:#ff9f43;--sky:#4a9eff;--leaf:#36b37e;--sun:#ffc94a;--grape:#a777e3;
+  --disp:'Jua','Gowun Dodum',system-ui,sans-serif;--body:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0}
+[hidden]{display:none!important}
+body{background:var(--bg) radial-gradient(var(--dot) 1.6px,transparent 1.7px) 0 0/22px 22px;color:var(--ink);font:16px/1.6 var(--body);word-break:keep-all;overflow-wrap:anywhere}
+a{color:inherit}
+.wrap{max-width:1180px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-right)) 48px max(16px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:18px}
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;margin:0 calc(50% - 50vw);padding:10px calc(50vw - 50% + 16px);background:rgba(255,248,239,.88);backdrop-filter:blur(10px);border-bottom:2px solid var(--line)}
+.brand{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font:22px var(--disp);color:var(--ink)}
+.brand i{width:34px;height:34px;border-radius:12px;background:var(--coral);display:grid;place-items:center;font-style:normal;font-size:20px;box-shadow:0 3px 0 #e8604f}
+.topbar .spacer{flex:1}
+.topbar .how{font-size:14px;color:var(--muted)}
+.topbar .how kbd{font:700 12px ui-monospace,Menlo,monospace;background:#fff;border:2px solid var(--line);border-radius:6px;padding:0 5px}
+.intro{display:flex;flex-direction:column;gap:12px;padding-top:12px}
+.intro h1{margin:0;font:clamp(30px,5vw,48px)/1.15 var(--disp);letter-spacing:-.01em}
+.intro h1 span{color:var(--coral)}
+.intro p{margin:0;color:var(--muted);max-width:56ch}
+.search{position:relative;max-width:560px;display:block}
+.search input{width:100%;font:inherit;font-size:16px;padding:13px 16px 13px 46px;border:2px solid var(--line);border-radius:999px;background:#fff;color:var(--ink)}
+.search input:focus-visible{outline:none;border-color:var(--coral)}
+.search svg{position:absolute;left:16px;top:50%;transform:translateY(-50%);width:20px;height:20px;color:var(--muted)}
+.bar{display:flex;gap:10px 18px;align-items:center;flex-wrap:wrap}
+.seg{display:flex;gap:6px;background:#fff;border:2px solid var(--line);border-radius:999px;padding:4px}
+.seg button{font:18px var(--disp);border:0;background:transparent;color:var(--muted);border-radius:999px;padding:6px 18px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--coral);color:#fff;box-shadow:0 3px 0 #e8604f}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:50%;background:var(--area)}
+.status{font-size:14px;color:var(--muted);margin:0}
+.a-self{--area:var(--coral);--area-soft:#ffe9e5}.a-others{--area:var(--peach);--area-soft:#fff0dd}.a-society{--area:var(--sky);--area-soft:#e5f1ff}.a-nature{--area:var(--leaf);--area-soft:#e2f6ec}
+.units{display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:16px;align-items:start}
+@media (max-width:420px){.units{grid-template-columns:1fr}}
+.unit{container-type:inline-size;background:var(--surface);border:2px solid var(--line);border-radius:24px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0;box-shadow:0 4px 0 var(--line)}
+.unit-head{display:flex;gap:14px;align-items:center}
+.tile{flex:none;width:60px;height:60px;border-radius:18px;background:var(--area-soft);color:var(--area);display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
+.tile .no{font:28px var(--disp)}
+.tile .cd{font-size:10.5px;margin-top:3px;color:var(--muted)}
+.unit h3{margin:0;font:21px/1.3 var(--disp)}
+.unit .cnt{margin:2px 0 0;font-size:13px;color:var(--muted)}
+.lessons{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.lessons li{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:4px 8px;align-items:center;padding:8px 0;border-top:2px dotted var(--line);font-size:15px}
+.lessons .ln{width:26px;height:26px;border-radius:50%;background:var(--area-soft);color:var(--area);display:grid;place-items:center;font:15px var(--disp)}
+.lessons .lt{min-width:0;text-decoration:none;color:var(--ink)}
+a.lt:hover{color:var(--area)}
+.acts{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+@container (max-width:470px){.lessons li{grid-template-columns:30px minmax(0,1fr)}.lessons .ln{grid-row:span 2}.acts{justify-content:flex-start}}
+.act{font-size:13px;text-decoration:none;border-radius:999px;padding:3px 11px;border:2px solid var(--line);color:var(--muted);white-space:nowrap;min-height:28px;display:inline-flex;align-items:center;background:#fff}
+a.act:hover{border-color:var(--area);color:var(--area)}
+a.act.main{background:var(--area);border-color:var(--area);color:#fff}
+a.act.main:hover{color:#fff;filter:brightness(1.06)}
+span.act{opacity:.55}
+.std{font-size:12.5px;color:var(--muted);background:var(--soft);border-radius:12px;padding:6px 10px;margin:0}
+.std b{color:var(--area)}
+.extras{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.extra{display:flex;flex-direction:column;gap:2px;text-decoration:none;border-radius:16px;padding:9px 12px;background:var(--soft);border:2px solid transparent;min-width:0}
+a.extra:hover{border-color:var(--area)}
+.extra .xk{font-size:12px;font-weight:700;color:var(--area)}
+.extra .xt{font-size:14px;color:var(--ink)}
+span.extra{opacity:.55}
+.soon{font-size:11.5px;color:var(--muted)}
+mark{background:#ffe08a;color:inherit;border-radius:4px;padding:0 2px}
+.empty{background:#fff;border:2px dashed var(--line);border-radius:20px;padding:24px;text-align:center;color:var(--muted)}
+.foot{color:var(--muted);font-size:13px;border-top:2px dotted var(--line);padding-top:14px}
+.lessons li.sub{display:block;border-top:0;padding:10px 0 2px}
+.subt{display:inline-block;font:17px var(--disp);color:var(--area);margin-bottom:4px}
+.lw{min-width:0;display:flex;flex-direction:column}
+.pg{font-size:12px;color:var(--muted)}

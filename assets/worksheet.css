@@ -1,0 +1,54 @@
+/* 학습지 공통 디자인. A4 세로, 차시마다 한 면(.sheet). [예시 답 보기]를 켜면 .ans가 붉은 글씨로 나타납니다. */
+:root{--ink:#1c1f1d;--dim:#626a64;--line:#cfc9bb;--red:#b0341c;--leaf:#e8604f;--gold:#8a6a22;--paper:#ffffff;--desk:#fff3e6;
+  --serif:'Jua','Gowun Dodum',sans-serif;--sans:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--desk);color:var(--ink);font:14px/1.6 var(--sans)}
+.bar{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;background:#ff7a6b;color:#fff;padding:10px max(16px,env(safe-area-inset-left,0px))}
+.bar a{color:#fff;font-size:13px;text-decoration:none;opacity:.75}
+.bar .tools{display:flex;gap:6px;flex-wrap:wrap}
+.bar button{font:500 13px var(--sans);border:2px solid rgba(255,255,255,.7);background:transparent;color:#fff;border-radius:999px;padding:5px 14px;cursor:pointer}
+.bar button[aria-pressed="true"]{background:#fff;color:#e8604f;border-color:#fff}
+.sheets{display:flex;flex-direction:column;align-items:center;gap:24px;padding:24px 12px 60px}
+.sheet{width:210mm;max-width:100%;min-height:297mm;background:var(--paper);box-shadow:0 4px 0 #f0e2d4,0 8px 24px rgba(59,47,44,.08);border-radius:10px;padding:11mm 14mm;display:flex;flex-direction:column;gap:3.5mm}
+.sheet header{display:grid;grid-template-columns:1fr auto;gap:4mm;align-items:end;border-bottom:2px solid var(--ink);padding-bottom:3mm}
+.sheet .kicker{font-size:11px;letter-spacing:.16em;color:var(--leaf);font-weight:700}
+.sheet h1{font-family:var(--serif);font-weight:400;font-size:25px;line-height:1.25;margin:2px 0 0}
+.who{display:grid;grid-template-columns:repeat(4,auto);gap:0;border:1px solid var(--ink);font-size:12px}
+.who span{padding:3px 8px;border-left:1px solid var(--ink);min-width:15mm}
+.who span:first-child{border-left:0}
+.std{font-size:11px;color:var(--dim);margin:0}
+.big-q{border:2.5px solid var(--leaf);border-radius:16px;background:#fff8f6;padding:3.5mm 5mm;font-family:var(--serif);font-size:18px;font-weight:400;display:flex;gap:4mm;align-items:baseline}
+.big-q b{font-family:var(--sans);font-size:11px;letter-spacing:.14em;color:var(--leaf);white-space:nowrap}
+section.part{display:flex;flex-direction:column;gap:2.2mm}
+section.part h2{font-size:14px;margin:0;display:flex;gap:3mm;align-items:baseline}
+section.part h2 i{font-style:normal;color:#fff;background:var(--leaf);border-radius:999px;padding:0 6px;font-size:11.5px}
+section.part p{margin:0}
+.case{border-left:3px solid var(--red);background:#faf7f1;padding:2.5mm 4mm;font-size:12.5px}
+.case b{font-family:var(--serif);font-size:13.5px;display:block;margin-bottom:1mm}
+.photo{display:grid;grid-template-columns:58mm 1fr;gap:4mm;align-items:start}
+.photo figure{margin:0}
+.photo img{width:100%;aspect-ratio:4/3;object-fit:cover;background:#eee;display:block}
+.photo .miss{display:none;aspect-ratio:4/3;border:1.5px dashed var(--line);color:var(--dim);font-size:11px;align-items:center;justify-content:center;text-align:center;padding:4mm}
+.photo figure.err img{display:none}.photo figure.err .miss{display:flex}
+.photo figcaption{font-size:9.5px;color:var(--dim);margin-top:1mm;line-height:1.35}
+table.grid{width:100%;border-collapse:collapse;font-size:12.5px}
+table.grid th,table.grid td{border:1px solid var(--line);padding:1.8mm 3mm;vertical-align:top;text-align:left}
+table.grid th{background:#f2f0ea;font-weight:700;width:22mm}
+table.grid td{height:10mm}
+table.scale td,table.scale th{height:auto;padding:1.4mm 2.5mm}
+table.scale .c{width:11mm;text-align:center;color:var(--dim)}
+.choice{border:1px solid var(--line);border-radius:6px;padding:2.5mm 4mm;font-size:12.5px}
+.choice div{display:flex;flex-wrap:wrap;gap:2mm 7mm;margin:1.5mm 0}
+.choice .why{margin-top:1mm}
+.lines{border-bottom:1px solid var(--line);height:7mm}
+.blank{display:inline-block;max-width:100%;min-width:22mm;border-bottom:1px solid var(--ink);text-align:center;padding:0 2mm}
+.ans{color:var(--red);font-weight:600;visibility:hidden}
+.show-ans .ans{visibility:visible}
+p.ans,div.ans{font-size:12px;margin:1mm 0 0}
+.src-list{font-size:9.5px;color:var(--dim);border-top:1px solid var(--line);padding-top:2mm;margin-top:auto}
+.write{border:2px solid var(--leaf);border-radius:16px;padding:2.5mm 5mm;font-family:var(--serif);font-size:15px;line-height:2}
+@media (max-width:640px){.sheet{padding:18px 16px;min-height:0}.photo{grid-template-columns:1fr}.who{grid-template-columns:repeat(2,auto)}.sheet header{grid-template-columns:1fr}
+  table.scale .c{width:auto;padding:1mm}}
+@page{size:A4;margin:0}
+@media print{html,body{background:#fff}.bar{display:none}.sheets{padding:0;gap:0}.sheet{box-shadow:none;page-break-after:always;width:210mm;min-height:297mm}
+  body:not(.show-ans) .ans{visibility:hidden}}

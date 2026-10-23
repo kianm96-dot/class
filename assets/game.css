@@ -1,0 +1,28 @@
+/* 게임 공통 디자인 (어두운 화면). 역사 수업실 분류 게임과 같은 틀. */
+:root{--ink:#3b2f2c;--dim:#8a7a72;--faint:#f0e2d4;--bg:#fff8ef;--panel:#ffffff;--red:#ff7a6b;--gold:#f5a623;--ok:#2f9e6c;--serif:'Jua','Gowun Dodum',system-ui,sans-serif;--sans:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg) radial-gradient(#f6e6d4 1.6px,transparent 1.7px) 0 0/22px 22px;word-break:keep-all;color:var(--ink);font:15px/1.55 var(--sans)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:12px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--faint)}
+.top a{color:var(--dim);text-decoration:none;font-size:13px}
+.rounds{display:flex;gap:6px;flex-wrap:wrap}
+.rounds button{font:500 14px var(--sans);border:2px solid var(--faint);background:#fff;color:var(--dim);border-radius:999px;padding:4px 12px;cursor:pointer}
+.rounds button[aria-pressed="true"]{border-color:var(--red);background:var(--red);color:#fff}
+main{max-width:900px;margin:0 auto;padding:22px max(16px,env(safe-area-inset-left,0px)) 50px;display:flex;flex-direction:column;gap:18px;align-items:center;text-align:center}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(26px,5vw,42px);margin:0}
+.q{color:var(--red);font-family:var(--serif);font-size:clamp(16px,2.2vw,21px);margin:0}
+.hud{display:flex;gap:22px;color:var(--dim);font-variant-numeric:tabular-nums}
+.hud b{color:var(--ink);font-family:var(--serif);font-size:22px}
+.card{width:min(620px,100%);min-height:150px;background:#fff;color:var(--ink);border:3px solid #ffe1dc;box-shadow:0 6px 0 #ffe1dc;border-radius:28px;padding:22px 26px;font-family:var(--serif);font-size:clamp(18px,2.6vw,24px);font-weight:700;line-height:1.5;display:flex;align-items:center;justify-content:center;transition:transform .25s,opacity .25s}
+.card.out-l{transform:translateX(-60px) rotate(-4deg);opacity:0}.card.out-r{transform:translateX(60px) rotate(4deg);opacity:0}
+.card small{display:block;font:500 13px var(--sans);color:var(--dim);margin-top:8px}
+.bins{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;width:min(620px,100%)}
+.bin{font:21px var(--serif);border:2px solid var(--faint);background:var(--panel);color:var(--red);border-radius:20px;box-shadow:0 4px 0 var(--faint);padding:16px 10px;cursor:pointer}
+.bin small{display:block;font:500 11.5px var(--sans);color:var(--dim);margin-top:4px}
+.bin:hover,.bin:focus-visible{border-color:var(--gold);outline:none}
+.flash{min-height:44px;font-size:14px;max-width:620px}
+.flash.ok{color:var(--ok)}.flash.no{color:#d9534f}
+.review{width:min(720px,100%);text-align:left;background:var(--panel);border:2px solid var(--faint);border-radius:22px;padding:16px 18px}
+.review li{margin:6px 0;font-size:14px;color:var(--dim)}.review li b{color:var(--ink)}
+button.go{font:500 15px var(--sans);background:var(--red);border:0;color:#fff;border-radius:999px;padding:9px 22px;cursor:pointer}
+.how{color:var(--dim);font-size:13px;margin:0}
+@media (prefers-reduced-motion:reduce){.card{transition:none}}

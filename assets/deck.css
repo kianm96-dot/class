@@ -1,0 +1,107 @@
+/* 수업 슬라이드 공통 디자인 · 밝고 귀여운 테마.
+   크림색 점무늬 바탕, 사진은 둥근 액자, 글은 흰 말풍선 카드. 장마다 <section class="s" data-note="교사 메모">. */
+:root{--ink:#3b2f2c;--dim:#8a7a72;--bg:#fff8ef;--dot:#f6e6d4;--card:#ffffff;--line:#f0e2d4;
+  --red:#ff7a6b;--red-d:#e8604f;--leaf:#36b37e;--sky:#4a9eff;--gold:#f5a623;--sun:#ffc94a;--grape:#a777e3;
+  --serif:'Jua','Gowun Dodum',system-ui,sans-serif;--sans:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
+  --shadow:0 6px 0 rgba(59,47,44,.08),0 12px 30px rgba(59,47,44,.08)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg) radial-gradient(var(--dot) 2px,transparent 2.2px) 0 0/26px 26px;color:var(--ink);font-family:var(--sans);overflow:hidden;word-break:keep-all}
+.deck{position:fixed;inset:0}
+.s{position:absolute;inset:0;opacity:0;transform:translateY(12px);transition:opacity .5s ease,transform .5s ease;pointer-events:none;display:flex;align-items:center;justify-content:center}
+.s.on{opacity:1;transform:none;pointer-events:auto}
+/* 사진: 둥근 액자 */
+.ph{position:absolute;inset:8vh 4vw 6vh;overflow:hidden;background:#fff;border-radius:32px;border:6px solid #fff;box-shadow:var(--shadow)}
+.ph img{width:100%;height:100%;object-fit:contain;display:block;background:#fbf4ea;transition:transform 9s ease-out;border-radius:24px}
+.s.on .ph img{transform:scale(1.03)}
+.ph.cover img{object-fit:cover}
+.ph .miss{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--dim);font-size:16px;text-align:center;padding:30px;border:3px dashed var(--line);margin:30px;border-radius:24px}
+.ph .miss small{font-size:12px;opacity:.7}
+.ph.err img{display:none}.ph.err .miss{display:flex}
+.ph.right img{object-position:82% 50%}
+/* 큰 낱말: 흰 말풍선 */
+.word{position:absolute;left:6vw;bottom:10vh;font-family:var(--serif);font-size:min(12vw,140px);line-height:1;color:var(--red);background:var(--card);padding:3vh 3vw 2.4vh;border-radius:32px;box-shadow:var(--shadow);max-width:80vw}
+.word small{display:block;font-family:var(--sans);font-size:min(2.2vw,21px);color:var(--dim);margin-top:12px;letter-spacing:.01em}
+.tag{position:absolute;left:6vw;top:10vh;font-size:15px;color:#fff;background:var(--leaf);padding:6px 16px;border-radius:999px;font-weight:700;box-shadow:0 3px 0 #2a9467;max-width:70vw}
+/* 발문 */
+.q{max-width:min(1100px,88vw);text-align:center}
+.q .mark{font-family:var(--serif);font-size:min(14vw,150px);color:var(--sun);line-height:.6;height:.5em;display:block}
+.q h2{font-family:var(--serif);font-weight:400;font-size:min(5.6vw,64px);line-height:1.35}
+.lad{margin-top:4.5vh;display:flex;flex-direction:column;gap:12px;align-items:center}
+.lad p{font-size:min(2.5vw,25px);color:var(--ink);background:var(--card);padding:10px 22px;border-radius:999px;box-shadow:0 4px 0 var(--line);opacity:0;transform:translateY(8px) scale(.96);transition:.4s}
+.lad p.show{opacity:1;transform:none}
+.lad p b{display:inline-block;color:#fff;background:var(--red);border-radius:999px;padding:1px 12px;margin-right:10px;font-size:.72em;vertical-align:.12em}
+.lad p:nth-child(2) b{background:var(--sky)}.lad p:nth-child(3) b{background:var(--leaf)}.lad p:nth-child(4) b{background:var(--grape)}
+.onphoto{position:absolute;right:6vw;top:12vh;max-width:min(46vw,560px);text-align:right}
+.onphoto h2{font-family:var(--serif);font-weight:400;font-size:min(3.6vw,40px);line-height:1.35;background:var(--card);padding:16px 22px;border-radius:24px;display:inline-block;box-shadow:var(--shadow)}
+.onphoto .lad{margin-top:12px;gap:8px;align-items:flex-end}
+.onphoto .lad p{font-size:min(1.9vw,19px)}
+/* 낱말 묶음: 동글동글 스티커 */
+.trio{display:flex;gap:1.6vw;align-items:stretch;justify-content:center;flex-wrap:wrap}
+.trio div{text-align:center;opacity:0;transform:translateY(12px) rotate(-2deg);transition:.45s;background:var(--card);border-radius:28px;padding:3vh 1.8vw;box-shadow:var(--shadow);min-width:min(15vw,190px)}
+.trio div:nth-child(even){transform:translateY(12px) rotate(2deg)}
+.trio div.show{opacity:1;transform:none}
+.trio b{display:block;font-family:var(--serif);font-weight:400;font-size:min(8vw,92px);line-height:1;color:var(--red)}
+.trio div:nth-child(2) b{color:var(--sky)}.trio div:nth-child(3) b{color:var(--leaf)}.trio div:nth-child(4) b{color:var(--grape)}
+.trio span{display:block;margin-top:10px;color:var(--dim);font-size:min(1.8vw,18px)}
+.num{font-family:var(--serif);font-size:min(10vw,120px);color:var(--gold);line-height:1}
+.pair{display:grid;grid-template-columns:1fr 1fr;width:100%;height:100%}
+.pair .ph{position:relative;inset:auto;margin:8vh 2vw 6vh}
+.pair .cap{position:absolute;left:16px;bottom:16px;font-family:var(--serif);font-size:min(5vw,60px);background:#fff;border-radius:20px;padding:4px 18px;color:var(--red)}
+.center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.src{position:absolute;right:16px;bottom:10px;font-size:11px;color:var(--dim);max-width:60vw;text-align:right}
+.fill{border-bottom:4px dotted var(--red);display:inline-block;min-width:5em}
+/* 실제 사례 카드 */
+.case{position:absolute;left:5vw;bottom:9vh;width:min(620px,90vw);background:var(--card);border-radius:28px;padding:22px 28px 24px;box-shadow:var(--shadow);border:3px solid #ffe1dc}
+.case.solo{position:relative;left:auto;bottom:auto;width:min(880px,90vw)}
+.case .kick{display:inline-block;font-size:14px;color:#fff;background:var(--red);padding:3px 14px;border-radius:999px;font-weight:700}
+.case .when{font-size:min(1.9vw,17px);color:var(--dim);margin-top:8px}
+.case h2{font-family:var(--serif);font-weight:400;font-size:min(4.2vw,46px);line-height:1.25;margin-top:4px}
+.case .lad{margin-top:14px;gap:8px;align-items:flex-start;text-align:left}
+.case .lad p{font-size:min(1.95vw,19px);box-shadow:none;background:#fff6ee;border-radius:14px;padding:7px 14px}
+.case .ask{margin-top:14px;font-family:var(--serif);font-size:min(2.7vw,28px);color:var(--red);opacity:0;transition:.4s}
+.case .ask::before{content:'💭 '}
+.case .ask.show{opacity:1}
+/* 딜레마 */
+.dil{width:min(1100px,90vw);text-align:center}
+.dil .sit{font-family:var(--serif);font-size:min(3.8vw,42px);line-height:1.45;background:var(--card);border-radius:28px;padding:3vh 3vw;box-shadow:var(--shadow)}
+.dil .sit small{display:block;font:min(1.8vw,17px) var(--sans);color:var(--dim);margin-top:8px}
+.dil .opts{display:grid;grid-template-columns:1fr 1fr;gap:3vw;margin-top:4vh}
+.dil .opt{background:#e6f7ef;border-radius:28px;padding:3vh 2vw;opacity:0;transform:translateY(10px);transition:.45s;text-align:left;border:3px solid #bfe9d5}
+.dil .opt:last-child{background:#ffeceb;border-color:#ffcdc6}
+.dil .opt.show{opacity:1;transform:none}
+.dil .opt b{display:block;font-family:var(--serif);font-weight:400;font-size:min(5.5vw,60px);line-height:1;color:var(--leaf)}
+.dil .opt:last-child b{color:var(--red)}
+.dil .opt span{display:block;margin-top:10px;font-size:min(2.3vw,24px);line-height:1.45}
+.dil .ask{margin-top:4vh;color:var(--red);font-family:var(--serif);font-size:min(2.7vw,28px);opacity:0;transition:.45s}
+.dil .ask.show{opacity:1}
+/* 사상가의 말 */
+.quote{display:grid;grid-template-columns:minmax(0,38%) 1fr;width:100%;height:100%;align-items:center}
+.quote .ph{position:relative;inset:auto;height:82vh;margin:0 0 0 5vw}
+.quote .say{display:flex;flex-direction:column;justify-content:center;padding:0 6vw 0 4vw}
+.quote .say .mark{font-family:var(--serif);font-size:min(13vw,140px);color:var(--sun);line-height:.5;height:.45em}
+.quote .say blockquote{font-family:var(--serif);font-size:min(4vw,44px);line-height:1.45;background:var(--card);border-radius:28px;padding:3vh 2.6vw;box-shadow:var(--shadow)}
+.quote .say cite{display:block;font-style:normal;margin-top:2.4vh;color:var(--dim);font-size:min(1.9vw,18px)}
+.quote .say .lad{align-items:flex-start;text-align:left;margin-top:3vh}
+/* 숫자 견주기 */
+.nums{display:flex;gap:4vw;justify-content:center;flex-wrap:wrap;margin-top:5vh}
+.nums div{text-align:center;opacity:0;transform:translateY(10px);transition:.5s;background:var(--card);border-radius:32px;padding:3vh 3vw;box-shadow:var(--shadow)}
+.nums div.show{opacity:1;transform:none}
+.nums b{display:block;font-family:var(--serif);font-weight:400;font-size:min(10vw,120px);line-height:1;color:var(--sky)}
+.nums div:nth-child(2) b{color:var(--red)}
+.nums span{display:block;margin-top:10px;color:var(--dim);font-size:min(1.9vw,19px);max-width:16em}
+/* 아래 막대·메모·단추 */
+.bar{position:fixed;left:0;bottom:0;height:6px;background:linear-gradient(90deg,var(--red),var(--sun));border-radius:0 6px 6px 0;transition:width .4s;z-index:5}
+.hud{position:fixed;left:16px;bottom:12px;font-size:13px;color:var(--dim);z-index:5}
+.notes{position:fixed;right:0;top:0;bottom:0;width:min(440px,92vw);background:#fff;color:var(--ink);padding:26px 24px;overflow:auto;transform:translateX(100%);transition:transform .3s;z-index:9;font-size:15px;line-height:1.75;box-shadow:-10px 0 40px rgba(59,47,44,.15);border-radius:24px 0 0 24px}
+.notes.on{transform:none}
+.notes h4{font:18px var(--serif);color:var(--red);margin-bottom:10px}
+.notes p{margin-bottom:10px}.notes b{color:var(--red-d)}
+.help{position:fixed;right:16px;top:12px;z-index:6;display:flex;gap:6px}
+.help button,.home{background:#fff;color:var(--ink);border:2px solid var(--line);border-radius:999px;padding:5px 14px;font:14px var(--sans);cursor:pointer;text-decoration:none}
+.help button:hover,.home:hover{border-color:var(--red);color:var(--red)}
+.home{position:fixed;left:16px;top:12px;z-index:6}
+@media (max-width:700px){.ph{inset:7vh 3vw 5vh;border-width:4px;border-radius:22px}.onphoto{left:5vw;right:5vw;max-width:none;text-align:left}.onphoto .lad{align-items:flex-start}
+  .pair{grid-template-columns:1fr;grid-template-rows:1fr 1fr}
+  .quote{grid-template-columns:1fr;grid-template-rows:36% 1fr}.quote .ph{height:auto;margin:7vh 5vw 0;align-self:stretch}.ph.right img{object-position:50% 0}
+  .dil .opts{grid-template-columns:1fr;gap:12px;margin-top:3vh}.dil .opt span{font-size:15px}.case .lad p{font-size:14px}.lad p{font-size:15px}.q h2{font-size:26px}.case h2{font-size:24px}.dil .sit{font-size:20px}.quote .say blockquote{font-size:20px}.nums span{font-size:13px}.trio div{min-width:38vw}.trio span{font-size:13px}.word small{font-size:14px}}
+@media (prefers-reduced-motion:reduce){.s,.ph img{transition:none}.s.on .ph img{transform:none}}

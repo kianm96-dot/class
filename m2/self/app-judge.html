@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>게임 · 판단 감별사</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
+<link rel="stylesheet" href="../../assets/game.css">
+</head>
+<body>
+<div class="top"><a href="../../index.html#m2">← 도덕② 목록</a><div class="rounds" id="rounds"></div></div>
+<main>
+  <h1>판단 감별사</h1>
+  <p class="q" id="q"></p>
+  <div class="hud"><span>맞힌 수 <b id="score">0</b></span><span>연속 <b id="streak">0</b></span><span>남은 카드 <b id="left">0</b></span></div>
+  <div class="card" id="card"></div>
+  <div class="bins" id="bins"></div>
+  <div class="flash" id="flash" aria-live="polite"></div>
+  <p class="how">단추를 누르거나, 키보드 ← → (세 칸 이상일 때 숫자 1~5)로 고릅니다. 모둠 대결로 할 때는 판마다 점수를 칠판에 적습니다.</p>
+  <div class="review" id="review" hidden></div>
+</main>
+<script>
+/* 판마다 칸(bins)과 카드 [문장, 답 번호, 해설]. Ⅰ단원 1~6차시에서 다룬 내용으로 만들었습니다. */
+window.R={
+ judge:{name:'어떤 판단일까',q:'사실 판단일까, (도덕이 아닌) 가치 판단일까, 도덕 판단일까?',bins:[['사실 판단','참·거짓 확인'],['가치 판단','좋다·아름답다'],['도덕 판단','도덕적으로 옳다·그르다']],cards:[
+  ['수달은 멸종 위기종이다.',0,'참·거짓을 객관적으로 확인할 수 있다.'],
+  ['이 노래는 정말 아름답다.',1,'사람마다 다를 수 있는 가치 판단 — 도덕과는 관계없다.'],
+  ['친구에게 욕하는 것은 옳지 않다.',2,'도덕적 관점의 판단 — 가치 판단이면서 도덕 판단.'],
+  ['급식을 남기면 음식물 쓰레기가 늘어난다.',0,'조사로 확인할 수 있다.'],
+  ['먹을 만큼만 받아 남기지 말아야 한다.',2,'‘해야 한다’ — 도덕 판단.'],
+  ['짜장면이 짬뽕보다 맛있다.',1,'좋고 싫음 — 가치 판단.'],
+  ['이수현은 2001년 신오쿠보역에서 사람을 구하려다 숨졌다.',0,'기록으로 확인되는 사실.'],
+  ['그는 용기 있고 훌륭한 사람이다.',2,'사람의 인품에 대한 도덕 판단.'],
+  ['이 그림은 색이 촌스럽다.',1,'미적 가치 판단.'],
+  ['차별하는 법은 정의롭지 않다.',2,'킹 목사의 판단 — 도덕 판단.']]},
+ test:{name:'어떤 검사일까',q:'이 물음은 도덕 원리를 어떤 방법으로 검사하고 있을까?',bins:[['역할 교환 검사','입장 바꾸기'],['보편화 결과 검사','모두가 그러면']],cards:[
+  ['“바쁠 때는 새치기해도 된다” — 누가 바쁘다며 내 앞에 끼어들어도 괜찮을까?',0,'나에게 적용되는 입장이 되어 본다.'],
+  ['모든 사람이 약속을 필요할 때만 지키면 어떻게 될까?',1,'모두가 채택했을 때의 결과를 예상한다.'],
+  ['내 사진이 허락 없이 올라가도 웃을 수 있을까?',0,'역할 교환 검사.'],
+  ['모두가 쓰레기를 길에 버리면 거리는 어떻게 될까?',1,'보편화 결과 검사.'],
+  ['내가 그 반의 전학생이라면 이 장난을 어떻게 느낄까?',0,'역할 교환 검사.'],
+  ['모두가 들키지 않을 때만 정직하다면?',1,'기게스의 반지를 모두가 낀 세상 — 보편화 결과 검사.']]}
+};
+</script>
+<script src="../../assets/game-sort.js"></script>
+</body>
+</html>

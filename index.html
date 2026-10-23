@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>중학교 도덕 수업실</title>
+<meta name="description" content="2022 개정 교육과정 중학교 도덕 차시별 수업 슬라이드, 활동, 학습지, 게임">
+<meta name="theme-color" content="#fff8ef">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<div class="wrap">
+  <nav class="topbar" aria-label="상단">
+    <a class="brand" href="index.html"><i aria-hidden="true">🌱</i><span>도덕 수업실</span></a>
+    <span class="spacer"></span>
+    <span class="how">슬라이드: <kbd>→</kbd> 다음 · <kbd>N</kbd> 발문 메모 · <kbd>F</kbd> 전체 화면</span>
+  </nav>
+  <section class="intro">
+    <h1>오늘 <span>도덕</span> 시간,<br>어디부터 열까요?</h1>
+    <p id="curr"></p>
+    <label class="search" for="q">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" placeholder="차시 검색 (예: 행복, 인권, 친구)" autocomplete="off" aria-label="차시 검색">
+    </label>
+  </section>
+  <div class="bar">
+    <div class="seg" role="group" aria-label="교과서" id="books"></div>
+    <div class="legend" aria-label="영역 색"><span class="a-self"><i></i>자신</span><span class="a-others"><i></i>타인</span><span class="a-society"><i></i>사회·공동체</span><span class="a-nature"><i></i>자연</span></div>
+  </div>
+  <p class="status" id="status" aria-live="polite"></p>
+  <div class="units" id="units"></div>
+  <p class="foot">교과서 원문은 싣지 않고 단원 주제와 성취기준에 맞춰 새로 쓴 자료예요. 사진은 위키미디어 공용 자료이며 장마다 출처를 적었어요.</p>
+</div>
+<script src="assets/catalog.js"></script>
+<script src="assets/standards.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

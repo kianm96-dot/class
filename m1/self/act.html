@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>활동 · 도덕① Ⅰ 자신과의 관계</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
+<link rel="stylesheet" href="../../assets/act.css">
+<style>
+.lines svg{width:100%;height:auto;display:block;background:#fff;border:2px solid var(--faint);border-radius:22px}
+.crowd{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.crowd span{display:flex;flex-direction:column;align-items:center;gap:4px;width:64px;font-size:12px;color:var(--dim)}
+.crowd span i{width:44px;height:44px;border-radius:50%;background:#fff;border:2px solid var(--faint);display:flex;align-items:center;justify-content:center;font:20px var(--serif);color:var(--ink);font-style:normal;transition:background .2s}
+.crowd span.said i{background:#ffe1dc;color:var(--red)}
+.crowd span.me i{background:var(--leaf);color:#fff}
+.crowd span.ally i{box-shadow:0 0 0 3px var(--gold)}
+.abc{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.abc button{font:28px var(--serif);padding:14px;color:var(--red);box-shadow:0 3px 0 var(--faint)}
+.radar svg{width:100%;max-width:420px;display:block;margin:0 auto}
+.stack{display:flex;height:34px;border-radius:8px;overflow:hidden;background:var(--faint)}
+.stack i{display:block;height:100%;transition:width .3s}
+.leg{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--dim);margin-top:8px}
+.leg span::before{content:'';display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;background:var(--c);vertical-align:-1px}
+.arg{display:grid;gap:8px}
+.arg div{background:var(--panel);border:2px solid var(--faint);border-radius:16px;padding:10px 14px}
+.arg div small{display:block;color:var(--leaf);font-weight:700;letter-spacing:.1em;font-size:11.5px}
+.arg div.out{border-color:var(--gold)}
+.tests{display:grid;gap:8px;margin-top:12px}
+.tests .t{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
+.tests .t b.ok{color:var(--leaf)}.tests .t b.bad{color:var(--red)}
+.vals .pick b{font-size:19px}
+</style>
+</head>
+<body>
+<div class="top"><a href="../../index.html#m1">← 도덕① 목록</a><nav id="nav"></nav></div>
+
+<!-- 1 가치 고르기 -->
+<section class="panel" data-lesson="1">
+  <h1>나의 가치 고르기</h1>
+  <p class="q">16장 가운데 나에게 가장 소중한 것만 남겨 보자.</p>
+  <div class="stage">
+    <div><p class="step" id="v1step"></p><div class="grid vals" id="v1grid" style="margin-top:8px"></div></div>
+    <div class="side">
+      <div class="card"><div class="big" id="v1n">0</div><small style="color:var(--dim)" id="v1need"></small></div>
+      <div class="btns"><button class="go" id="v1next" type="button" disabled>다음 단계</button><button id="v1reset" type="button">처음부터</button></div>
+      <div class="fb" id="v1fb"></div>
+      <p class="note">고른 결과는 이 화면에만 남고 저장되지 않습니다. 남의 가치를 평가하지 않기로 약속하고 시작합니다.</p>
+    </div>
+  </div>
+  <div class="report" id="v1report" hidden style="margin-top:20px"></div>
+</section>
+
+<!-- 2 기게스의 반지 -->
+<section class="panel" data-lesson="2">
+  <h1>기게스의 반지</h1>
+  <p class="q">아무도 나를 볼 수 없다면, 나는 달라질까?</p>
+  <p class="note" style="margin-top:14px">학생들이 쪽지에 몰래 고르면 선생님이 세어 입력합니다(손 들기보다 솔직한 답이 나옵니다).</p>
+  <h2 class="sub">반지를 낀 나는?</h2>
+  <div class="tally" id="g2a"></div>
+  <h2 class="sub">반지로 가장 하고 싶은 일은 어느 쪽?</h2>
+  <div class="tally" id="g2b"></div>
+  <div class="btns" style="margin-top:16px"><button class="go" id="g2show" type="button">두 사람의 생각 보기</button><button id="g2reset" type="button">모두 0으로</button></div>
+  <div class="stage" id="g2talk" hidden>
+    <div class="card"><p class="step">글라우콘</p><p style="margin:6px 0 0">“사람들은 들켜서 벌받는 것이 두려워 정의롭게 굴 뿐이다. 반지만 있으면 누구라도 기게스처럼 될 것이다.”</p><p class="fb" id="g2g" style="margin-top:10px"></p></div>
+    <div class="card"><p class="step">소크라테스</p><p style="margin:6px 0 0">“불의한 사람은 겉으로 이득을 얻어도 영혼이 병든다. 정의는 그 자체로 영혼을 건강하고 조화롭게 한다.”</p><p class="fb" id="g2s" style="margin-top:10px"></p></div>
+  </div>
+</section>
+
+<!-- 3 동조 실험 -->
+<section class="panel" data-lesson="3">
+  <h1>여섯 사람과 나</h1>
+  <p class="q">왼쪽 기준선과 길이가 같은 선은 A, B, C 가운데 무엇일까?</p>
+  <div class="stage">
+    <div>
+      <div class="lines"><svg id="a3svg" viewBox="0 0 760 300" role="img" aria-label="기준선과 세 선"></svg></div>
+      <div class="crowd" id="a3crowd"></div>
+      <div class="abc" id="a3abc"><button type="button" data-k="0">A</button><button type="button" data-k="1">B</button><button type="button" data-k="2">C</button></div>
+    </div>
+    <div class="side">
+      <div class="card"><p class="step" id="a3trial"></p><div class="big" id="a3score" style="font-size:30px;margin-top:6px"></div></div>
+      <label class="card" style="display:flex;gap:10px;align-items:flex-start;cursor:pointer"><input type="checkbox" id="a3ally" style="accent-color:var(--red);margin-top:5px"><span><b>같은 편 한 명</b><br><small style="color:var(--dim)">네 번째 사람이 언제나 맞는 답을 말한다</small></span></label>
+      <div class="btns"><button id="a3reset" type="button">처음부터</button></div>
+      <div class="fb" id="a3fb" aria-live="polite"></div>
+      <p class="note">1951년 솔로몬 애시의 실험을 본뜬 <b>모형</b>입니다. 다른 여섯 사람은 컴퓨터가 정해진 대로 답합니다. 실제 실험에서는 참가자 한 명을 빼고 모두 연기자였습니다.</p>
+    </div>
+  </div>
+  <div class="report" id="a3report" hidden style="margin-top:20px"></div>
+</section>
+
+<!-- 4 인격 자화상 -->
+<section class="panel" data-lesson="4">
+  <h1>나의 인격 자화상</h1>
+  <p class="q">얼굴 대신 마음을 그려 보자. 요즘의 나는 얼마나 자주 그렇게 행동할까?</p>
+  <div class="stage">
+    <div class="card radar"><svg id="r4svg" viewBox="-210 -190 420 380" role="img" aria-label="덕목 여섯 가지 그래프"></svg></div>
+    <div class="side" id="r4side"></div>
+  </div>
+  <h2 class="sub">키우고 싶은 덕목과 내일의 실천</h2>
+  <div class="stage" style="margin-top:0">
+    <div class="card"><label for="r4plan" class="step">내일 할 행동 하나 (구체적으로)</label><textarea id="r4plan" rows="2" placeholder="예) 급식 줄에서 뒤에 선 친구에게 먼저 양보하기" style="margin-top:6px"></textarea></div>
+    <div class="side"><div class="fb" id="r4fb"></div><div class="btns no-print"><button class="go" type="button" onclick="print()">인쇄하기</button></div></div>
+  </div>
+  <p class="note" style="margin-top:14px">덕목은 점수 매기기가 아니라 돌아보기입니다. 아리스토텔레스: “정의로운 일을 함으로써 정의롭게 된다.”</p>
+</section>
+
+<!-- 5 행복 시간표 -->
+<section class="panel" data-lesson="5">
+  <h1>나의 행복 시간표</h1>
+  <p class="q">주말 하루, 자유 시간 6시간을 어떻게 나눌까?</p>
+  <div class="stage">
+    <div>
+      <div class="card"><div class="stack" id="h5stack"></div><div class="leg" id="h5leg"></div></div>
+      <div class="fb" id="h5fb" style="margin-top:14px"></div>
+      <div class="card" style="margin-top:14px"><p class="step">세 가지 눈으로 보기</p><div class="bars" id="h5bars" style="margin-top:8px"></div></div>
+    </div>
+    <div class="side" id="h5side"></div>
+  </div>
+  <p class="note" style="margin-top:14px">어느 시간이 어느 눈에 속하는지는 이해를 돕기 위한 <b>모형</b>입니다(운동은 마음과 건강, 친구와 가족은 관계, 배움과 돕기는 의미). 쉬는 시간도 행복에 꼭 필요합니다. 하버드 성인 발달 연구는 오래가는 행복의 열쇠로 ‘좋은 관계’를 꼽았습니다.</p>
+</section>
+
+<!-- 6 삶의 목적 -->
+<section class="panel" data-lesson="6">
+  <h1>가치 저울과 삶의 목적</h1>
+  <p class="q">다른 것을 얻기 위한 수단일까, 그 자체로 소중할까? 카드를 눌러 칸을 옮겨 보자.</p>
+  <div class="stage">
+    <div>
+      <div class="grid" id="p6cards" style="grid-template-columns:repeat(auto-fill,minmax(120px,1fr))"></div>
+      <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:14px">
+        <div class="card"><p class="step">도구적 가치 · 수단</p><div id="p6tool" class="btns" style="margin-top:8px;min-height:44px"></div></div>
+        <div class="card"><p class="step">본래적 가치 · 그 자체로</p><div id="p6own" class="btns" style="margin-top:8px;min-height:44px"></div></div>
+      </div>
+      <div class="btns" style="margin-top:12px"><button class="go" id="p6check" type="button">교과서 기준과 견주기</button><button id="p6reset" type="button">처음부터</button></div>
+      <div class="fb" id="p6fb" style="margin-top:12px">카드를 한 번 누르면 ‘도구적’, 두 번 누르면 ‘본래적’, 세 번 누르면 제자리로 돌아갑니다.</div>
+    </div>
+    <div class="side">
+      <div class="card"><p class="step">나의 삶의 목적 문장</p>
+        <label for="p6a" style="font-size:14px;color:var(--dim)">내가 소중히 여기는 가치</label><input type="text" id="p6a" placeholder="예) 생명, 사랑">
+        <label for="p6b" style="font-size:14px;color:var(--dim);display:block;margin-top:8px">좋아하고 잘하는 일</label><input type="text" id="p6b" placeholder="예) 동물 돌보기">
+        <label for="p6c" style="font-size:14px;color:var(--dim);display:block;margin-top:8px">누구에게 보탬이 될까</label><input type="text" id="p6c" placeholder="예) 아픈 동물과 그 가족">
+      </div>
+      <div class="report" id="p6out"></div>
+    </div>
+  </div>
+  <p class="note" style="margin-top:14px">교과서는 돈·명예·지위를 도구적 가치, 자유·사랑·정의·평화를 본래적 가치의 예로 듭니다. 다른 카드는 사람마다 생각이 다를 수 있으니 까닭을 말해 보게 합니다.</p>
+</section>
+
+<script src="../../assets/act.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+
+/* ── 1 가치 고르기: 16 → 5 → 3 → 1 */
+(() => {
+  const V = [['가족','함께 사는 사람들'],['우정','믿을 수 있는 친구'],['정직','거짓 없는 마음'],['건강','몸과 마음의 튼튼함'],['돈','넉넉한 살림'],['성공','목표를 이루기'],['사랑','아끼고 아낌받기'],['자유','내 뜻대로 고르기'],
+             ['배움','새로 알고 자라기'],['재미','즐거운 시간'],['인정','남에게 인정받기'],['봉사','남을 돕기'],['정의','공정함, 바름'],['평화','다툼 없는 삶'],['꿈','하고 싶은 일'],['자연','생명과 환경']];
+  const STEPS = [[5,'1단계 · 소중한 것 다섯 장 고르기','다섯 장을 골랐다. 고르지 않은 열한 장 가운데 아까운 것이 있었나?'],
+                 [3,'2단계 · 다섯 장에서 세 장만 남기기','두 장을 내려놓았다. 무엇을 내려놓기가 가장 어려웠나?'],
+                 [1,'3단계 · 단 한 장만 남기기','마지막 한 장. 이 가치를 지키려고 무언가를 포기한 적이 있나?']];
+  let step = 0, pool = V.map((_, i) => i), sel = new Set(), hist = [];
+  function draw() {
+    const [need, label] = STEPS[step];
+    $('v1step').textContent = label; $('v1n').textContent = sel.size + ' / ' + need; $('v1need').textContent = need + '장을 고르세요';
+    $('v1grid').innerHTML = V.map((v, i) => pool.includes(i) ? `<button class="pick" type="button" data-i="${i}" aria-pressed="${sel.has(i)}"><b>${v[0]}</b><small>${v[1]}</small></button>` : '').join('');
+    $('v1next').disabled = sel.size !== need; $('v1next').textContent = step === 2 ? '마치기' : '다음 단계';
+    $('v1fb').textContent = hist.length ? STEPS[hist.length - 1][2] : '천천히, 솔직하게 고릅니다.';
+  }
+  $('v1grid').onclick = e => { const b = e.target.closest('.pick'); if (!b) return; const i = +b.dataset.i, need = STEPS[step][0];
+    if (sel.has(i)) sel.delete(i); else if (sel.size < need) sel.add(i); draw(); };
+  $('v1next').onclick = () => { hist.push([...sel]); pool = [...sel]; sel = new Set();
+    if (step < 2) { step++; draw(); return; }
+    const [five, three, one] = hist.map(h => h.map(i => V[i][0]));
+    $('v1report').hidden = false; $('v1grid').innerHTML = ''; $('v1next').disabled = true;
+    $('v1report').innerHTML = `<h3>나에게 가장 소중한 것: ${esc(one[0])}</h3><p>다섯 장: ${five.map(esc).join(' · ')}<br>세 장: ${three.map(esc).join(' · ')}</p>
+      <p><b>짝과 나누기</b> ① 왜 ‘${esc(one[0])}’을(를) 남겼나? ② 이 가치를 지킨 경험 하나 ③ 이 가치 때문에 고민했던 선택 하나</p>
+      <p style="color:#626a64;font-size:13px">학습지 1차시 ‘가치관과 선택’ 칸에 세 장을 옮겨 적으세요.</p>`; };
+  $('v1reset').onclick = () => { step = 0; pool = V.map((_, i) => i); sel = new Set(); hist = []; $('v1report').hidden = true; draw(); };
+  draw();
+})();
+
+/* ── 2 기게스의 반지: 선생님이 세어 입력 */
+(() => {
+  const A = [['지금처럼 산다','보는 사람이 없어도 똑같이'],['하고 싶은 대로 한다','들킬 걱정이 없으니'],['잘 모르겠다','그때 가 봐야 알 것 같다']];
+  const B = [['남에게 해가 되는 일','몰래 가져가기, 엿보기, 골탕 먹이기'],['나만 몰래 좋은 일','숙제 빼먹기, 공짜로 들어가기'],['남을 몰래 돕는 일','어려운 사람을 아무도 모르게 돕기']];
+  const cnt = { a: A.map(() => 0), b: B.map(() => 0) };
+  function box(id, L, key) {
+    $(id).innerHTML = L.map((x, i) => `<div class="card"><b>${x[0]}</b><small style="color:var(--dim)">${x[1]}</small><div class="n" id="${key}${i}">${cnt[key][i]}</div>
+      <div class="btns"><button type="button" data-k="${key}" data-i="${i}" data-d="-1" aria-label="${x[0]} 하나 빼기">−</button><button type="button" data-k="${key}" data-i="${i}" data-d="1" aria-label="${x[0]} 하나 더하기">+</button></div></div>`).join('');
+  }
+  function sync() { ['a','b'].forEach(k => cnt[k].forEach((v, i) => $(k + i).textContent = v)); }
+  box('g2a', A, 'a'); box('g2b', B, 'b');
+  document.querySelector('[data-lesson="2"]').addEventListener('click', e => { const b = e.target.closest('button[data-k]'); if (!b) return;
+    const k = b.dataset.k, i = +b.dataset.i; cnt[k][i] = Math.max(0, cnt[k][i] + +b.dataset.d); sync(); });
+  $('g2reset').onclick = () => { cnt.a.fill(0); cnt.b.fill(0); sync(); $('g2talk').hidden = true; };
+  $('g2show').onclick = () => {
+    const tA = cnt.a.reduce((x, y) => x + y, 0), tB = cnt.b.reduce((x, y) => x + y, 0);
+    const pct = (n, t) => t ? Math.round(n / t * 100) + '%' : '–';
+    $('g2g').textContent = `우리 반에서 ‘하고 싶은 대로 한다’는 ${pct(cnt.a[1], tA)}, 남에게 해가 되거나 나만 좋은 일은 ${pct(cnt.b[0] + cnt.b[1], tB)}. 글라우콘의 말이 맞았을까?`;
+    $('g2s').textContent = `‘지금처럼 산다’ ${pct(cnt.a[0], tA)}, 남을 몰래 돕고 싶다 ${pct(cnt.b[2], tB)}. 이 사람들은 무엇 때문에 그렇게 고를까?`;
+    $('g2talk').hidden = false; };
+})();
+
+/* ── 3 동조 실험 모형 */
+(() => {
+  // [기준선 길이, A, B, C, 다수가 말하는 답(-1이면 정답을 말함)]
+  const T = [[150,110,150,190,-1],[200,200,160,240,2],[120,160,120,90,0],[180,140,220,180,-1],[220,180,220,260,0],[140,140,100,180,1],[160,200,120,160,-1],[190,150,230,190,1],[130,130,170,90,2],[210,170,210,250,2],[170,130,210,170,-1],[230,230,190,270,1]];
+  const N = ['민','서','준','하','윤','지'];
+  let t = 0, conform = 0, crit = 0, busy = false, log = [];
+  const right = r => [r[1], r[2], r[3]].indexOf(r[0]);
+  function svg(r) {
+    const line = (x, len, lab, hi) => `<line x1="${x}" y1="${250 - len}" x2="${x}" y2="250" stroke="${hi ? '#f5a623' : '#ff7a6b'}" stroke-width="8" stroke-linecap="round"/><text x="${x}" y="285" fill="#3b2f2c" font-size="26" font-family="Jua,sans-serif" text-anchor="middle">${lab}</text>`;
+    $('a3svg').innerHTML = line(110, r[0], '기준') + '<line x1="220" y1="20" x2="220" y2="280" stroke="#f0e2d4" stroke-dasharray="6 6"/>' + line(360, r[1], 'A') + line(500, r[2], 'B') + line(640, r[3], 'C');
+  }
+  function crowd(said) {
+    $('a3crowd').innerHTML = N.map((n, i) => `<span class="${i < said.length ? 'said' : ''}${$('a3ally').checked && i === 3 ? ' ally' : ''}"><i>${i < said.length ? 'ABC'[said[i]] : ''}</i>${n}</span>`).join('') + '<span class="me"><i>나</i>나</span>';
+  }
+  function answers(r) { const ok = right(r), wrong = r[4]; return N.map((_, i) => wrong < 0 ? ok : ($('a3ally').checked && i === 3 ? ok : wrong)); }
+  function start() {
+    if (t >= T.length) return report();
+    const r = T[t]; svg(r); busy = true; $('a3trial').textContent = (t + 1) + ' / ' + T.length + '번째 문제'; $('a3score').textContent = '다른 사람들이 답하는 중…';
+    document.querySelectorAll('#a3abc button').forEach(b => b.disabled = true);
+    const ans = answers(r); let k = 0; crowd([]);
+    const tick = () => { k++; crowd(ans.slice(0, k)); if (k < ans.length) setTimeout(tick, 450); else { busy = false; $('a3score').textContent = '이제 내 차례'; document.querySelectorAll('#a3abc button').forEach(b => b.disabled = false); } };
+    setTimeout(tick, 500);
+  }
+  $('a3abc').onclick = e => { const b = e.target.closest('button'); if (!b || busy) return;
+    const r = T[t], k = +b.dataset.k, ok = right(r), critical = r[4] >= 0;
+    if (critical) { crit++; if (k === r[4]) conform++; }
+    log.push({ k, ok, critical, followed: critical && k === r[4] });
+    $('a3fb').className = 'fb' + (k === ok ? '' : ' no');
+    $('a3fb').textContent = k === ok ? (critical ? '다수와 다르게, 내가 본 대로 답했다.' : '맞다.') : (critical && k === r[4] ? '다수를 따랐다. 정답은 ' + 'ABC'[ok] + '였다.' : '정답은 ' + 'ABC'[ok] + '였다.');
+    t++; setTimeout(start, 900); };
+  function report() {
+    $('a3trial').textContent = '끝'; $('a3score').textContent = `다수를 따름 ${conform} / ${crit}`;
+    $('a3report').hidden = false;
+    $('a3report').innerHTML = `<h3>${crit}번의 ‘다수가 틀린 문제’ 가운데 ${conform}번 다수를 따랐습니다</h3>
+      <p>1951년 애시의 실험에서는 이런 문제에서 나온 답의 약 3분의 1이 틀린 다수를 따랐고, 참가자 4명 가운데 3명꼴이 적어도 한 번은 따랐습니다. 그런데 연기자 가운데 <b>한 사람만 맞는 답을 말해도</b> 따르는 일이 크게 줄었습니다.</p>
+      <p><b>생각해 보기</b> ① 화면 속 여섯 사람이 우리 반 친구였다면 더 따르게 될까? ② ‘같은 편 한 명’을 켜고 다시 해 보면? ③ 단톡방에서 나는 누구의 ‘같은 편 한 명’이 될 수 있을까?</p>`;
+  }
+  $('a3reset').onclick = () => { t = 0; conform = 0; crit = 0; log = []; $('a3report').hidden = true; $('a3fb').textContent = ''; start(); };
+  $('a3ally').onchange = () => $('a3reset').onclick();
+  document.querySelector('[data-lesson="3"]').onShow = () => { if (!t && !busy) start(); };
+})();
+
+/* ── 4 인격 자화상 */
+(() => {
+  const D = [['정직','불리해도 사실대로 말한다'],['배려','다른 사람의 처지를 먼저 생각한다'],['책임','맡은 일을 끝까지 한다'],['용기','옳지 않은 일에 “아니”라고 말한다'],['절제','하고 싶은 것을 참을 줄 안다'],['공감','남의 기쁨과 슬픔을 함께 느낀다']];
+  const v = D.map(() => 3); let grow = -1;
+  $('r4side').innerHTML = D.map((d, i) => `<div class="rng"><label for="r4_${i}"><span><b>${d[0]}</b> <small style="color:var(--dim)">${d[1]}</small></span><b id="r4v${i}">3</b></label><input type="range" id="r4_${i}" min="1" max="5" value="3" aria-label="${d[0]}"></div>`).join('') +
+    `<div class="card"><label for="r4grow" class="step">키우고 싶은 덕목</label><select id="r4grow" style="width:100%;margin-top:6px;font:500 15px var(--sans);background:#fff;color:var(--ink);border:2px solid var(--faint);border-radius:12px;padding:6px"><option value="-1">골라 주세요</option>${D.map((d, i) => `<option value="${i}">${d[0]}</option>`).join('')}</select></div>`;
+  const pt = (i, r) => { const a = -Math.PI / 2 + i * Math.PI * 2 / D.length; return [Math.cos(a) * r, Math.sin(a) * r]; };
+  function draw() {
+    const R = 140, ring = k => D.map((_, i) => pt(i, R * k / 5).join(',')).join(' ');
+    let s = [1,2,3,4,5].map(k => `<polygon points="${ring(k)}" fill="none" stroke="${k === 5 ? '#e8d6c4' : '#f3e7da'}"/>`).join('');
+    s += D.map((d, i) => { const [x, y] = pt(i, R), [lx, ly] = pt(i, R + 30); return `<line x1="0" y1="0" x2="${x}" y2="${y}" stroke="#f0e2d4"/><text x="${lx}" y="${ly + 6}" text-anchor="middle" font-size="17" font-family="Jua,sans-serif" fill="${i === grow ? '#ff7a6b' : '#3b2f2c'}">${d[0]}</text>`; }).join('');
+    s += `<polygon points="${D.map((_, i) => pt(i, R * v[i] / 5).join(',')).join(' ')}" fill="rgba(255,122,107,.25)" stroke="#ff7a6b" stroke-width="3"/>`;
+    s += D.map((_, i) => { const [x, y] = pt(i, R * v[i] / 5); return `<circle cx="${x}" cy="${y}" r="5" fill="${i === grow ? '#f5a623' : '#ff7a6b'}"/>`; }).join('');
+    $('r4svg').innerHTML = s;
+    const hi = v.indexOf(Math.max(...v));
+    $('r4fb').innerHTML = `지금 가장 강한 덕목은 <b>${D[hi][0]}</b>.` + (grow >= 0 ? ` 키우고 싶은 덕목은 <b>${D[grow][0]}</b> — “${D[grow][1]}”를 내일 한 번 해 보기.` : ' 키우고 싶은 덕목을 하나 골라 보세요.');
+  }
+  D.forEach((_, i) => $('r4_' + i).oninput = e => { v[i] = +e.target.value; $('r4v' + i).textContent = v[i]; draw(); });
+  $('r4grow').onchange = e => { grow = +e.target.value; draw(); };
+  draw();
+})();
+
+/* ── 5 행복 시간표 */
+(() => {
+  const C = [['혼자 쉬기 · 영상','마음','#8aa6c9',2],['운동 · 산책','마음','#7cc4a2',1],['친구와','관계','#e3b75f',1],['가족과','관계','#e0a35f',1],['취미 · 배움','의미','#c58fd1',1],['남을 돕기','의미','#e0603f',0]];
+  const v = C.map(c => c[3]);
+  $('h5side').innerHTML = C.map((c, i) => `<div class="rng"><label for="h5_${i}"><span><b>${c[0]}</b></span><b id="h5v${i}">${c[3]}시간</b></label><input type="range" id="h5_${i}" min="0" max="6" step="0.5" value="${c[3]}" aria-label="${c[0]}"></div>`).join('');
+  function draw() {
+    const tot = v.reduce((a, b) => a + b, 0);
+    $('h5stack').innerHTML = C.map((c, i) => `<i style="width:${v[i] / Math.max(6, tot) * 100}%;background:${c[2]}" title="${c[0]}"></i>`).join('');
+    $('h5leg').innerHTML = C.map(c => `<span style="--c:${c[2]}">${c[0]}</span>`).join('');
+    const L = { 마음: 0, 관계: 0, 의미: 0 }; C.forEach((c, i) => L[c[1]] += v[i]);
+    $('h5bars').innerHTML = Object.entries(L).map(([k, n]) => `<div><span>${k}</span><i><b style="width:${n / 6 * 100}%"></b></i><span>${n}</span></div>`).join('');
+    const fb = $('h5fb'); fb.className = 'fb' + (tot > 6 ? ' no' : '');
+    if (tot > 6) fb.textContent = `모두 ${tot}시간. 6시간을 넘었어요. 무엇을 줄일까요?`;
+    else if (tot < 6) fb.textContent = `모두 ${tot}시간. ${6 - tot}시간이 남았어요.`;
+    else { const low = Object.entries(L).sort((a, b) => a[1] - b[1])[0][0];
+      fb.textContent = `6시간을 다 나누었다. 가장 적은 눈은 ‘${low}’. ` + ({ 마음: '나를 기쁘고 편안하게 하는 시간도 꼭 필요하다.', 관계: '오래가는 행복의 열쇠로 꼽힌 ‘좋은 관계’를 위한 시간은 충분할까?', 의미: '보람을 느끼는 일은 힘들어도 오래 기억에 남는다.' })[low]; }
+  }
+  C.forEach((_, i) => $('h5_' + i).oninput = e => { v[i] = +e.target.value; $('h5v' + i).textContent = v[i] + '시간'; draw(); });
+  draw();
+})();
+
+/* ── 6 가치 저울 + 삶의 목적 문장 */
+(() => {
+  // [이름, 교과서 기준(0 도구적, 1 본래적, -1 생각해 보기), 설명]
+  const V = [['돈',0,'다른 것을 얻기 위한 수단'],['명예',0,'남에게 인정받기 위한 것'],['지위',0,'높은 자리'],['자유',1,'그 자체로 소중'],['사랑',1,'그 자체로 소중'],['정의',1,'그 자체로 소중'],['평화',1,'그 자체로 소중'],
+             ['인기',-1,'수단일까, 목적일까?'],['좋은 성적',-1,'무엇을 위한 것일까?'],['건강',-1,'그 자체로도, 수단으로도'],['우정',-1,'친구는 수단일까?'],['진리',-1,'알고 싶은 마음']];
+  const st = V.map(() => -1);
+  function draw() {
+    $('p6cards').innerHTML = V.map((v, i) => st[i] < 0 ? `<button class="pick" type="button" data-i="${i}" style="min-height:0;text-align:center"><b>${v[0]}</b></button>` : '').join('');
+    const chip = i => `<button type="button" data-i="${i}">${V[i][0]}</button>`;
+    $('p6tool').innerHTML = V.map((_, i) => st[i] === 0 ? chip(i) : '').join('');
+    $('p6own').innerHTML = V.map((_, i) => st[i] === 1 ? chip(i) : '').join('');
+  }
+  document.querySelector('[data-lesson="6"]').addEventListener('click', e => { const b = e.target.closest('button[data-i]'); if (!b) return; const i = +b.dataset.i; st[i] = st[i] === -1 ? 0 : st[i] === 0 ? 1 : -1; draw(); });
+  $('p6check').onclick = () => {
+    const sure = V.map((v, i) => [v, st[i]]).filter(x => x[0][1] >= 0), ok = sure.filter(x => x[1] === x[0][1]).length;
+    const think = V.filter((v, i) => v[1] < 0 && st[i] >= 0).map(v => v[0]);
+    $('p6fb').className = 'fb';
+    $('p6fb').innerHTML = `교과서에 예로 나온 7장 가운데 <b>${ok}장</b>이 같은 칸에 있어요. 돈·명예·지위는 도구적, 자유·사랑·정의·평화는 본래적 가치.` + (think.length ? ` ${think.join(', ')}은(는) 정답이 정해져 있지 않아요 — 왜 그 칸에 넣었는지 짝에게 말해 보세요.` : '');
+  };
+  $('p6reset').onclick = () => { st.fill(-1); draw(); $('p6fb').className = 'fb'; $('p6fb').textContent = '카드를 한 번 누르면 ‘도구적’, 두 번 누르면 ‘본래적’, 세 번 누르면 제자리로 돌아갑니다.'; };
+  function sentence() {
+    const a = $('p6a').value.trim(), b = $('p6b').value.trim(), c = $('p6c').value.trim();
+    const ok = [a, b, c].map(Boolean);
+    $('p6out').innerHTML = `<h3>나의 삶의 목적</h3><p style="font-size:18px">나는 <b>${esc(a || '○○')}</b>을(를) 소중히 여기며, <b>${esc(b || '○○')}</b>(으)로 <b>${esc(c || '○○')}</b>에게 보탬이 되는 사람이 되고 싶다.</p>
+      <p style="font-size:14px;color:var(--dim)">${ok[0] ? '✔' : '○'} 본래적 가치 · ${ok[1] ? '✔' : '○'} 흥미와 적성 · ${ok[2] ? '✔' : '○'} 사회에 미치는 영향</p>`;
+  }
+  ['p6a', 'p6b', 'p6c'].forEach(id => $(id).oninput = sentence);
+  draw(); sentence();
+})();
+</script>
+</body>
+</html>
