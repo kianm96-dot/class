@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>게임 · 공존 감별사</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
+<link rel="stylesheet" href="../../assets/game.css">
+</head>
+<body>
+<div class="top"><a href="../../index.html#m2">← 도덕② 목록</a><div class="rounds" id="rounds"></div></div>
+<main>
+  <h1>공존 감별사</h1>
+  <p class="q" id="q"></p>
+  <div class="hud"><span>맞힌 수 <b id="score">0</b></span><span>연속 <b id="streak">0</b></span><span>남은 카드 <b id="left">0</b></span></div>
+  <div class="card" id="card"></div>
+  <div class="bins" id="bins"></div>
+  <div class="flash" id="flash" aria-live="polite"></div>
+  <p class="how">단추를 누르거나, 키보드 ← → (세 칸 이상일 때 숫자 1~5)로 고릅니다. 모둠 대결로 할 때는 판마다 점수를 칠판에 적습니다.</p>
+  <div class="review" id="review" hidden></div>
+</main>
+<script>
+window.R={
+"view": {
+"name": "자연관",
+"q": "어떤 관점일까? (206~207쪽)",
+"bins": [
+[
+"인간 중심주의",
+"도구적 가치"
+],
+[
+"생태 중심주의",
+"본래적 가치"
+],
+[
+"동양의 자연관",
+"조화와 상호 의존"
+]
+],
+"cards": [
+[
+"자연은 인간을 위한 수단이다",
+0,
+"인간 중심"
+],
+[
+"생태계 전체의 균형이 중요하다",
+1,
+"생태 중심"
+],
+[
+"천인합일",
+2,
+"유교"
+],
+[
+"나무는 쓸모가 있어야 의미가 있다",
+0,
+"서안"
+],
+[
+"인간은 자연 공동체의 평범한 구성원이다",
+1,
+"레오폴드"
+],
+[
+"불살생과 자비",
+2,
+"불교"
+]
+]
+},
+"crisis": {
+"name": "환경 위기",
+"q": "환경 위기의 어떤 특성일까? (210~211쪽)",
+"bins": [
+[
+"자정 능력 초과",
+"스스로 못 고침"
+],
+[
+"빠른 속도",
+"예측보다 빨리"
+],
+[
+"넓은 영향 범위",
+"국경·세대를 넘어"
+]
+],
+"cards": [
+[
+"바다가 정화하지 못할 만큼 쌓인 플라스틱",
+0,
+"자정 능력"
+],
+[
+"예측보다 빨리 녹는 빙하",
+1,
+"속도"
+],
+[
+"해외에서 날아온 미세 먼지",
+2,
+"국경을 넘어"
+],
+[
+"스스로 깨끗해지지 못하는 강",
+0,
+"자정 능력"
+],
+[
+"미래 세대까지 위협하는 기후 변화",
+2,
+"세대를 넘어"
+],
+[
+"갑자기 늘어난 폭염 일수",
+1,
+"속도"
+]
+]
+},
+"effort": {
+"name": "공존의 노력",
+"q": "어떤 차원의 노력일까? (214~215쪽)",
+"bins": [
+[
+"지구적",
+"국제 협약·국제기구"
+],
+[
+"국가적",
+"법·제도·캠페인"
+],
+[
+"개인적",
+"나의 생활"
+]
+],
+"cards": [
+[
+"파리 협정",
+0,
+"국제 협약"
+],
+[
+"2050 탄소 중립 선언",
+1,
+"국가"
+],
+[
+"샤워 시간 1분 줄이기",
+2,
+"자원 절약"
+],
+[
+"일회용품 사용 규제",
+1,
+"제도"
+],
+[
+"몬트리올 의정서",
+0,
+"국제 협약"
+],
+[
+"새 옷 대신 있는 옷 다시 입기",
+2,
+"소비 줄이기"
+]
+]
+}
+};
+</script>
+<script src="../../assets/game-sort.js"></script>
+</body>
+</html>

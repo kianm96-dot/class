@@ -396,5 +396,7 @@ window.FILES = {
   'm1/society': { slides:[1,2,3,4,5,6,7], act:[1,2,3,4,5,6,7], ws:[1,2,3,4,5,6,7], game:{ href:'app-community.html', title:'공동체 감별사' } },
   'm1/nature': { slides:[1,2], act:[1,2], ws:[1,2], game:{ href:'app-life.html', title:'생명 감별사' } },
   'm2/others': { slides:[1,2,3,4,5,6,7], act:[1,2,3,4,5,6,7], ws:[1,2,3,4,5,6,7], game:{ href:'app-peace.html', title:'평화 감별사' } },
-  'm2/self': { slides:[1,2,3,4,5,6,7,8,9,10], act:[1,2,3,4,5,6,7,8,9,10], ws:[1,2,3,4,5,6,7,8,9,10], game:{ href:'app-judge.html', title:'판단 감별사' } }
+  'm2/self': { slides:[1,2,3,4,5,6,7,8,9,10], act:[1,2,3,4,5,6,7,8,9,10], ws:[1,2,3,4,5,6,7,8,9,10], game:{ href:'app-judge.html', title:'판단 감별사' } },
+  'm2/society': { slides:[1,2,3,4,5,6,7,8], act:[1,2,3,4,5,6,7,8], ws:[1,2,3,4,5,6,7,8], game:{ href:'app-justice.html', title:'정의 감별사' } },
+  'm2/nature': { slides:[1,2,3], act:[1,2,3], ws:[1,2,3], game:{ href:'app-earth.html', title:'공존 감별사' } }
 };
