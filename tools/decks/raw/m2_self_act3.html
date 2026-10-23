@@ -1,0 +1,82 @@
+<!-- 도덕② Ⅰ 3차시 손으로 만든 활동 (build_act.py 가 이어 붙임) -->
+<style>
+.lines svg{width:100%;height:auto;display:block;background:#fff;border:2px solid var(--faint);border-radius:22px}
+.crowd{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.crowd span{display:flex;flex-direction:column;align-items:center;gap:4px;width:64px;font-size:12px;color:var(--dim)}
+.crowd span i{width:44px;height:44px;border-radius:50%;background:#fff;border:2px solid var(--faint);display:flex;align-items:center;justify-content:center;font:20px var(--serif);color:var(--ink);font-style:normal;transition:background .2s}
+.crowd span.said i{background:#ffe1dc;color:var(--red)}
+.crowd span.me i{background:var(--leaf);color:#fff}
+.crowd span.ally i{box-shadow:0 0 0 3px var(--gold)}
+.abc{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.abc button{font:28px var(--serif);padding:14px;color:var(--red);box-shadow:0 3px 0 var(--faint)}
+.radar svg{width:100%;max-width:420px;display:block;margin:0 auto}
+.stack{display:flex;height:34px;border-radius:8px;overflow:hidden;background:var(--faint)}
+.stack i{display:block;height:100%;transition:width .3s}
+.leg{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--dim);margin-top:8px}
+.leg span::before{content:'';display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;background:var(--c);vertical-align:-1px}
+.arg{display:grid;gap:8px}
+.arg div{background:var(--panel);border:2px solid var(--faint);border-radius:16px;padding:10px 14px}
+.arg div small{display:block;color:var(--leaf);font-weight:700;letter-spacing:.1em;font-size:11.5px}
+.arg div.out{border-color:var(--gold)}
+.tests{display:grid;gap:8px;margin-top:12px}
+.tests .t{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
+.tests .t b.ok{color:var(--leaf)}.tests .t b.bad{color:var(--red)}
+.vals .pick b{font-size:19px}
+</style>
+<!-- 3 도덕적 추론 -->
+<section class="panel" data-lesson="3">
+  <h1>추론 블록 맞추기</h1>
+  <p class="q">상황을 고르고, 도덕 원리를 골라 추론을 완성한 뒤 역할 교환 검사와 보편화 결과 검사로 따져 보자.</p>
+  <div class="btns" id="d6sits" style="margin-top:14px"></div>
+  <div class="card" style="margin-top:14px"><p class="step">상황</p><p id="d6sit" style="margin:4px 0 0;font-size:17px"></p></div>
+  <div class="stage">
+    <div><p class="step">도덕 원리 고르기</p><div class="grid" id="d6pr" style="grid-template-columns:1fr;margin-top:8px"></div>
+      <div class="tests" id="d6tests"></div></div>
+    <div class="side"><div class="arg" id="d6arg"></div><div class="fb" id="d6fb"></div></div>
+  </div>
+  <h2 class="sub">도덕적 상상력</h2>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
+    <div class="card"><label class="step" for="d6e">공감 · 그 사람이라면?</label><textarea id="d6e" rows="3" style="margin-top:6px"></textarea></div>
+    <div class="card"><label class="step" for="d6r">결과 · 이 행동 뒤에는?</label><textarea id="d6r" rows="3" style="margin-top:6px"></textarea></div>
+    <div class="card"><label class="step" for="d6a">대안 · 다른 길은?</label><textarea id="d6a" rows="3" style="margin-top:6px"></textarea></div>
+  </div>
+</section>
+
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+
+/* ── 3 추론 블록: 원리 + 사실 → 판단, 두 가지 검사 */
+(() => {
+  const TESTS = [['역할 교환','입장을 바꾸어 나에게 적용되어도 받아들일까?'],['보편화 결과','모두가 그 원리를 따르면 어떻게 될까?']];
+  const S = [
+   { name:'급식 줄', sit:'점심시간, 급식 줄이 길다. 배가 너무 고파서 앞쪽 친구 사이에 끼고 싶다.', fact:'친구 사이에 끼어드는 것은 차례를 어기는 일이다.', pr:[
+     { t:'차례는 지켜야 한다.', judge:'그러므로 친구 사이에 끼어들어서는 안 된다.', r:[1,'뒤에 선 사람도 받아들인다.'], u:[1,'모두가 지키면 줄이 공정하게 움직인다.'], c:[1,'응급 상황처럼 특별한 경우는 따로 양해를 구하면 된다.'] },
+     { t:'배고프면 차례를 어겨도 된다.', judge:'그러므로 친구 사이에 끼어들어도 된다.', r:[0,'뒤에 선 내가 새치기를 당하면 억울하다.'], u:[0,'모두가 배고프다며 끼어들면 줄이 사라지고 다툼이 생긴다.'], c:[0,'누구나 배고프다고 말할 수 있어 원리가 무너진다.'] },
+     { t:'친한 친구끼리는 끼워 줘도 된다.', judge:'그러므로 친한 친구가 끼워 주면 들어가도 된다.', r:[0,'친한 친구가 없는 사람은 늘 뒤로 밀린다.'], u:[0,'모두 친구를 끼워 주면 줄 뒤쪽은 끝없이 기다린다.'], c:[0,'친구가 아닌 사람이 끼면 화를 낸다면, 원리를 나에게만 유리하게 쓰는 것이다.'] }]},
+   { name:'단톡방 사진', sit:'친구의 우스꽝스러운 사진을 단톡방에 올리면 다들 재미있어할 것 같다. 친구는 아직 모른다.', fact:'허락 없이 사진을 올리는 것은 그 친구의 동의 없이 사진을 퍼뜨리는 일이다.', pr:[
+     { t:'다른 사람의 사진을 동의 없이 퍼뜨려서는 안 된다.', judge:'그러므로 친구의 사진을 허락 없이 올려서는 안 된다.', r:[1,'내 사진이 몰래 올라가는 것을 바라지 않는다.'], u:[1,'모두가 지키면 누구나 안심하고 사진을 찍는다.'], c:[1,'좋게 나온 사진도 물어보는 것이 맞다.'] },
+     { t:'재미있으면 남의 사진을 올려도 된다.', judge:'그러므로 친구의 사진을 올려도 된다.', r:[0,'놀림감이 된 쪽은 재미있지 않다.'], u:[0,'모두가 그렇게 하면 누구도 사진 찍히기를 원하지 않게 된다.'], c:[0,'내가 싫어하는 사진이 올라가도 “재미있으니까”를 받아들일까?'] }]},
+   { name:'주운 지갑', sit:'운동장에서 지갑을 주웠다. 현금 2만 원과 학생증이 들어 있다. 본 사람은 없다.', fact:'이 지갑은 학생증 주인의 물건이다.', pr:[
+     { t:'남의 물건은 주인에게 돌려줘야 한다.', judge:'그러므로 지갑을 주인에게 돌려줘야 한다.', r:[1,'내가 잃어버렸다면 누군가 돌려주기를 바란다.'], u:[1,'모두가 돌려주면 잃어버린 물건이 돌아오는 사회가 된다.'], c:[1,'액수가 적어도, 많아도 같다.'] },
+     { t:'아무도 모르면 가져도 된다.', judge:'그러므로 지갑의 돈을 가져도 된다.', r:[0,'내 지갑이라면 받아들일 수 없다.'], u:[0,'모두 그렇게 하면 잃어버린 것은 아무것도 돌아오지 않는다.'], c:[0,'기게스의 반지와 같은 원리 — 들키지 않으면 무엇이든 해도 될까?'] }]}];
+  let s = 0, p = -1;
+  $('d6sits').innerHTML = S.map((x, i) => `<button type="button" class="pick" style="min-height:0;padding:8px 16px" data-s="${i}">${x.name}</button>`).join('');
+  $('d6sits').onclick = e => { const b = e.target.closest('[data-s]'); if (b) { s = +b.dataset.s; p = -1; draw(); } };
+  $('d6pr').onclick = e => { const b = e.target.closest('[data-p]'); if (b) { p = +b.dataset.p; draw(); } };
+  function draw() {
+    const x = S[s];
+    $('d6sits').querySelectorAll('button').forEach((b, i) => b.setAttribute('aria-pressed', i === s));
+    $('d6sit').textContent = x.sit;
+    $('d6pr').innerHTML = x.pr.map((r, i) => `<button class="pick" type="button" data-p="${i}" aria-pressed="${i === p}" style="min-height:0">${esc(r.t)}</button>`).join('');
+    const P = x.pr[p];
+    $('d6arg').innerHTML = `<div><small>도덕 원리</small>${P ? esc(P.t) : '왼쪽에서 고르세요'}</div><div><small>사실 판단</small>${esc(x.fact)}</div><div class="out"><small>도덕 판단</small>${P ? esc(P.judge) : '…'}</div>`;
+    $('d6tests').innerHTML = P ? TESTS.map((t, i) => { const r = [P.r, P.u][i]; return `<div class="card t"><b class="${r[0] ? 'ok' : 'bad'}">${r[0] ? '통과' : '걸림'}</b><div><b>${t[0]} 검사</b> <small style="color:var(--dim)">${t[1]}</small><br>${esc(r[1])}</div></div>`; }).join('') : '';
+    const pass = P && P.r[0] + P.u[0] === 2;
+    $('d6fb').className = 'fb' + (P && !pass ? ' no' : '');
+    $('d6fb').textContent = !P ? '원리를 고르면 추론이 완성되고 검사가 시작됩니다.' : pass ? '두 검사를 모두 통과했다. 받아들일 수 있는 도덕 원리다.' : '검사에 걸렸다. 이 원리로 내린 판단은 받아들이기 어렵다. 다른 원리를 골라 보자.';
+  }
+  draw();
+})();
+</script>

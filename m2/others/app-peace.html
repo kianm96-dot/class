@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>게임 · 평화 감별사</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
+<link rel="stylesheet" href="../../assets/game.css">
+</head>
+<body>
+<div class="top"><a href="../../index.html#m2">← 도덕② 목록</a><div class="rounds" id="rounds"></div></div>
+<main>
+  <h1>평화 감별사</h1>
+  <p class="q" id="q"></p>
+  <div class="hud"><span>맞힌 수 <b id="score">0</b></span><span>연속 <b id="streak">0</b></span><span>남은 카드 <b id="left">0</b></span></div>
+  <div class="card" id="card"></div>
+  <div class="bins" id="bins"></div>
+  <div class="flash" id="flash" aria-live="polite"></div>
+  <p class="how">단추를 누르거나, 키보드 ← → (세 칸 이상일 때 숫자 1~5)로 고릅니다. 모둠 대결로 할 때는 판마다 점수를 칠판에 적습니다.</p>
+  <div class="review" id="review" hidden></div>
+</main>
+<script>
+window.R={
+"value": {
+"name": "관계의 덕목",
+"q": "어떤 가치와 덕목일까? (86~88쪽)",
+"bins": [
+[
+"존중과 예의",
+"귀하게"
+],
+[
+"관심과 배려",
+"헤아리기"
+],
+[
+"책임과 신뢰",
+"믿음"
+]
+],
+"cards": [
+[
+"반갑게 인사를 받는다",
+0,
+"예의"
+],
+[
+"남을 위해 등불을 든다",
+1,
+"배려"
+],
+[
+"약속을 지킨다",
+2,
+"신뢰"
+],
+[
+"친구를 함부로 대하지 않는다",
+0,
+"존중"
+],
+[
+"친구에게 필요한 것을 먼저 묻는다",
+1,
+"관심"
+],
+[
+"맡은 일을 끝까지 한다",
+2,
+"책임"
+]
+]
+},
+"solve": {
+"name": "갈등 해결",
+"q": "이 장면은 어떤 갈등 해결 방법일까? (101쪽)",
+"bins": [
+[
+"협상",
+"당사자끼리"
+],
+[
+"조정",
+"제삼자가 소통을 도움"
+],
+[
+"중재",
+"제삼자의 해결책을 따름"
+]
+],
+"cards": [
+[
+"형과 나가 대화로 텔레비전 시간을 나눴다",
+0,
+"협상"
+],
+[
+"또래 조정자가 대화를 도와 두 친구가 화해했다",
+1,
+"조정"
+],
+[
+"중재자의 해결책을 반드시 따르기로 했다",
+2,
+"중재"
+],
+[
+"두 회사가 마주 앉아 계약 조건을 정했다",
+0,
+"협상"
+],
+[
+"조정자의 제안을 받아들일지 두 사람이 정했다",
+1,
+"조정"
+],
+[
+"운동 경기에서 심판이 판정했다",
+2,
+"제삼자의 결정"
+]
+]
+},
+"violence": {
+"name": "폭력의 유형",
+"q": "어떤 폭력일까? (105쪽)",
+"bins": [
+[
+"직접적",
+"주체 분명"
+],
+[
+"구조적",
+"사회 구조"
+],
+[
+"부작위",
+"하지 않아서"
+]
+],
+"cards": [
+[
+"친구를 때렸다",
+0,
+"직접적"
+],
+[
+"단톡방 놀림",
+0,
+"정신적 폭력"
+],
+[
+"노예 제도",
+1,
+"구조적"
+],
+[
+"괴롭힘을 보고 모른 척",
+2,
+"방관"
+],
+[
+"자녀를 돌보지 않는 부모",
+2,
+"방임"
+],
+[
+"성별에 따라 임금이 다른 제도",
+1,
+"구조적"
+]
+]
+},
+"gender": {
+"name": "성의 의미",
+"q": "성의 어떤 의미일까? (116쪽)",
+"bins": [
+[
+"생물학적 성",
+"sex"
+],
+[
+"사회문화적 성",
+"gender"
+],
+[
+"성적인 것 전반",
+"sexuality"
+]
+],
+"cards": [
+[
+"2차 성징",
+0,
+"몸의 변화"
+],
+[
+"“남자는 울면 안 돼”라는 기대",
+1,
+"사회가 만든 성역할"
+],
+[
+"성에 대한 나의 가치관",
+2,
+"sexuality"
+],
+[
+"나라마다 다른 남녀 역할",
+1,
+"gender"
+],
+[
+"타고난 신체 특징",
+0,
+"sex"
+],
+[
+"좋아하는 사람에게 끌리는 마음",
+2,
+"sexuality"
+]
+]
+}
+};
+</script>
+<script src="../../assets/game-sort.js"></script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+/* 활동 도구 모음(kit.js) 디자인. act.css 뒤에 읽습니다. */
+.k-block{margin-top:22px}
+.k-q{font-family:var(--serif);font-size:clamp(18px,2.4vw,24px);margin:0 0 12px}
+.k-hint{font-size:13px;color:var(--dim);margin:8px 0}
+.k-vrow{display:grid;grid-template-columns:minmax(120px,280px) 1fr 44px 40px;gap:10px;align-items:center;margin:8px 0}
+.k-vbtn{text-align:left;font:19px var(--serif);border:3px solid var(--c);color:var(--c);background:#fff;border-radius:16px;padding:10px 14px;box-shadow:0 3px 0 var(--c)}
+.k-vbtn:active{transform:translateY(2px);box-shadow:none}
+.k-vbar{height:26px;background:var(--faint);border-radius:13px;overflow:hidden}
+.k-vbar i{display:block;height:100%;background:var(--c);transition:width .3s}
+.k-vrow b{font:28px var(--serif);text-align:right;color:var(--c)}
+.k-minus{padding:2px 0;font-size:18px;color:var(--dim)}
+@media (max-width:600px){.k-vrow{grid-template-columns:1fr 40px 36px}.k-vbar{grid-column:1/-1;grid-row:2}}
+.k-sit{background:#fff;border:3px solid #ffe1dc;border-radius:22px;padding:16px 20px;font:clamp(18px,2.4vw,23px)/1.5 var(--serif);box-shadow:0 4px 0 #ffe1dc}
+.k-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:12px 0}
+.k-opts .pick b,.k-ritems .pick b{display:inline-block;margin-right:8px;font-size:20px}
+.k-pick .fb{font-size:16px;line-height:1.65}
+.k-score{font-size:14px;color:var(--dim);margin-bottom:8px}.k-score b{font:22px var(--serif);color:var(--red)}
+.k-sort,.k-ox{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.k-sort .k-score{grid-column:1/-1}
+.k-card{background:#fff;border:2px solid var(--faint);border-radius:20px;padding:14px 16px;box-shadow:0 3px 0 var(--faint);display:flex;flex-direction:column;gap:10px}
+.k-card p{margin:0;font-size:16.5px;line-height:1.55}
+.k-n{display:inline-block;font:15px var(--serif);color:#fff;background:var(--sky);border-radius:8px;padding:0 7px;margin-right:8px}
+.k-bins{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}
+.k-bins button{flex:1;font:16px var(--serif);border:2px solid var(--c,var(--faint));color:var(--c,var(--ink));padding:7px 10px}
+.k-bins .o{--c:#2f9e6c;font-size:22px}.k-bins .x{--c:#e8604f;font-size:22px}
+.k-bins button.ans{background:var(--c);color:#fff}
+.k-card.ok{border-color:#9edcbf;background:#f2fbf6}.k-card.no{border-color:#ffc2b8;background:#fff5f3}
+.k-why{font-size:14.5px!important;color:var(--ink)}
+.k-flip{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.k-fc{position:relative;min-height:150px;padding:0;border:0;background:none;perspective:900px;border-radius:22px}
+.k-fc span{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:16px;border-radius:22px;backface-visibility:hidden;transition:transform .5s;text-align:center}
+.k-fc .fr{background:var(--red);color:#fff;font:21px/1.35 var(--serif);box-shadow:0 4px 0 #e8604f}
+.k-fc .fr small{font:12px var(--sans);opacity:.85}
+.k-fc .bk{background:#fff;border:3px solid var(--red);font-size:15.5px;line-height:1.55;transform:rotateY(180deg)}
+.k-fc.on .fr{transform:rotateY(180deg)}.k-fc.on .bk{transform:none}
+.k-fc:nth-child(3n+2) .fr{background:var(--sky);box-shadow:0 4px 0 #2f7fd9}.k-fc:nth-child(3n+2) .bk{border-color:var(--sky)}
+.k-fc:nth-child(3n) .fr{background:var(--leaf);box-shadow:0 4px 0 #2a9467}.k-fc:nth-child(3n) .bk{border-color:var(--leaf)}
+.k-ends{display:flex;justify-content:space-between;font:17px var(--serif);color:var(--red);margin-bottom:6px}
+.k-ends span:last-child{color:var(--sky)}
+.k-lrow{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) 34px;gap:12px;align-items:center;background:#fff;border:2px solid var(--faint);border-radius:16px;padding:10px 14px;margin:8px 0;font-size:16px}
+.k-lrow input{accent-color:var(--grape,#a777e3);width:100%}
+.k-dot{font-style:normal;font-size:26px}
+@media (max-width:600px){.k-lrow{grid-template-columns:1fr 34px}.k-lrow span{grid-column:1/-1}}
+.k-ritems{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:10px}
+.k-ritems .pick.ranked{border-color:var(--gold);background:#fff8e6}
+.k-ritems .pick b{color:var(--gold)}
+.k-write{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.k-write .card{display:flex;flex-direction:column;gap:8px}
+.k-ex{align-self:flex-start;font-size:13px;padding:3px 12px}
+.k-exm{margin:0;font-size:14.5px;color:#7a4a00;background:#fff8e6;border-radius:12px;padding:8px 12px}
+.k-timer{display:inline-flex;align-items:center;gap:12px;background:#fff;border:2px solid var(--faint);border-radius:999px;padding:6px 8px 6px 18px;box-shadow:0 3px 0 var(--faint)}
+.k-timer b{font:30px var(--serif);min-width:3.2em;text-align:center;font-variant-numeric:tabular-nums}
+.k-timer.end b{color:var(--red);animation:ring .5s 6}
+@keyframes ring{50%{transform:rotate(-8deg) scale(1.1)}}
+.k-tl{color:var(--dim);font-size:14px}
+.k-slot{min-height:140px;display:flex;align-items:center;justify-content:center;text-align:center;background:#fff;border:4px dashed var(--gold);border-radius:26px;padding:20px;font:clamp(20px,3vw,30px)/1.45 var(--serif);margin-bottom:12px}
+.k-slot.rolling{color:var(--dim);border-style:solid}
+.k-left{font-size:13px;color:var(--dim)}

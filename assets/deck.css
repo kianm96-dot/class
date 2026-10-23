@@ -1,11 +1,11 @@
 /* 수업 슬라이드 공통 디자인 · 밝고 귀여운 테마.
-   크림색 점무늬 바탕, 사진은 둥근 액자, 글은 흰 말풍선 카드. 장마다 <section class="s" data-note="교사 메모">. */
-:root{--ink:#3b2f2c;--dim:#8a7a72;--bg:#fff8ef;--dot:#f6e6d4;--card:#ffffff;--line:#f0e2d4;
+   크림색 민무늬 바탕(시인성), 사진은 둥근 액자, 글은 흰 말풍선 카드. 장마다 <section class="s" data-note="교사 메모">. */
+:root{--ink:#2b211e;--dim:#6f5f57;--bg:#fff8ef;--dot:#f6e6d4;--card:#ffffff;--line:#f0e2d4;
   --red:#ff7a6b;--red-d:#e8604f;--leaf:#36b37e;--sky:#4a9eff;--gold:#f5a623;--sun:#ffc94a;--grape:#a777e3;
   --serif:'Jua','Gowun Dodum',system-ui,sans-serif;--sans:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
   --shadow:0 6px 0 rgba(59,47,44,.08),0 12px 30px rgba(59,47,44,.08)}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;background:var(--bg) radial-gradient(var(--dot) 2px,transparent 2.2px) 0 0/26px 26px;color:var(--ink);font-family:var(--sans);overflow:hidden;word-break:keep-all}
+html,body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans);overflow:hidden;word-break:keep-all}
 .deck{position:fixed;inset:0}
 .s{position:absolute;inset:0;opacity:0;transform:translateY(12px);transition:opacity .5s ease,transform .5s ease;pointer-events:none;display:flex;align-items:center;justify-content:center}
 .s.on{opacity:1;transform:none;pointer-events:auto}
@@ -42,7 +42,7 @@ html,body{height:100%;background:var(--bg) radial-gradient(var(--dot) 2px,transp
 .trio div.show{opacity:1;transform:none}
 .trio b{display:block;font-family:var(--serif);font-weight:400;font-size:min(8vw,92px);line-height:1;color:var(--red)}
 .trio div:nth-child(2) b{color:var(--sky)}.trio div:nth-child(3) b{color:var(--leaf)}.trio div:nth-child(4) b{color:var(--grape)}
-.trio span{display:block;margin-top:10px;color:var(--dim);font-size:min(1.8vw,18px)}
+.trio span{display:block;margin-top:10px;color:var(--dim);font-size:min(2.1vw,22px)}
 .num{font-family:var(--serif);font-size:min(10vw,120px);color:var(--gold);line-height:1}
 .pair{display:grid;grid-template-columns:1fr 1fr;width:100%;height:100%}
 .pair .ph{position:relative;inset:auto;margin:8vh 2vw 6vh}
@@ -54,10 +54,10 @@ html,body{height:100%;background:var(--bg) radial-gradient(var(--dot) 2px,transp
 .case{position:absolute;left:5vw;bottom:9vh;width:min(620px,90vw);background:var(--card);border-radius:28px;padding:22px 28px 24px;box-shadow:var(--shadow);border:3px solid #ffe1dc}
 .case.solo{position:relative;left:auto;bottom:auto;width:min(880px,90vw)}
 .case .kick{display:inline-block;font-size:14px;color:#fff;background:var(--red);padding:3px 14px;border-radius:999px;font-weight:700}
-.case .when{font-size:min(1.9vw,17px);color:var(--dim);margin-top:8px}
+.case .when{font-size:min(2vw,19px);color:var(--dim);margin-top:8px}
 .case h2{font-family:var(--serif);font-weight:400;font-size:min(4.2vw,46px);line-height:1.25;margin-top:4px}
 .case .lad{margin-top:14px;gap:8px;align-items:flex-start;text-align:left}
-.case .lad p{font-size:min(1.95vw,19px);box-shadow:none;background:#fff6ee;border-radius:14px;padding:7px 14px}
+.case .lad p{font-size:min(2.3vw,23px);box-shadow:none;background:#fff6ee;border-radius:14px;padding:7px 14px}
 .case .ask{margin-top:14px;font-family:var(--serif);font-size:min(2.7vw,28px);color:var(--red);opacity:0;transition:.4s}
 .case .ask::before{content:'💭 '}
 .case .ask.show{opacity:1}
@@ -88,10 +88,10 @@ html,body{height:100%;background:var(--bg) radial-gradient(var(--dot) 2px,transp
 .nums div.show{opacity:1;transform:none}
 .nums b{display:block;font-family:var(--serif);font-weight:400;font-size:min(10vw,120px);line-height:1;color:var(--sky)}
 .nums div:nth-child(2) b{color:var(--red)}
-.nums span{display:block;margin-top:10px;color:var(--dim);font-size:min(1.9vw,19px);max-width:16em}
+.nums span{display:block;margin-top:10px;color:var(--dim);font-size:min(2.1vw,22px);max-width:16em}
 /* 아래 막대·메모·단추 */
 .bar{position:fixed;left:0;bottom:0;height:6px;background:linear-gradient(90deg,var(--red),var(--sun));border-radius:0 6px 6px 0;transition:width .4s;z-index:5}
-.hud{position:fixed;left:16px;bottom:12px;font-size:13px;color:var(--dim);z-index:5}
+.hud{position:fixed;left:16px;bottom:14px;font-size:15px;font-weight:700;color:var(--dim);z-index:5}
 .notes{position:fixed;right:0;top:0;bottom:0;width:min(440px,92vw);background:#fff;color:var(--ink);padding:26px 24px;overflow:auto;transform:translateX(100%);transition:transform .3s;z-index:9;font-size:15px;line-height:1.75;box-shadow:-10px 0 40px rgba(59,47,44,.15);border-radius:24px 0 0 24px}
 .notes.on{transform:none}
 .notes h4{font:18px var(--serif);color:var(--red);margin-bottom:10px}
@@ -100,8 +100,48 @@ html,body{height:100%;background:var(--bg) radial-gradient(var(--dot) 2px,transp
 .help button,.home{background:#fff;color:var(--ink);border:2px solid var(--line);border-radius:999px;padding:5px 14px;font:14px var(--sans);cursor:pointer;text-decoration:none}
 .help button:hover,.home:hover{border-color:var(--red);color:var(--red)}
 .home{position:fixed;left:16px;top:12px;z-index:6}
-@media (max-width:700px){.ph{inset:7vh 3vw 5vh;border-width:4px;border-radius:22px}.onphoto{left:5vw;right:5vw;max-width:none;text-align:left}.onphoto .lad{align-items:flex-start}
+/* 그림 글자(이모지) 표지 · 사상가 · 철학자 카드: 사진 없이도 또렷하게 */
+.emo{display:flex;flex-direction:column;align-items:center;gap:14px}
+.emo span{display:grid;place-items:center;width:min(34vw,380px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff 0,#ffe9d6 70%);box-shadow:var(--shadow);font-size:min(18vw,200px);line-height:1}
+.emo b{font:min(3vw,32px) var(--serif);font-weight:400;color:var(--ink)}
+.emo-cover{position:absolute;right:8vw;top:50%;transform:translateY(-50%)}
+.s.on .emo span{animation:bob 3.5s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-10px) rotate(-3deg)}}
+.emo-side{display:flex;justify-content:center}
+.emo-side .emo span{width:min(26vw,300px);font-size:min(13vw,150px)}
+.philo-card{display:grid;grid-template-columns:auto 1fr;gap:4vw;align-items:center;width:min(1100px,90vw);background:var(--card);border-radius:36px;padding:5vh 4vw;box-shadow:var(--shadow);border:4px solid var(--pc,var(--red))}
+.philo-card .emo span{width:min(22vw,250px);font-size:min(12vw,130px);background:radial-gradient(circle at 35% 30%,#fff 0,color-mix(in srgb,var(--pc,var(--red)) 22%,#fff) 75%)}
+.philo-card .kick{display:inline-block;font-size:min(1.8vw,17px);color:#fff;background:var(--pc,var(--red));padding:4px 16px;border-radius:999px;font-weight:700}
+.philo-card h2{font:min(6vw,68px)/1.1 var(--serif);font-weight:400;margin-top:12px}
+.philo-card .era{color:var(--dim);font-size:min(2vw,20px);margin-top:6px}
+.philo-card .one{font:min(3.2vw,36px)/1.4 var(--serif);margin-top:2.4vh}
+.go-chat{display:inline-block;margin-top:3vh;font:min(2.4vw,24px) var(--serif);color:#fff;background:var(--pc,var(--red));padding:10px 26px;border-radius:999px;text-decoration:none;box-shadow:0 4px 0 rgba(0,0,0,.15)}
+.go-chat:hover{filter:brightness(1.06)}
+@media (max-width:700px){.emo-cover{right:50%;top:12vh;transform:translateX(50%)}.emo span{width:52vw;font-size:28vw}.philo-card{grid-template-columns:1fr;text-align:center;gap:16px}.philo-card .emo span{width:38vw;font-size:20vw}.philo-card .one{font-size:19px}.philo-card h2{font-size:32px}.go-chat{font-size:16px}
+  .emo-side .emo span{width:34vw;font-size:17vw}.emo b{font-size:18px}
+.ph{inset:7vh 3vw 5vh;border-width:4px;border-radius:22px}.onphoto{left:5vw;right:5vw;max-width:none;text-align:left}.onphoto .lad{align-items:flex-start}
   .pair{grid-template-columns:1fr;grid-template-rows:1fr 1fr}
   .quote{grid-template-columns:1fr;grid-template-rows:36% 1fr}.quote .ph{height:auto;margin:7vh 5vw 0;align-self:stretch}.ph.right img{object-position:50% 0}
   .dil .opts{grid-template-columns:1fr;gap:12px;margin-top:3vh}.dil .opt span{font-size:15px}.case .lad p{font-size:14px}.lad p{font-size:15px}.q h2{font-size:26px}.case h2{font-size:24px}.dil .sit{font-size:20px}.quote .say blockquote{font-size:20px}.nums span{font-size:13px}.trio div{min-width:38vw}.trio span{font-size:13px}.word small{font-size:14px}}
 @media (prefers-reduced-motion:reduce){.s,.ph img{transition:none}.s.on .ph img{transform:none}}
+
+/* 교과서 흐름: 쪽 표시 · 학습 목표 · 교과서 활동 · 개념 */
+.pgchip{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:4;font:min(1.8vw,17px) var(--serif);color:#fff;background:#3d6bd8;border-radius:999px;padding:4px 16px;white-space:nowrap;box-shadow:0 3px 0 #2b51ad}
+.pgchip.extra{background:var(--grape);box-shadow:0 3px 0 #8455c4}
+.goal,.tbact,.concept{width:min(1080px,90vw);background:var(--card);border-radius:32px;padding:4.5vh 4vw;box-shadow:var(--shadow);text-align:left}
+.goal{border:4px solid #3d6bd8}
+.goal .kick{display:inline-block;color:#fff;background:#3d6bd8;border-radius:999px;padding:3px 16px;font-weight:700;font-size:min(1.8vw,17px)}
+.goal h2{font:min(4.6vw,50px)/1.3 var(--serif);margin:1.6vh 0 2.4vh}
+.goal p,.steps p{font-size:min(2.7vw,28px);line-height:1.5;margin-top:1.4vh;display:flex;gap:14px;align-items:baseline;opacity:.18;transform:translateY(8px);transition:.4s}
+.goal p.show,.steps p.show{opacity:1;transform:none}
+.goal p b,.steps p b{flex:none;display:inline-grid;place-items:center;width:1.5em;height:1.5em;border-radius:50%;background:#e8efff;color:#3d6bd8;font:min(2.2vw,22px) var(--serif)}
+.tbact h2{font:min(4vw,44px)/1.4 var(--serif);font-weight:400}
+.tbact .sit{font-size:min(2.4vw,25px);line-height:1.65;background:#f4f7ff;border-left:8px solid #3d6bd8;border-radius:14px 24px 24px 14px;padding:2.4vh 2vw;margin-bottom:3vh}
+.tbact .steps{margin-top:2.4vh}
+.concept h2{font:min(4.4vw,48px)/1.25 var(--serif);font-weight:400;color:#3d6bd8;margin-bottom:2.4vh}
+.defs{display:flex;flex-direction:column;gap:1.6vh}
+.defs div{display:grid;grid-template-columns:minmax(0,28%) 1fr;gap:2vw;align-items:baseline;background:#f7f9ff;border-radius:18px;padding:1.8vh 1.6vw;opacity:.18;transform:translateY(8px);transition:.4s}
+.defs div.show{opacity:1;transform:none}
+.defs b{font:min(3.2vw,34px)/1.2 var(--serif);font-weight:400;color:var(--red)}
+.defs span{font-size:min(2.4vw,25px);line-height:1.55}
+@media (max-width:700px){.pgchip{top:52px;font-size:12px}.goal h2{font-size:24px}.goal p,.steps p{font-size:16px}.tbact h2{font-size:21px}.tbact .sit{font-size:14px}.concept h2{font-size:24px}.defs div{grid-template-columns:1fr}.defs b{font-size:20px}.defs span{font-size:15px}}
