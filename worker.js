@@ -12,7 +12,8 @@
 
    학생에게는 서버에서 아래를 지운 뒤 페이지를 보냅니다. 페이지 소스를 열어도 보이지 않습니다.
    - 학습지·차시별 문제: 예시 답·정답·해설·빠른 정답표(.ans), [예시 답 보기]/[정답 보기] 단추(#bAns)
-   - 교과서 수업 PPT(<책>/<단원>/pptN.pptx): 교사·칠판만 받음, 학생은 교사 로그인으로
+   - 교과서 수업 PPT(<책>/<단원>/pptN.pptx): 교사·칠판만 받음, 학생은 교사 로그인으로.
+     ▶ 재생(/ppt/view)은 PowerPoint 웹 뷰어로 열고, 뷰어가 가져갈 수 있게 4시간짜리 서명 주소(/ppt-file/…)를 만듦
    - 수업 슬라이드(slidesN.html, 선생님이 학생 공개한 것 제외), 수업 진행 도구(tools/class.html): 로그인 화면으로 보냄
    - 슬라이드 발문 메모(data-note)
    골든벨 '교사 진행' 모드는 화면에서 숨깁니다(window.IS_TEACHER). */
@@ -26,7 +27,9 @@ const BOARD_MAX = 50 * 60 * 1000;           // 칠판: 한 번 열면 최대 50�
 const BOARD_IDLE = 10 * 60 * 1000;          // 칠판: 10분 동안 조작이 없으면 닫힘
 const PAIR_TTL = 2 * 60 * 1000;             // QR: 2분 동안만 유효, 한 번만 사용
 const TEACHER_ONLY = [/^\/tools\/class(\.html)?$/];   // 수업 진행 도구
-const SLIDE = /^(\/m[12]\/[a-z]+\/slides\d+)(?:\.html)?$/;     // 수업 슬라이드: 교사 전용, 단 선생님이 '학생 공개'로 연 것은 학생도 볼 수 있음
+const SLIDE = /^(\/m[12]\/[a-z]+\/slides\d+)(?:\.html)?$/;
+const PPT = /^\/m[12]\/[a-z]+\/ppt\d+\.pptx$/;    // 교과서 수업 PPT
+const PPT_TTL = 4 * 60 * 60 * 1000;          // 화면에서 재생할 때 쓰는 임시 주소: 4시간     // 수업 슬라이드: 교사 전용, 단 선생님이 '학생 공개'로 연 것은 학생도 볼 수 있음
 
 /* 저장소 (Cloudflare Durable Object, 설정은 wrangler.jsonc)
    - openSlides: 학생에게 공개한 슬라이드 목록
@@ -103,6 +106,17 @@ async function handle(request, env) {
   if (path.startsWith('/board')) return boardRoute(request, env, url);
   if (path === '/pair') return pairRoute(request, env, url);
 
+  // PPT 재생용 임시 주소: PowerPoint 웹 뷰어(Microsoft 서버)가 로그인 없이 파일을 가져가도록, 교사가 ▶를 누를 때 만든 서명 주소만 받음
+  const pf = path.match(/^\/ppt-file\/(\d+)\/([0-9a-f]{32})(\/.+)$/);
+  if (pf) {
+    const [, exp, sig, f] = pf;
+    if (!PPT.test(f) || +exp < Date.now() || !(await expected(env)) || !same(sig, await pptSig(env, f, exp))) return new Response('만료된 주소예요. 수업실에서 ▶를 다시 눌러 주세요.', {status: 403});
+    const r = await env.ASSETS.fetch(new Request(url.origin + f)), h = new Headers(r.headers);
+    h.set('Cache-Control', 'private, no-store'); h.set('X-Robots-Tag', 'noindex');
+    h.set('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
+    return new Response(r.body, {status: r.status, headers: h});
+  }
+
   // css·js·그림 같은 파일은 역할 확인 없이 바로 보냄
   const isFile = /\.[a-z0-9]+$/i.test(path) && !path.endsWith('.html');
   const isPpt = /\.pptx$/i.test(path);   // 교과서 수업 PPT(출판사 자료 + 새 장)는 교사·칠판만
@@ -111,6 +125,13 @@ async function handle(request, env) {
   const role = await getRole(request, env, true);
   if (path === '/teacher/slides') return slidesApi(request, env, url, role);
   const can = role !== 'student';
+  if (path === '/ppt/view') {   // ▶ 수업 PPT: 교사·칠판만, PowerPoint 웹 뷰어로 화면에서 재생
+    const f = url.searchParams.get('f') || '';
+    if (!can) return redirect('/teacher?next=' + encodeURIComponent(path + url.search));
+    if (!PPT.test(f)) return redirect('/');
+    const exp = String(Date.now() + PPT_TTL);
+    return pptPage(f, `${url.origin}/ppt-file/${exp}/${await pptSig(env, f, exp)}${f}`, role === 'board' ? await boardInfo(request, env) : null);
+  }
   if (isPpt) {
     if (!can) return redirect('/teacher?next=' + encodeURIComponent(path));
     const r = await env.ASSETS.fetch(request), h = new Headers(r.headers);
@@ -247,6 +268,28 @@ async function slidesApi(request, env, url, role) {
 }
 
 /* ───────── 교사 비밀번호 ───────── */
+async function pptSig(env, f, exp) { return (await hash('ppt|' + (await expected(env)) + '|' + f + '|' + exp)).slice(0, 32); }
+
+/* ───────── 수업 PPT 재생 화면: 위쪽 얇은 막대 + PowerPoint 웹 뷰어(애니메이션·맑은 고딕 그대로) ───────── */
+function pptPage(f, src, board) {
+  const [, book, unit, n] = f.match(/^\/(m[12])\/([a-z]+)\/ppt(\d+)/);
+  const view = 'https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(src);
+  const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>수업 PPT · ${n}차시 · 도덕 수업실</title><meta name="robots" content="noindex"><link rel="icon" type="image/png" href="/icons/icon-192.png">
+<style>html,body{margin:0;height:100%;background:#1d1a19;font:14px "Gowun Dodum","Malgun Gothic",sans-serif}
+.top{height:40px;display:flex;align-items:center;gap:8px;padding:0 10px;background:#2b211e;color:#fff}
+.top a,.top button{color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:4px 12px;background:none;font:inherit;cursor:pointer}
+.top .sp{flex:1}.top small{opacity:.7}
+#wrap{position:absolute;top:40px;left:0;right:0;bottom:0}#wrap iframe{width:100%;height:100%;border:0;display:block;background:#fff}
+#wrap:fullscreen{top:0}</style></head><body>
+<div class="top"><a href="/#${book}">← 목록</a><b>${book === 'm1' ? '도덕①' : '도덕②'} · ${n}차시 수업 PPT</b><small>클릭(또는 →)으로 빈칸이 하나씩 채워져요</small><span class="sp"></span>
+<button type="button" id="fs">전체 화면</button><a href="/${book}/${unit}/slides${n}.html">웹 슬라이드</a><a href="${esc(f)}" download>📥 내려받기</a></div>
+<div id="wrap"><iframe src="${esc(view)}" allowfullscreen title="수업 PPT"></iframe></div>
+<script>document.getElementById('fs').onclick=function(){var w=document.getElementById('wrap');(w.requestFullscreen||w.webkitRequestFullscreen).call(w);};</script>
+${board ? boardBar(board.ends) : ''}</body></html>`;
+  return new Response(html, {headers: {'content-type': 'text/html; charset=utf-8', 'Cache-Control': 'private, no-store', 'x-moral-role': board ? 'board' : 'teacher'}});
+}
+
 async function hash(s) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
   return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
