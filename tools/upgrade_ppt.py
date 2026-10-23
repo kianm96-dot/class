@@ -1,5 +1,6 @@
 """교과서 수업 PPT 업그레이드: 원래 장은 그대로 두고, 그 사이에 새 장을 끼워 넣습니다.
-사용: python3 tools/upgrade_ppt.py <책 m1|m2> <수업 PPT 폴더> <출력 폴더>
+사용: python3 tools/upgrade_ppt.py <책 m1|m2> <수업 PPT 폴더> <출력 폴더 | --site>
+      --site 이면 수업실 사이트 <책>/<단원>/pptN.pptx 에 바로 씁니다(첫 화면·‘이 차시 자료’의 📥 수업 PPT, 교사만 받음)
       (폴더 안 파일 이름: Ⅰ_1_01_수업 PPT.pptx … 단원(Ⅰ~Ⅳ) 안에서 이름 순서가 차시 순서)
 끼워 넣는 장 (모두 원래 PPT의 ‘학습하기’ 틀을 복사해 같은 디자인):
   ✏️ 빈칸 채우기  학습지 요점 정리와 같은 문장 · 같은 번호 빈칸. 클릭마다 답이 하나씩, 이어서 💡 사례
@@ -353,7 +354,8 @@ def drop_dangling(path):
         os.replace(tmp, path)
 
 def main(book, src, dst):
-    dst = pathlib.Path(dst); dst.mkdir(parents=True, exist_ok=True)
+    site = dst == '--site'
+    if not site: dst = pathlib.Path(dst); dst.mkdir(parents=True, exist_ok=True)
     files = sorted(glob.glob(str(pathlib.Path(src) / '*.pptx')))
     for r, unit in UNITS.items():
         fs = [f for f in files if pathlib.Path(f).name.startswith(r + '_')]
@@ -361,7 +363,7 @@ def main(book, src, dst):
         mod = runpy.run_path(str(ROOT / 'tools/decks' / f'{book}_{unit}.py'))
         acts = acts_of(book, unit)
         for n, f in enumerate(fs, 1):
-            out = dst / pathlib.Path(f).name.replace('수업 PPT', '수업 PPT 업그레이드')
+            out = ROOT / book / unit / f'ppt{n}.pptx' if site else dst / pathlib.Path(f).name.replace('수업 PPT', '수업 PPT 업그레이드')
             a, b = upgrade(f, mod, n, acts, out)
             print(f'{out.name}  원래 {a}장 + 새 {b}장')
 

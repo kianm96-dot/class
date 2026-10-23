@@ -12,6 +12,7 @@
 
    학생에게는 서버에서 아래를 지운 뒤 페이지를 보냅니다. 페이지 소스를 열어도 보이지 않습니다.
    - 학습지·차시별 문제: 예시 답·정답·해설·빠른 정답표(.ans), [예시 답 보기]/[정답 보기] 단추(#bAns)
+   - 교과서 수업 PPT(<책>/<단원>/pptN.pptx): 교사·칠판만 받음, 학생은 교사 로그인으로
    - 수업 슬라이드(slidesN.html, 선생님이 학생 공개한 것 제외), 수업 진행 도구(tools/class.html): 로그인 화면으로 보냄
    - 슬라이드 발문 메모(data-note)
    골든벨 '교사 진행' 모드는 화면에서 숨깁니다(window.IS_TEACHER). */
@@ -104,11 +105,18 @@ async function handle(request, env) {
 
   // css·js·그림 같은 파일은 역할 확인 없이 바로 보냄
   const isFile = /\.[a-z0-9]+$/i.test(path) && !path.endsWith('.html');
-  if (isFile && path !== '/teacher/slides') return env.ASSETS.fetch(request);
+  const isPpt = /\.pptx$/i.test(path);   // 교과서 수업 PPT(출판사 자료 + 새 장)는 교사·칠판만
+  if (isFile && !isPpt && path !== '/teacher/slides') return env.ASSETS.fetch(request);
 
   const role = await getRole(request, env, true);
   if (path === '/teacher/slides') return slidesApi(request, env, url, role);
   const can = role !== 'student';
+  if (isPpt) {
+    if (!can) return redirect('/teacher?next=' + encodeURIComponent(path));
+    const r = await env.ASSETS.fetch(request), h = new Headers(r.headers);
+    h.set('Cache-Control', 'private, no-store'); h.set('x-moral-role', role);   // 서비스 워커·중간 캐시가 저장하지 않도록
+    return new Response(r.body, {status: r.status, headers: h});
+  }
   const slide = path.match(SLIDE);
   if (!can && (TEACHER_ONLY.some(r => r.test(path)) || (slide && !(await openSlides(env)).includes(slide[1])))) {
     return redirect('/teacher?next=' + encodeURIComponent(path + url.search));

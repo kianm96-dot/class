@@ -1,4 +1,4 @@
-/* ‘이 차시 자료’ 막대: 슬라이드 · 활동 · 학습지 · 문제 · 철학자 톡 · 게임 · 퀴즈를 같은 차시끼리 잇는다.
+/* ‘이 차시 자료’ 막대: 슬라이드 · 활동 · 학습지 · 문제 · 수업 PPT(교사만) · 철학자 톡 · 게임 · 퀴즈를 같은 차시끼리 잇는다.
    페이지에는 <script src="…/assets/lessonbar.js" defer></script> 한 줄만 넣으면 된다(catalog.js · philo-list.js 는 스스로 불러옴).
    주소로 차시를 찾는다: <책>/<단원>/slidesN · probN, act.html#N · worksheet.html#N, philo/<이름>.
    슬라이드에서는 왼쪽 아래 작은 단추로 접어 둔다. 인쇄할 때는 숨긴다. 앱 설치(서비스 워커)도 여기서 등록한다. */
@@ -57,6 +57,7 @@
       if (has('act')) L.push(['act', '🧩 활동', base + 'act.html#' + n]);
       if (has('ws')) L.push(['ws', '📄 학습지', base + 'worksheet.html#' + n]);
       if (has('prob')) L.push(['prob', '✍ 문제', base + 'prob' + n + '.html']);
+      if (has('ppt') && window.IS_TEACHER !== false) L.push(['ppt', '📥 수업 PPT', base + 'ppt' + n + '.pptx', book.book + ' ' + ['Ⅰ', 'Ⅱ', 'Ⅲ', 'Ⅳ'][unit.no - 1] + '단원 ' + n + '차시 수업 PPT.pptx']);   // 교과서 수업 PPT + 새 장, 교사만
       if (ph) L.push(['philo', ph.emoji + ' ' + ph.name + ' 톡', ROOT + 'philo/' + ph.id + '.html']);
     }
     if (F.game) L.push(['game', '🎮 ' + F.game.title, base + F.game.href]);
@@ -67,7 +68,7 @@
     var nav = n ? '<span class="nav">' + (i > 0 ? '<a href="' + go(all[i - 1]) + '" title="이전 차시">◀ ' + all[i - 1] + '차시</a>' : '') +
       (i < all.length - 1 ? '<a href="' + go(all[i + 1]) + '" title="다음 차시">' + all[i + 1] + '차시 ▶</a>' : '') + '</span>' : '';
     var html = '<span class="u">' + esc(title) + '</span>' + L.map(function (x) {
-      return '<a href="' + x[2] + '"' + (x[0] === h.kind ? ' aria-current="page"' : '') + '>' + esc(x[1]) + '</a>';
+      return '<a href="' + x[2] + '"' + (x[3] ? ' download="' + esc(x[3]) + '"' : '') + (x[0] === h.kind ? ' aria-current="page"' : '') + '>' + esc(x[1]) + '</a>';
     }).join('') + nav;
     css();
     var bar = document.createElement('nav'); bar.className = 'lb'; bar.setAttribute('aria-label', '이 차시 자료'); bar.innerHTML = html;
