@@ -24,6 +24,12 @@ a{color:inherit}
 .intro h1{margin:0;font:clamp(28px,4.4vw,42px)/1.2 var(--disp)}
 .intro h1 span{color:var(--coral)}
 .intro p{margin:6px 0 0;color:var(--muted);font-size:15px}
+.quick{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
+.quick a{text-decoration:none;font:17px var(--disp);background:#fff;border:2px solid var(--line);border-radius:999px;padding:6px 16px}
+.quick a:hover{border-color:var(--coral)}
+.quick small{font:13px var(--body);color:var(--muted);margin-left:4px}
+#who{margin-left:auto;display:flex;gap:8px}
+#who a{background:var(--coral);border-color:var(--coral);color:#fff}
 /* 철학자 톡 줄 */
 .sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
 .sec-h h2{margin:0;font:24px var(--disp)}
@@ -80,3 +86,5 @@ mark{background:#ffe08a;color:inherit;border-radius:4px;padding:0 2px}
 .howto kbd{font:700 12px ui-monospace,Menlo,monospace;background:#fff;border:2px solid var(--line);border-radius:6px;padding:0 5px}
 .foot{color:var(--muted);font-size:13px;margin:0}
 @media (max-width:560px){.search{max-width:none;margin-left:0}.brand span{display:none}.unit-head{padding:12px 14px}.lessons{padding:4px 14px 10px}.lt{font-size:16.5px}}
+.pub{font:700 12px var(--body);border:1.5px solid var(--line);background:#fff;color:var(--muted);border-radius:999px;padding:1px 9px;cursor:pointer}
+.pub[aria-pressed="true"]{border-color:var(--leaf);color:var(--leaf)}

@@ -6,12 +6,13 @@ RAW_ACT = 'tools/decks/raw/파일.html' 이 있으면 손으로 만든 패널(<s
 import sys, json, html, pathlib, runpy
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'tools'))
-from build_deck import FONTS
+from build_deck import SHELL, FONTS
 import philo_data
 E = lambda s: html.escape(s, quote=True)
 
 def build(path):
     m = runpy.run_path(path)
+    if not m.get('ACTS'): return   # 활동을 손으로 만든 단원(도덕① Ⅰ)은 건드리지 않는다
     book, unit, uno, back = m['BOOK'], m['UNIT'], m['UNO'], m['BACK']
     unit_title = m.get('UNIT_TITLE', '')
     panels = []
@@ -39,6 +40,7 @@ def build(path):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>활동 · {E(back)} {uno}단원 {E(unit_title)}</title>
 {FONTS}
+{SHELL('../../')}
 <link rel="stylesheet" href="../../assets/act.css">
 <link rel="stylesheet" href="../../assets/kit.css">
 </head>

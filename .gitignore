@@ -1,2 +1,6 @@
 __pycache__/
 *.pyc
+.dev.vars
+.wrangler/
+node_modules/
+.teacher.js

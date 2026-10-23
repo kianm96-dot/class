@@ -9,6 +9,10 @@
   C.forEach(function (b) { b.units.forEach(function (u) { units.push({ u: u, b: b }); }); });
   var h0 = (location.hash || '#m1').slice(1), book = C.some(function (b) { return b.id === h0; }) ? h0 : 'm1';
   var q = '', got = [];
+  // 교사 잠금 서버(Cloudflare)가 넣어 주는 값. GitHub Pages처럼 서버가 없으면 undefined → 모두 보임
+  var T = window.IS_TEACHER, R = window.ROLE, OPEN = window.OPEN_SLIDES || [];
+  var canSee = function (href) { return T !== false || OPEN.indexOf('/' + href.replace(/\.html$/, '')) > -1; };
+  if (R) $('who').innerHTML = R === 'teacher' ? '<a href="/teacher">교사 모드</a>' : R === 'board' ? '' : '<a href="/board?next=/">칠판 수업 시작</a><a href="/teacher?next=/">교사 로그인</a>';
   try { got = JSON.parse(localStorage.getItem('philoBadges') || '[]'); } catch (e) {}
   document.title = SITE.name;
   $('curr').textContent = SITE.curriculum + ' · 실제 사례로 시작해 질문으로 생각하고, 한 문장으로 정리해요.';
@@ -34,6 +38,8 @@
     var u = x.u, b = x.b, key = b.id + '/' + u.dir, base = key + '/', f = F[key] || {}, last = '';
     var rows = u.lessons.map(function (l, i) {
       var n = i + 1, sl = made(key, 'slides', n) && base + 'slides' + n + '.html', ph = philoOf(key, n);
+      if (sl && !canSee(sl)) sl = '';
+      var pub = R === 'teacher' && made(key, 'slides', n) ? '<button type="button" class="pub" data-s="/' + base + 'slides' + n + '" aria-pressed="' + (OPEN.indexOf('/' + base + 'slides' + n) > -1) + '">' + (OPEN.indexOf('/' + base + 'slides' + n) > -1 ? '학생 공개 중' : '비공개') + '</button>' : '';
       var head = '';
       if (l[1] !== last) {
         head = '<li class="sub"><b>' + esc(l[3] || '') + '</b><details class="std"><summary>성취기준</summary><p><b>[' + l[1] + ']</b> ' + esc(S[l[1]] || '') + '</p></details></li>';
@@ -41,14 +47,16 @@
       last = l[1];
       var links = (made(key, 'act', n) ? '<a href="' + base + 'act.html#' + n + '">활동</a>' : '') +
         (made(key, 'ws', n) ? '<a href="' + base + 'worksheet.html#' + n + '">학습지</a>' : '') +
+        (made(key, 'prob', n) ? '<a href="' + base + 'prob' + n + '.html">문제</a>' : '') +
         (ph ? '<a class="ph" href="philo/' + ph.id + '.html" style="--pc:' + ph.color + '">' + ph.emoji + ' ' + esc(ph.name) + ' 톡</a>' : '');
       return head + '<li class="ls"><span class="ln">' + n + '</span>' +
-        '<span class="lw">' + (sl ? '<a class="lt" href="' + sl + '">' + hi(l[0]) + '</a>' : '<span class="lt off">' + hi(l[0]) + ' <small>준비 중</small></span>') +
-        '<span class="meta">' + (l[2] ? '교과서 ' + l[2] + '쪽' : '') + (links ? '<span class="lk">' + links + '</span>' : '') + '</span></span>' +
+        '<span class="lw">' + (sl ? '<a class="lt" href="' + sl + '">' + hi(l[0]) + '</a>' : '<span class="lt off">' + hi(l[0]) + (made(key, 'slides', n) ? '' : ' <small>준비 중</small>') + '</span>') +
+        '<span class="meta">' + (l[2] ? '교과서 ' + l[2] + '쪽' : '') + (links ? '<span class="lk">' + links + '</span>' : '') + pub + '</span></span>' +
         (sl ? '<a class="play" href="' + sl + '" aria-label="' + n + '차시 슬라이드 열기">▶</a>' : '') + '</li>';
     }).join('');
     var ex = (f.ws && f.ws.length > 1 ? '<a class="extra" href="' + base + 'worksheet.html">📄 단원 학습지 모아 인쇄</a>' : '') +
-      (f.game ? '<a class="extra" href="' + base + f.game.href + '">🎮 ' + esc(f.game.title) + '</a>' : '');
+      (f.game ? '<a class="extra" href="' + base + f.game.href + '">🎮 ' + esc(f.game.title) + '</a>' : '') +
+      (f.slides ? '<a class="extra" href="quiz/bell.html?u=' + key + '">🏆 골든벨</a>' : '');
     return '<article class="unit a-' + (AREA[u.code] || 'self') + '"><header class="unit-head"><span class="no">' + ROMAN[u.no - 1] + '</span>' +
       '<div><h3>' + hi(u.title) + '</h3><p class="cnt">' + (showBook ? esc(b.book) + ' · ' : '') + u.lessons.length + '차시</p></div></header>' +
       '<ol class="lessons">' + rows + '</ol>' + (ex ? '<div class="extras">' + ex + '</div>' : '') + '</article>';
@@ -63,6 +71,15 @@
     } else { list = units.filter(function (x) { return x.b.id === book; }); $('status').textContent = ''; }
     pcards();
     $('units').innerHTML = list.map(function (x) { return card(x, !!q); }).join('') || '<div class="empty">‘' + esc(q) + '’에 맞는 차시가 없어요. 다른 낱말로 찾아보세요.</div>';
+    $('units').querySelectorAll('.pub').forEach(function (b) {
+      b.onclick = function () {
+        var on = b.getAttribute('aria-pressed') !== 'true'; b.disabled = true;
+        fetch('/teacher/slides', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slide: b.dataset.s, open: on }) })
+          .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || r.status); OPEN = j.open; b.setAttribute('aria-pressed', String(on)); b.textContent = on ? '학생 공개 중' : '비공개'; }); })
+          .catch(function (e) { alert('공개 설정을 바꾸지 못했어요: ' + e.message); })
+          .then(function () { b.disabled = false; });
+      };
+    });
   }
   render();
   if (h0 === 'philo') $('philo').scrollIntoView();
