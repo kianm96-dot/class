@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>게임 · 생명 감별사</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
+<link rel="stylesheet" href="../../assets/game.css">
+</head>
+<body>
+<div class="top"><a href="../../index.html#m1">← 도덕① 목록</a><div class="rounds" id="rounds"></div></div>
+<main>
+  <h1>생명 감별사</h1>
+  <p class="q" id="q"></p>
+  <div class="hud"><span>맞힌 수 <b id="score">0</b></span><span>연속 <b id="streak">0</b></span><span>남은 카드 <b id="left">0</b></span></div>
+  <div class="card" id="card"></div>
+  <div class="bins" id="bins"></div>
+  <div class="flash" id="flash" aria-live="polite"></div>
+  <p class="how">단추를 누르거나, 키보드 ← → (세 칸 이상일 때 숫자 1~5)로 고릅니다. 모둠 대결로 할 때는 판마다 점수를 칠판에 적습니다.</p>
+  <div class="review" id="review" hidden></div>
+</main>
+<script>
+window.R={
+"why": {
+"name": "고려하는 이유",
+"q": "교과서에서 말한 어떤 이유일까?",
+"bins": [
+[
+"인간에게 도움",
+"인성·삶의 토대"
+],
+[
+"동물도 고통",
+"싱어"
+],
+[
+"생명 그 자체",
+"슈바이처"
+]
+],
+"cards": [
+[
+"반려 식물이 우울감을 덜어 준다",
+0,
+"인성 함양"
+],
+[
+"동물도 두려움과 슬픔을 느낀다",
+1,
+"고통"
+],
+[
+"모든 생명은 살려고 애쓴다",
+2,
+"생명 외경"
+],
+[
+"동식물은 우리의 먹거리가 된다",
+0,
+"삶의 토대"
+],
+[
+"동물의 고통도 평등하게 고려해야 한다",
+1,
+"싱어"
+],
+[
+"나뭇잎 하나도 함부로 뜯지 않는다",
+2,
+"슈바이처"
+]
+]
+},
+"act": {
+"name": "생명 존중 실천",
+"q": "생명을 존중하는 행동일까?",
+"bins": [
+[
+"존중",
+"좋아요"
+],
+[
+"아니에요",
+"다시 생각"
+]
+],
+"cards": [
+[
+"반려견 동물 등록하기",
+0,
+"잃어버렸을 때 찾을 수 있다"
+],
+[
+"여행 갈 때 반려견을 길에 두고 가기",
+1,
+"유기 — 법 위반"
+],
+[
+"동물 복지 인증 식품 고르기",
+0,
+"식습관 반성"
+],
+[
+"아픈 반려견을 오래 방치하기",
+1,
+"관리 소홀도 학대"
+],
+[
+"야생 동물에게 과자 주기",
+1,
+"야생 동물 건강을 해친다"
+],
+[
+"멸종 위기 동물 캠페인 참여",
+0,
+"사회적 실천"
+]
+]
+}
+};
+</script>
+<script src="../../assets/game-sort.js"></script>
+</body>
+</html>

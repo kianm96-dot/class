@@ -1,7 +1,7 @@
 /* 게임 공통 디자인 (어두운 화면). 역사 수업실 분류 게임과 같은 틀. */
-:root{--ink:#3b2f2c;--dim:#8a7a72;--faint:#f0e2d4;--bg:#fff8ef;--panel:#ffffff;--red:#ff7a6b;--gold:#f5a623;--ok:#2f9e6c;--serif:'Jua','Gowun Dodum',system-ui,sans-serif;--sans:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif}
+:root{--ink:#2b211e;--dim:#6f5f57;--faint:#f0e2d4;--bg:#fff8ef;--panel:#ffffff;--red:#ff7a6b;--gold:#f5a623;--ok:#2f9e6c;--serif:'Jua','Gowun Dodum',system-ui,sans-serif;--sans:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif}
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg) radial-gradient(#f6e6d4 1.6px,transparent 1.7px) 0 0/22px 22px;word-break:keep-all;color:var(--ink);font:15px/1.55 var(--sans)}
+html,body{margin:0;background:var(--bg);word-break:keep-all;color:var(--ink);font:15px/1.55 var(--sans)}
 .top{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:12px max(16px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--faint)}
 .top a{color:var(--dim);text-decoration:none;font-size:13px}
 .rounds{display:flex;gap:6px;flex-wrap:wrap}

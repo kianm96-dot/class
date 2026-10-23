@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>게임 · 평화 감별사</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
+<link rel="stylesheet" href="../../assets/game.css">
+</head>
+<body>
+<div class="top"><a href="../../index.html#m2">← 도덕② 목록</a><div class="rounds" id="rounds"></div></div>
+<main>
+  <h1>평화 감별사</h1>
+  <p class="q" id="q"></p>
+  <div class="hud"><span>맞힌 수 <b id="score">0</b></span><span>연속 <b id="streak">0</b></span><span>남은 카드 <b id="left">0</b></span></div>
+  <div class="card" id="card"></div>
+  <div class="bins" id="bins"></div>
+  <div class="flash" id="flash" aria-live="polite"></div>
+  <p class="how">단추를 누르거나, 키보드 ← → (세 칸 이상일 때 숫자 1~5)로 고릅니다. 모둠 대결로 할 때는 판마다 점수를 칠판에 적습니다.</p>
+  <div class="review" id="review" hidden></div>
+</main>
+<script>
+window.R={
+"solve": {
+"name": "갈등 해결",
+"q": "이 장면은 어떤 갈등 해결 방법일까?",
+"bins": [
+[
+"협상",
+"당사자끼리"
+],
+[
+"조정",
+"제3자가 도움"
+],
+[
+"중재",
+"제3자가 결정"
+]
+],
+"cards": [
+[
+"형과 나가 대화로 텔레비전 시간을 나눴다",
+0,
+"협상"
+],
+[
+"또래 조정자가 대화를 도와 두 친구가 화해했다",
+1,
+"조정"
+],
+[
+"선생님의 결정을 따르기로 미리 약속했다",
+2,
+"중재"
+],
+[
+"두 회사가 마주 앉아 계약 조건을 정했다",
+0,
+"협상"
+],
+[
+"분쟁 조정 위원회가 이웃 간 대화를 도왔다",
+1,
+"조정"
+],
+[
+"운동 경기에서 심판이 판정했다",
+2,
+"중재에 가까운 제3자 결정"
+]
+]
+},
+"violence": {
+"name": "세 가지 폭력",
+"q": "갈퉁이라면 어떤 폭력이라 할까?",
+"bins": [
+[
+"직접적",
+"보이는"
+],
+[
+"구조적",
+"제도"
+],
+[
+"문화적",
+"생각"
+]
+],
+"cards": [
+[
+"친구를 때렸다",
+0,
+"직접적"
+],
+[
+"가난해서 학교에 못 가는 아이들",
+1,
+"구조적"
+],
+[
+"“맞을 짓을 했네”",
+2,
+"문화적"
+],
+[
+"단톡방 욕설",
+0,
+"직접적"
+],
+[
+"성별에 따른 임금 차별 제도",
+1,
+"구조적"
+],
+[
+"폭력을 멋지게 그리는 영상",
+2,
+"문화적"
+]
+]
+},
+"gender": {
+"name": "성의 측면",
+"q": "성의 어떤 측면일까?",
+"bins": [
+[
+"생물학적",
+"sex"
+],
+[
+"사회·문화적",
+"gender"
+],
+[
+"욕망",
+"sexuality"
+]
+],
+"cards": [
+[
+"2차 성징",
+0,
+"몸의 변화"
+],
+[
+"“남자는 울면 안 돼”",
+1,
+"사회의 기대(고정관념)"
+],
+[
+"좋아하는 사람을 보면 두근거린다",
+2,
+"끌림"
+],
+[
+"나라마다 다른 남녀 역할",
+1,
+"사회·문화적"
+],
+[
+"타고난 신체 특징",
+0,
+"생물학적"
+],
+[
+"사랑하고 싶은 마음",
+2,
+"욕망으로서의 성"
+]
+]
+}
+};
+</script>
+<script src="../../assets/game-sort.js"></script>
+</body>
+</html>

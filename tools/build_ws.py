@@ -1,6 +1,6 @@
 """학습지 만들기: tools/decks/<책>_<단원>.py 의 WORKSHEET 를 읽어 <책>/<단원>/worksheet.html 을 씁니다.
 사용: python3 tools/build_ws.py tools/decks/m1_self.py
-WORKSHEET = [ {lesson:N, title:'제목', std:'성취기준 코드', q:'오늘의 질문', parts:[{h:'제목', items:[...]}...], src:'출처 줄'} ... ]
+WORKSHEET = [ {lesson:N, [id:'l2p'], [kick:' · 추가 활동지'], title:'제목', std:'성취기준 코드', q:'오늘의 질문', parts:[{h:'제목', items:[...]}...], src:'출처 줄'} ... ]
 items:
   ('p', '문장 {{답}} 문장')                  빈칸 문장 (답은 정답 보기 때만)
   ('case', '사례 제목', '사례 글')            실제 사례 상자
@@ -69,9 +69,9 @@ def build(path):
                         for i, p in enumerate(W['parts'], 1))
         stds = W['std'] if isinstance(W['std'], list) else [W['std']]
         sheets += f'''
-<article class="sheet" id="l{W["lesson"]}">
+<article class="sheet" id="{W.get("id", "l" + str(W["lesson"]))}">
   <header>
-    <div><div class="kicker">{E(back)} · {E(unit_title)} · {W["lesson"]}차시</div><h1>{E(W["title"])}</h1></div>
+    <div><div class="kicker">{E(back)} · {E(unit_title)} · {W["lesson"]}차시{E(W.get("kick", ""))}</div><h1>{E(W["title"])}</h1></div>
     <div class="who"><span>학년</span><span>반</span><span>번호</span><span>이름</span></div>
   </header>
   {''.join(f'<p class="std">[{s}] {E(STD.get(s, ""))}</p>' for s in stds)}

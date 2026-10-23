@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>게임 · 공동체 감별사</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
+<link rel="stylesheet" href="../../assets/game.css">
+</head>
+<body>
+<div class="top"><a href="../../index.html#m1">← 도덕① 목록</a><div class="rounds" id="rounds"></div></div>
+<main>
+  <h1>공동체 감별사</h1>
+  <p class="q" id="q"></p>
+  <div class="hud"><span>맞힌 수 <b id="score">0</b></span><span>연속 <b id="streak">0</b></span><span>남은 카드 <b id="left">0</b></span></div>
+  <div class="card" id="card"></div>
+  <div class="bins" id="bins"></div>
+  <div class="flash" id="flash" aria-live="polite"></div>
+  <p class="how">단추를 누르거나, 키보드 ← → (세 칸 이상일 때 숫자 1~5)로 고릅니다. 모둠 대결로 할 때는 판마다 점수를 칠판에 적습니다.</p>
+  <div class="review" id="review" hidden></div>
+</main>
+<script>
+window.R={
+"cause": {
+"name": "인권 침해 원인",
+"q": "교과서에서 말한 어떤 원인일까?",
+"bins": [
+[
+"인권 감수성 부족",
+"알아차림·공감"
+],
+[
+"편견",
+"치우친 생각"
+],
+[
+"제도 미비",
+"법과 제도"
+]
+],
+"cards": [
+[
+"친구 사진을 몰래 올리고 “귀여워서”",
+0,
+"인권 감수성 부족"
+],
+[
+"“여자는 일을 못해”",
+1,
+"편견"
+],
+[
+"점자 표기 의무가 없다",
+2,
+"제도 미비"
+],
+[
+"놀림을 장난으로 넘긴다",
+0,
+"인권 감수성 부족"
+],
+[
+"“저 동네 애들은 다 그래”",
+1,
+"편견"
+],
+[
+"장애인 출입 기준이 없는 건물",
+2,
+"제도 미비"
+]
+]
+},
+"culture": {
+"name": "문화를 보는 관점",
+"q": "어떤 관점일까?",
+"bins": [
+[
+"자문화 중심주의",
+"내 것이 최고"
+],
+[
+"문화 사대주의",
+"남의 것이 최고"
+],
+[
+"문화 상대주의",
+"맥락으로 이해"
+]
+],
+"cards": [
+[
+"“우리 음식 말고는 다 이상해”",
+0,
+"자문화 중심"
+],
+[
+"“외국 것은 다 세련됐어”",
+1,
+"문화 사대"
+],
+[
+"“그 나라 기후 때문에 생긴 문화구나”",
+2,
+"문화 상대"
+],
+[
+"“한국에 왔으면 한국 방식만 따라”",
+0,
+"자문화 중심"
+],
+[
+"“우리 전통은 다 촌스러워”",
+1,
+"문화 사대"
+],
+[
+"“그 사회의 역사로 보면 이해돼”",
+2,
+"문화 상대"
+]
+]
+},
+"unify": {
+"name": "분단과 통일",
+"q": "분단의 문제점일까, 통일의 의미일까?",
+"bins": [
+[
+"분단의 문제점",
+"지금"
+],
+[
+"통일의 의미",
+"앞으로"
+]
+],
+"cards": [
+[
+"사회적·문화적 이질화",
+0,
+"분단의 문제점"
+],
+[
+"사회적·문화적 동질성 회복",
+1,
+"통일의 의미"
+],
+[
+"인간 존엄성 훼손",
+0,
+"분단의 문제점"
+],
+[
+"인간 존엄성 실현",
+1,
+"통일의 의미"
+],
+[
+"국가 경쟁력 약화",
+0,
+"분단의 문제점"
+],
+[
+"진정한 평화 실현",
+1,
+"통일의 의미"
+]
+]
+}
+};
+</script>
+<script src="../../assets/game-sort.js"></script>
+</body>
+</html>

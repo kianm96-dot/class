@@ -1,8 +1,8 @@
 /* 활동 화면 공통 디자인 (밝고 귀여운 테마, 슬라이드와 같은 색). 차시마다 <section class="panel" data-lesson="N">. */
-:root{--ink:#3b2f2c;--dim:#8a7a72;--faint:#f0e2d4;--bg:#fff8ef;--panel:#ffffff;--red:#ff7a6b;--leaf:#36b37e;--gold:#f5a623;--sky:#4a9eff;
+:root{--ink:#2b211e;--dim:#6f5f57;--faint:#f0e2d4;--bg:#fff8ef;--panel:#ffffff;--red:#ff7a6b;--leaf:#36b37e;--gold:#f5a623;--sky:#4a9eff;
   --serif:'Jua','Gowun Dodum',system-ui,sans-serif;--sans:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif}
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg) radial-gradient(#f6e6d4 1.6px,transparent 1.7px) 0 0/22px 22px;color:var(--ink);font:16px/1.6 var(--sans);word-break:keep-all}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--sans);word-break:keep-all}
 .top{background:rgba(255,248,239,.9);display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px max(16px,env(safe-area-inset-left,0px));border-bottom:2px solid var(--faint);flex-wrap:wrap}
 .top a{color:var(--dim);text-decoration:none;font-size:13px}
 .top nav{display:flex;gap:6px;flex-wrap:wrap}
@@ -50,3 +50,4 @@ textarea,input[type=text]{width:100%;font:500 15px var(--sans);background:var(--
 h2.sub{font-family:var(--serif);font-weight:400;font-size:23px;margin:24px 0 10px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 @media print{.top,.btns,.no-print{display:none!important}body,html{background:#fff;color:#000}.panel{display:none!important}.panel.on{display:block!important}.card{border-color:#999;background:#fff;color:#000}}
+.philo-link{display:inline-flex;align-items:center;gap:6px;margin-top:12px;font:17px var(--serif);color:#fff;background:var(--pc,var(--red));padding:8px 18px;border-radius:999px;text-decoration:none;box-shadow:0 3px 0 rgba(0,0,0,.15)}

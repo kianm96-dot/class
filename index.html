@@ -4,37 +4,51 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>중학교 도덕 수업실</title>
-<meta name="description" content="2022 개정 교육과정 중학교 도덕 차시별 수업 슬라이드, 활동, 학습지, 게임">
+<meta name="description" content="2022 개정 교육과정 중학교 도덕 차시별 수업 슬라이드, 활동, 학습지, 게임, 철학자 톡">
 <meta name="theme-color" content="#fff8ef">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
 <link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
-<div class="wrap">
-  <nav class="topbar" aria-label="상단">
+<header class="topbar">
+  <div class="in">
     <a class="brand" href="index.html"><i aria-hidden="true">🌱</i><span>도덕 수업실</span></a>
-    <span class="spacer"></span>
-    <span class="how">슬라이드: <kbd>→</kbd> 다음 · <kbd>N</kbd> 발문 메모 · <kbd>F</kbd> 전체 화면</span>
-  </nav>
-  <section class="intro">
-    <h1>오늘 <span>도덕</span> 시간,<br>어디부터 열까요?</h1>
-    <p id="curr"></p>
+    <div class="seg" role="group" aria-label="교과서" id="books"></div>
     <label class="search" for="q">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input id="q" type="search" placeholder="차시 검색 (예: 행복, 인권, 친구)" autocomplete="off" aria-label="차시 검색">
+      <input id="q" type="search" placeholder="차시 찾기 (예: 행복, 친구, 정의)" autocomplete="off" aria-label="차시 검색">
     </label>
-  </section>
-  <div class="bar">
-    <div class="seg" role="group" aria-label="교과서" id="books"></div>
-    <div class="legend" aria-label="영역 색"><span class="a-self"><i></i>자신</span><span class="a-others"><i></i>타인</span><span class="a-society"><i></i>사회·공동체</span><span class="a-nature"><i></i>자연</span></div>
   </div>
+</header>
+<div class="wrap">
+  <section class="intro">
+    <h1>오늘 <span>도덕</span> 시간, 어디부터 열까요?</h1>
+    <p id="curr"></p>
+  </section>
+
+  <section class="philo" id="philo" aria-labelledby="philoH">
+    <div class="sec-h"><h2 id="philoH">💬 철학자 톡 <small>철학자와 도란도란 · 메신저로 대화하고 퀴즈 풀고 미션까지</small></h2><span class="got" id="got"></span></div>
+    <div class="pcards" id="pcards"></div>
+  </section>
+
   <p class="status" id="status" aria-live="polite"></p>
   <div class="units" id="units"></div>
+
+  <details class="howto">
+    <summary>수업에서 쓰는 법</summary>
+    <ul>
+      <li><b>슬라이드</b>: <kbd>→</kbd>·스페이스·화면 클릭으로 하나씩, <kbd>←</kbd> 되돌리기, <kbd>N</kbd> 발문 메모, <kbd>F</kbd> 전체 화면. 주소 끝 <code>#5</code>는 5장부터.</li>
+      <li><b>활동</b>: 반 전체 투표, 분류, OX, 뒤집기 카드, 모둠 시계 등. 전자칠판에서 바로 누르며 진행해요.</li>
+      <li><b>학습지</b>: [예시 답 보기]를 켠 채 인쇄하면 교사용. A4, 인쇄 설정에서 ‘배경 그래픽’ 켜기.</li>
+      <li><b>철학자 톡</b>: [다음 ▶]으로 대화를 넘기고, 퀴즈를 맞혀야 넘어가요. 오른쪽 위 [한 번에 보기]는 선생님 미리 보기.</li>
+    </ul>
+  </details>
   <p class="foot">교과서 원문은 싣지 않고 단원 주제와 성취기준에 맞춰 새로 쓴 자료예요. 사진은 위키미디어 공용 자료이며 장마다 출처를 적었어요.</p>
 </div>
 <script src="assets/catalog.js"></script>
 <script src="assets/standards.js"></script>
+<script src="assets/philo-list.js"></script>
 <script src="assets/site.js"></script>
 </body>
 </html>
