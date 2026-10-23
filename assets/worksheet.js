@@ -20,6 +20,6 @@
     function bad() { f.classList.add('err'); }
     if (im.complete && !im.naturalWidth && im.src) bad(); else im.addEventListener('error', bad);
   });
-  var h = location.hash.slice(1), el = h && document.getElementById('l' + h);
+  var h = location.hash.slice(1), el = h && (document.getElementById('l' + h + 'c') || document.getElementById('l' + h));   // 개념 채우기 면이 있으면 그 면부터
   if (el) el.scrollIntoView();
 })();

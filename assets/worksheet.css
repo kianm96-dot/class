@@ -52,3 +52,8 @@ p.ans,div.ans{font-size:12px;margin:1mm 0 0}
 @page{size:A4;margin:0}
 @media print{html,body{background:#fff}.bar{display:none}.sheets{padding:0;gap:0}.sheet{box-shadow:none;page-break-after:always;width:210mm;min-height:297mm}
   body:not(.show-ans) .ans{visibility:hidden}}
+/* 교과서 개념 채우기: 슬라이드와 같은 번호의 빈칸 */
+.part.concept h3{font-size:13px;margin:2.2mm 0 1mm;color:#3d6bd8}
+.part.concept h3 small{font-weight:400;color:#888;font-size:11px}
+.part.concept p.cp{margin:0 0 1.4mm;line-height:2}
+.blank.nb i{font-style:normal;font-size:10px;color:#3d6bd8;margin-right:1mm}
