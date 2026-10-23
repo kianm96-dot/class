@@ -145,3 +145,41 @@ html,body{height:100%;background:var(--bg);color:var(--ink);font-family:var(--sa
 .defs b{font:min(3.2vw,34px)/1.2 var(--serif);font-weight:400;color:var(--red)}
 .defs span{font-size:min(2.4vw,25px);line-height:1.55}
 @media (max-width:700px){.pgchip{top:52px;font-size:12px}.goal h2{font-size:24px}.goal p,.steps p{font-size:16px}.tbact h2{font-size:21px}.tbact .sit{font-size:14px}.concept h2{font-size:24px}.defs div{grid-template-columns:1fr}.defs b{font-size:20px}.defs span{font-size:15px}}
+/* 학습지 빈칸 채우기: ① 번호 → 클릭하면 답 → 💡 사례 */
+.bl{display:inline-block;border-bottom:3px solid var(--red);padding:0 .25em;margin:0 .1em;line-height:1.2;white-space:nowrap}
+.bl i{font-style:normal;font-size:.62em;color:#3d6bd8;margin-right:.15em;vertical-align:.35em}
+.bl em{font-style:normal;font-weight:700;color:var(--red);visibility:hidden}
+.bl.show em{visibility:visible}
+.bl.show{background:#fff1ee;border-radius:6px 6px 0 0}
+.defs .ex{grid-column:2;font-size:min(2vw,21px);line-height:1.5;color:#55607a;background:#fff8e1;border-radius:12px;padding:.8vh 1vw;opacity:0;transition:.35s}
+.defs .ex.show{opacity:1}
+.concept.dense{padding:3.2vh 3vw}.concept.dense h2{margin-bottom:1.6vh}.concept.dense .defs{gap:1.1vh}.concept.dense .defs div{padding:1.2vh 1.4vw;row-gap:.8vh}
+.concept.dense .defs b{font-size:min(2.8vw,30px)}.concept.dense .defs span{font-size:min(2.2vw,23px)}
+@media (max-width:700px){.defs .ex{grid-column:1;font-size:13px}.concept.dense .defs b{font-size:17px}.concept.dense .defs span{font-size:14px}}
+/* 함께 해 보기: 그 차시 활동 화면으로 */
+.actcard{width:min(1000px,90vw);background:var(--card);border-radius:32px;padding:4.5vh 4vw;box-shadow:var(--shadow);border:4px dashed var(--grape);text-align:left;display:flex;flex-direction:column;gap:2.2vh}
+.actcard .kick{align-self:flex-start;color:#fff;background:var(--grape);border-radius:999px;padding:3px 16px;font-weight:700;font-size:min(1.8vw,17px)}
+.actcard .f{opacity:.18;transform:translateY(8px);transition:.4s}.actcard .f.show{opacity:1;transform:none}
+.actcard h2{font:min(4.6vw,50px)/1.2 var(--serif);font-weight:400}
+.actcard p{font-size:min(2.5vw,26px);line-height:1.5;color:#55607a;margin-top:.6vh}
+.actcard .kits{display:flex;flex-wrap:wrap;gap:8px;margin-top:1.2vh}
+.actcard .kits span{background:#f3ecff;color:#6a43a8;border-radius:999px;padding:4px 14px;font-size:min(1.9vw,19px)}
+.actcard .go-chat{align-self:flex-start;--pc:var(--grape);margin-top:.6vh}
+@media (max-width:700px){.actcard h2{font-size:24px}.actcard p{font-size:15px}.actcard .kits span{font-size:13px}}
+/* 학습지 요점 정리 줄: 낱말 칸 없이 한 줄 · 작은 제목 */
+.defs div.wide{grid-template-columns:1fr}
+.defs div.wide .ex{grid-column:1}
+.defs div.sub{background:none;padding-top:.4vh;padding-bottom:0}
+.defs div.sub span{font-family:var(--serif);color:#3d6bd8;font-size:min(2.6vw,27px)}
+/* 1분 체크 OX */
+.check{width:min(1080px,90vw);background:var(--card);border-radius:32px;padding:4vh 4vw;box-shadow:var(--shadow);border:4px solid #36b37e;text-align:left}
+.check .kick{display:inline-block;color:#fff;background:#36b37e;border-radius:999px;padding:3px 16px;font-weight:700;font-size:min(1.8vw,17px)}
+.check h2{font:min(4vw,42px)/1.25 var(--serif);font-weight:400;margin:1.4vh 0 2vh}
+.check ol{list-style:none;counter-reset:c;display:flex;flex-direction:column;gap:1.4vh}
+.check li{counter-increment:c;display:grid;grid-template-columns:auto 1fr auto;gap:1.4vw;align-items:center;background:#f3fbf6;border-radius:16px;padding:1.4vh 1.4vw;opacity:.18;transform:translateY(8px);transition:.4s}
+.check li.show{opacity:1;transform:none}
+.check li::before{content:counter(c);display:inline-grid;place-items:center;width:1.6em;height:1.6em;border-radius:50%;background:#dff3e7;color:#1f7a4a;font:min(2vw,20px) var(--serif)}
+.check li span{font-size:min(2.3vw,24px);line-height:1.5}
+.check li b{font:min(4.4vw,46px)/1 var(--serif);width:1.4em;text-align:center;opacity:0;transform:scale(.6);transition:.3s}
+.check li b.show{opacity:1;transform:none}.check li b.o{color:#1f9d5a}.check li b.x{color:var(--red)}
+@media (max-width:700px){.check h2{font-size:22px}.check li span{font-size:14px}.check li b{font-size:28px}.defs div.sub span{font-size:16px}}

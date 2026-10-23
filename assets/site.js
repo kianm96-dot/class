@@ -48,6 +48,7 @@
       var links = (made(key, 'act', n) ? '<a href="' + base + 'act.html#' + n + '">활동</a>' : '') +
         (made(key, 'ws', n) ? '<a href="' + base + 'worksheet.html#' + n + '">학습지</a>' : '') +
         (made(key, 'prob', n) ? '<a href="' + base + 'prob' + n + '.html">문제</a>' : '') +
+        (made(key, 'ppt', n) && window.IS_TEACHER !== false ? '<a class="ppt" href="' + base + 'ppt' + n + '.pptx" download="' + esc((b.book + ' ' + ROMAN[u.no - 1] + '단원 ' + n + '차시 ' + l[0]).replace(/[\\/:*?"<>|]/g, '')) + '.pptx">📥 PPT</a>' : '') +
         (ph ? '<a class="ph" href="philo/' + ph.id + '.html" style="--pc:' + ph.color + '">' + ph.emoji + ' ' + esc(ph.name) + ' 톡</a>' : '');
       return head + '<li class="ls"><span class="ln">' + n + '</span>' +
         '<span class="lw">' + (sl ? '<a class="lt" href="' + sl + '">' + hi(l[0]) + '</a>' : '<span class="lt off">' + hi(l[0]) + (made(key, 'slides', n) ? '' : ' <small>준비 중</small>') + '</span>') +
