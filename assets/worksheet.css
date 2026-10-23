@@ -57,3 +57,14 @@ p.ans,div.ans{font-size:12px;margin:1mm 0 0}
 .part.concept h3 small{font-weight:400;color:#888;font-size:11px}
 .part.concept p.cp{margin:0 0 1.4mm;line-height:2}
 .blank.nb i{font-style:normal;font-size:10px;color:#3d6bd8;margin-right:1mm}
+.part.concept p.cp.sub{font-weight:700;margin-top:1mm}
+.part.check ol{margin:0;padding-left:5mm;display:flex;flex-direction:column;gap:1.6mm;font-size:13px;line-height:1.6}
+.part.check .ox{white-space:nowrap;margin-left:2mm}
+.part.check li .ans{font-weight:700;font-size:14px}
+/* 개념 채우기 면: 학습지 요점 정리처럼 촘촘하게 한 면에 */
+.sheet.cpage{gap:2.6mm;padding:9mm 13mm}
+.cpage .big-q{padding:2.4mm 5mm;font-size:16px}
+.cpage .part.concept{gap:0}
+.cpage .part.concept h3{margin:1.8mm 0 .6mm}
+.cpage .part.concept p.cp{font-size:12.5px;line-height:1.9;margin:0}
+.cpage .part.check ol{font-size:12px;gap:.8mm;line-height:1.5}

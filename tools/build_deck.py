@@ -20,6 +20,7 @@
   concept pg, h2(소단원), items=[(낱말, 뜻, [사례])...]  교과서 본문 개념. 뜻의 {{답}}은 학습지와 같은 번호의 빈칸으로,
                                                     클릭마다 하나씩 채워지고 사례(💡)가 뒤따릅니다. 학습지 ‘교과서 개념 채우기’도 여기서 만듭니다
   keep    i, [pg], [kind]                           원래 slides 의 i번째 장을 끼움. pg 가 없으면 ‘➕ 더해 보기’ 표시
+  check   (자동) CHECK[차시] = [(문장, 맞으면 True)...] 학습지 ‘1분 체크’ OX. 클릭마다 문장, 다음 클릭에 정답
   act     (자동) 마지막 장 앞에 그 차시 활동 화면(act.html#N)의 활동 이름·안내·블록을 보여 주고 바로 가는 단추
 모든 장: note(교사 메모 HTML), [pg](교과서 쪽 표시), [extra](더해 보기 표시). lad = [(꼬리표, 질문)...] 꼬리표가 ''이면 질문만.
 사진: assets/photo/credits.json 의 이름. 저장된 파일이 있으면 그것을, 없으면 위키미디어 공용에서 불러옵니다.
@@ -65,6 +66,11 @@ def fills(s, ctr, mk):
         out += E(s[pos:m.start()]) + mk(ctr[0], m.group(1)); pos = m.end()
     return out + E(s[pos:])
 
+def is_sub(t):
+    """학습지의 작은 제목 줄: ‘(2) 자아의 유형’, ‘⇨ 나에 관해 탐구할 때 고려할 점’처럼 짧고 문장이 끝나지 않은 줄"""
+    t = re.sub(r'\{\{|\}\}', '', t).strip()
+    return bool(re.match(r'^(\(\d+\)|⇨)', t)) and len(t) <= 34 and not re.search(r'(함|음|임|됨|짐|있음|없음|것|다)\.?$', t)
+
 def concept_items(tb):
     """차시 교과서 흐름에서 개념 장만 (h2, pg, items) 로."""
     return [(x['h2'], x.get('pg'), x['items']) for x in tb if x['type'] == 'concept']
@@ -103,9 +109,15 @@ def slide(s, meta):
         body = f'<div class="center"><div class="tbact{" wide" if s.get("sit") else ""}">{sit}<h2>{h2(s["h2"])}</h2>' + (f'<div class="steps">{steps}</div>' if steps else '') + '</div></div>'
     elif t == 'concept':
         bl = lambda n, a: f'<span class="bl f"><i>{circ(n)}</i><em>{E(a)}</em></span>'
-        items = ''.join(f'<div class="f"><b>{fills(x[0], meta["n"], bl)}</b><span>{fills(x[1], meta["n"], bl)}</span>'
-                        + (f'<p class="ex f">💡 {E(x[2])}</p>' if len(x) > 2 else '') + '</div>' for x in s['items'])
+        def row(x):
+            ex = f'<p class="ex f">💡 {E(x[2])}</p>' if len(x) > 2 else ''
+            if x[0]: return f'<div class="f"><b>{fills(x[0], meta["n"], bl)}</b><span>{fills(x[1], meta["n"], bl)}</span>{ex}</div>'
+            return f'<div class="f wide{" sub" if is_sub(x[1]) else ""}"><span>{fills(x[1], meta["n"], bl)}</span>{ex}</div>'
+        items = ''.join(row(x) for x in s['items'])
         body = f'<div class="center"><div class="concept{" dense" if len(s["items"]) > 3 or any(len(x) > 2 for x in s["items"]) else ""}"><h2>{h2(s["h2"])}</h2><div class="defs">{items}</div></div></div>'
+    elif t == 'check':
+        rows = ''.join(f'<li class="f"><span>{E(q)}</span><b class="f {"o" if a else "x"}">{"○" if a else "✕"}</b></li>' for q, a in s['items'])
+        body = f'<div class="center"><div class="check"><div class="kick">⏱️ 1분 체크</div><h2>맞으면 ○, 틀리면 ✕</h2><ol>{rows}</ol></div></div>'
     elif t == 'act':
         rows = ''.join(f'<div class="f"><h2>{E(a)}</h2><p>{E(q)}</p>' + (f'<div class="kits">{"".join(f"<span>{KIT[k]}</span>" for k in ks if k in KIT)}</div>' if ks else '') + '</div>'
                        for a, q, ks in s['acts'])
@@ -217,6 +229,9 @@ def build(path):
         i = L.get('n', i)
         meta = {'tag': tag, 'title': L['title'], 'n': [0]}
         L = dict(L, slides=compose(L))
+        if m.get('CHECK', {}).get(i):   # 학습지 ‘1분 체크’ OX: 클릭마다 문장 → 정답
+            L['slides'] = L['slides'][:-1] + [{'type': 'check', 'pg': next((x['pg'] for x in L.get('tb', []) if x['type'] == 'goal'), ''), 'kind': '학습지 1분 체크', 'items': m['CHECK'][i],
+                'note': '<h4>1분 체크 · 학습지</h4><p>문장이 나오면 학생들이 손으로 ○(머리 위 동그라미) / ✕(팔 엇갈리기)를 먼저 표시하게 하고, 한 번 더 클릭해 정답을 보여 준다. ✕ 문장은 “어디를 고치면 맞는 문장이 될까?”를 묻는다.</p>'}] + L['slides'][-1:]
         if acts.get(i):   # 교과서 활동 뒤, 한 문장 쓰기 앞: 이 차시의 재미있는 활동으로 마음 열기
             L['slides'] = L['slides'][:-1] + [{'type': 'act', 'extra': True, 'kind': '활동', 'n': i, 'acts': acts[i],
                 'note': '<h4>마음 활동 · 5~10분</h4><p>단추를 눌러 활동 화면을 칠판에 띄운다. 정답을 맞히는 시간이 아니라 내 생각과 마음을 꺼내 보는 시간 — 어떤 답이든 까닭을 물어 준다.</p><p>시간이 모자라면 건너뛰고 다음 시간 도입이나 복습으로 써도 좋다.</p>'}] + L['slides'][-1:]
