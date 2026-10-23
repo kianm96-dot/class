@@ -38,6 +38,21 @@
   document.getElementById('deck').addEventListener('click', function (e) { if (e.target.closest('a,button,input,textarea')) return; (e.clientX < innerWidth * .25 ? prev : next)(); });
   document.getElementById('bN').onclick = function () { notes.classList.toggle('on'); };
   document.getElementById('bF').onclick = toggleFS;
+  // 교사 잠금 서버(Cloudflare)에서만: 교사 기기는 이 슬라이드를 학생에게 공개/비공개, 학생은 발문 메모가 비어 있으니 단추를 숨김
+  if (window.IS_TEACHER === false) { document.getElementById('bN').hidden = true; }
+  if (window.ROLE === 'teacher') {
+    var key = location.pathname.replace(/\.html$/, ''), pub = document.createElement('button'); pub.type = 'button';
+    var mark = function (on) { pub.setAttribute('aria-pressed', String(on)); pub.textContent = on ? '학생 공개 중' : '학생 비공개'; };
+    mark((window.OPEN_SLIDES || []).indexOf(key) > -1);
+    pub.onclick = function () {
+      var on = pub.getAttribute('aria-pressed') !== 'true'; pub.disabled = true;
+      fetch('/teacher/slides', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ slide: key, open: on }) })
+        .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || r.status); mark(on); }); })
+        .catch(function (e) { alert('공개 설정을 바꾸지 못했어요: ' + e.message); })
+        .then(function () { pub.disabled = false; });
+    };
+    document.getElementById('bN').parentNode.insertBefore(pub, document.getElementById('bN'));
+  }
   addEventListener('hashchange', function () { var n = +location.hash.slice(1); if (n && n - 1 !== i) show(n - 1); });
   show((+location.hash.slice(1) || 1) - 1);
 })();

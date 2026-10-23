@@ -1,0 +1,15 @@
+// Cloudflare Workers 배포 설정 (워커 이름은 Cloudflare의 프로젝트 이름과 같아야 합니다). 과학 실험실과 같은 방식.
+{
+  "name": "moral",
+  "main": "worker.js",
+  "compatibility_date": "2025-10-01",
+  "build": { "command": "node build-teacher.mjs" },
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "durable_objects": { "bindings": [{ "name": "SETTINGS", "class_name": "Settings" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Settings"] }],
+  "observability": { "enabled": true }
+}

@@ -23,10 +23,10 @@
       '.lb a{display:inline-flex;align-items:center;gap:4px;padding:3px 11px;border-radius:999px;border:2px solid #efe0d0;background:#fff;color:#2b211e;text-decoration:none;white-space:nowrap;font-weight:700;font-size:14px}' +
       '.lb a:hover{border-color:#ff7a6b}.lb a[aria-current="page"]{background:#ff7a6b;border-color:#ff7a6b;color:#fff}' +
       '.lb .nav{margin-left:auto;display:flex;gap:6px}.lb .nav a{padding:3px 9px}' +
-      '.lb-float{position:fixed;left:12px;bottom:16px;z-index:60;font:700 14px "Gowun Dodum",system-ui,sans-serif}' +
+      '.lb-float{position:fixed;left:12px;bottom:44px;z-index:60;font:700 14px "Gowun Dodum",system-ui,sans-serif}' +
       '.lb-float>button{border:0;border-radius:999px;padding:8px 14px;background:rgba(43,33,30,.82);color:#fff;cursor:pointer;font:inherit;opacity:.55}.lb-float>button:hover,.lb-float.open>button{opacity:1}' +
       '.lb-float .lb{position:absolute;left:0;bottom:44px;width:min(92vw,620px);border:2px solid #efe0d0;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.18)}' +
-      '@media print{.lb,.lb-float{display:none!important}}';
+      '.lb[hidden]{display:none!important}@media print{.lb,.lb-float{display:none!important}}';
     document.head.appendChild(s);
   }
 
@@ -52,7 +52,8 @@
     var ph = (window.PHILO_LIST || []).filter(function (p) { return p.key === h.key && p.n === n; })[0];
     var L = [];
     if (n) {
-      if (has('slides')) L.push(['slides', '📽 슬라이드', base + 'slides' + n + '.html']);
+      var openS = window.IS_TEACHER !== false || (window.OPEN_SLIDES || []).indexOf('/' + h.key + '/slides' + n) > -1;   // 교사 잠금 서버의 학생 화면에서는 공개한 슬라이드만
+      if (has('slides') && openS) L.push(['slides', '📽 슬라이드', base + 'slides' + n + '.html']);
       if (has('act')) L.push(['act', '🧩 활동', base + 'act.html#' + n]);
       if (has('ws')) L.push(['ws', '📄 학습지', base + 'worksheet.html#' + n]);
       if (has('prob')) L.push(['prob', '✍ 문제', base + 'prob' + n + '.html']);

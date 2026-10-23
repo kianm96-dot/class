@@ -65,7 +65,12 @@ def main():
                 for href in pg.eval_on_selector_all('a[href]', 'els => els.map(e => e.getAttribute("href"))'):
                     if re.match(r'^(https?:|mailto:|#)', href):
                         continue
-                    t = (f.parent / href.split('#')[0]).resolve()
+                    href = href.split('#')[0].split('?')[0]   # 주소 뒤 ?u=… 같은 값은 떼고 파일만 확인
+                    if href.startswith('file://'):              # ‘이 차시 자료’ 막대는 절대 주소로 만든다
+                        from urllib.parse import unquote
+                        t = pathlib.Path(unquote(href[7:]))
+                    else:
+                        t = (f.parent / href).resolve()
                     if not t.exists():
                         probs.append('깨진 링크: ' + href)
                 pg.close()
