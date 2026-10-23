@@ -164,6 +164,11 @@ def compose(L):
 FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com">\n'
          '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">')
 
+def SHELL(root):
+    """모든 화면 공통: 앱 설치(manifest, 아이콘) + ‘이 차시 자료’ 막대(assets/lessonbar.js, 서비스 워커 등록 포함)."""
+    return (f'<link rel="manifest" href="{root}manifest.webmanifest">\n<link rel="icon" type="image/png" href="{root}icons/icon-192.png">\n'
+            f'<link rel="apple-touch-icon" href="{root}icons/apple-touch-icon.png">\n<script src="{root}assets/lessonbar.js" defer></script>')
+
 def build(path):
     m = runpy.run_path(path)
     book, unit, uno, tag, back = m['BOOK'], m['UNIT'], m['UNO'], m['TAG'], m['BACK']
@@ -182,6 +187,7 @@ def build(path):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{E(L["title"])} · {E(back)} {uno}단원 {i}차시</title>
 {FONTS}
+{SHELL('../../')}
 <link rel="stylesheet" href="../../assets/deck.css">
 </head>
 <body>

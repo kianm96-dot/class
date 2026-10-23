@@ -3,7 +3,7 @@
 import sys, json, html, pathlib
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'tools'))
-from build_deck import FONTS
+from build_deck import SHELL, FONTS
 import philo_data as D
 E = lambda s: html.escape(s, quote=True)
 J = lambda o: json.dumps(o, ensure_ascii=False).replace('</', '<\\/')
@@ -26,6 +26,7 @@ def build():
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>철학자 톡 · {E(p["name"])}</title>
 {FONTS}
+{SHELL('../')}
 <link rel="stylesheet" href="../assets/philo.css">
 </head>
 <body style="--pc:{p["color"]}">

@@ -15,7 +15,7 @@ items:
 import sys, html, re, pathlib, runpy
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'tools'))
-from build_deck import credit, src_of, FONTS
+from build_deck import SHELL, credit, src_of, FONTS
 STD = {}
 for line in (ROOT / 'assets/standards.js').read_text(encoding='utf-8').splitlines():
     m = re.match(r"'([^']+)':'(.*)',?$", line)
@@ -86,6 +86,7 @@ def build(path):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>학습지 · {E(back)} {uno}단원 {E(unit_title)}</title>
 {FONTS}
+{SHELL('../../')}
 <link rel="stylesheet" href="../../assets/worksheet.css">
 </head>
 <body>

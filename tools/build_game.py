@@ -3,7 +3,7 @@ GAME = {'href':'app-xxx.html', 'title':'게임 이름', 'rounds': {키: {name, q
 import sys, json, html, pathlib, runpy
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / 'tools'))
-from build_deck import FONTS
+from build_deck import SHELL, FONTS
 E = lambda s: html.escape(s, quote=True)
 
 def build(path):
@@ -19,6 +19,7 @@ def build(path):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>게임 · {E(G["title"])}</title>
 {FONTS}
+{SHELL('../../')}
 <link rel="stylesheet" href="../../assets/game.css">
 </head>
 <body>

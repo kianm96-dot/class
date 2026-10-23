@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>수업 진행 도구 · 도덕 수업실</title>
+<meta name="theme-color" content="#fff8ef">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.page-h{padding-top:22px}.page-h h1{margin:0;font:clamp(28px,4vw,40px)/1.2 var(--disp)}.page-h p{margin:4px 0 0;color:var(--muted);font-size:15px}
+.tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:18px}
+.panel{background:#fff;border:2px solid var(--line);border-radius:24px;padding:18px 20px}
+.panel h2{margin:0 0 6px;font:24px var(--disp)}
+.big{font:clamp(64px,11vw,120px)/1.05 var(--disp);text-align:center;font-variant-numeric:tabular-nums;margin:8px 0}
+.big.warn{color:var(--coral)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:center}
+.btn{font:17px var(--disp);border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:7px 16px;cursor:pointer;min-height:44px}
+.btn:hover{border-color:var(--coral)}
+.btn.primary{background:var(--coral);border-color:var(--coral);color:#fff}
+.pick{font:clamp(44px,8vw,84px)/1.2 var(--disp);text-align:center;min-height:1.3em;margin:8px 0;color:var(--coral)}
+.field{font-size:15px;color:var(--muted);display:inline-flex;gap:6px;align-items:center}
+.field input[type=number]{font:inherit;width:64px;padding:4px 6px;border:2px solid var(--line);border-radius:10px}
+textarea{width:100%;min-height:120px;font:16px var(--body);border:2px solid var(--line);border-radius:14px;padding:10px;background:#fff;color:var(--ink)}
+.groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-top:12px}
+.groups div{background:var(--soft);border-radius:14px;padding:10px 12px;font-size:16px}
+.groups b{display:block;font:20px var(--disp);color:var(--coral);margin-bottom:4px}
+.used,.note{font-size:14px;color:var(--muted);text-align:center;min-height:1.2em;margin:6px 0 0}
+.fs{position:fixed;inset:0;z-index:50;background:var(--bg);display:grid;place-items:center;font:min(30vw,52vh) var(--disp);font-variant-numeric:tabular-nums;cursor:pointer}
+.back{display:inline-block;margin-top:16px;font-size:15px;color:var(--muted)}
+</style>
+<link rel="manifest" href="../manifest.webmanifest">
+<link rel="icon" type="image/png" href="../icons/icon-192.png">
+<link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
+<script src="../assets/lessonbar.js" defer></script>
+</head>
+<body>
+<header class="topbar"><div class="in"><a class="brand" href="../index.html"><i aria-hidden="true">🌱</i><span>도덕 수업실</span></a></div></header>
+<div class="wrap">
+  <section class="page-h"><h1>⏱ 수업 진행 도구</h1><p>타이머 · 발표자 뽑기 · 모둠 편성. 명단은 이 브라우저에만 저장돼요.</p></section>
+  <div class="tools">
+    <section class="panel" aria-label="타이머">
+      <h2>⏱ 활동 타이머</h2>
+      <div class="big" id="clock">05:00</div>
+      <div class="row"><button class="btn" data-m="1">1분</button><button class="btn" data-m="3">3분</button><button class="btn" data-m="5">5분</button><button class="btn" data-m="10">10분</button><button class="btn" data-add="30">+30초</button></div>
+      <div class="row" style="margin-top:8px"><button class="btn primary" id="tGo">시작</button><button class="btn" id="tReset">처음으로</button><button class="btn" id="tFull">크게 보기</button></div>
+    </section>
+    <section class="panel" aria-label="발표자 뽑기">
+      <h2>🎲 발표자 뽑기</h2>
+      <div class="pick" id="pick">?</div>
+      <p class="used" id="used"></p>
+      <div class="row"><label class="field">번호 1 ~ <input type="number" id="maxN" min="2" max="60" value="28"></label><label class="field"><input type="checkbox" id="noRep" checked> 뽑힌 사람 빼기</label></div>
+      <div class="row" style="margin-top:8px"><button class="btn primary" id="pGo">뽑기</button><button class="btn" id="pReset">처음부터</button></div>
+      <p class="note">아래 ‘모둠 편성’에 명단을 넣으면 번호 대신 이름으로 뽑아요.</p>
+    </section>
+    <section class="panel" aria-label="모둠 편성" style="grid-column:1/-1">
+      <h2>👥 모둠 편성</h2>
+      <textarea id="roster" placeholder="한 줄에 한 명씩, 또는 쉼표로 나눠 이름을 넣으세요"></textarea>
+      <div class="row" style="justify-content:flex-start;margin-top:8px"><label class="field">모둠 수 <input type="number" id="nG" min="2" max="12" value="6"></label><button class="btn primary" id="gGo">무작위 편성</button><span class="note" id="gInfo" style="margin:0"></span></div>
+      <div class="groups" id="groups"></div>
+    </section>
+  </div>
+  <a class="back" href="../index.html">← 도덕 수업실 첫 화면</a>
+</div>
+<script>
+(() => {
+  const $ = id => document.getElementById(id), store = {get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} }};
+  let AC = null; const beep = (f, d, t0 = 0) => { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); const o = AC.createOscillator(), g = AC.createGain(), t = AC.currentTime + t0; o.frequency.value = f; g.gain.setValueAtTime(.2, t); g.gain.exponentialRampToValueAtTime(.001, t + d); o.connect(g).connect(AC.destination); o.start(t); o.stop(t + d); } catch (e) {} };
+  /* 타이머 */
+  let total = 300, left = 300, run = false, last = 0, full = null; const fmt = s => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+  const show = () => { const s = Math.ceil(left); $('clock').textContent = fmt(s); $('clock').classList.toggle('warn', s <= 10); $('tGo').textContent = run ? '잠깐 멈춤' : '시작'; if (full) { full.textContent = fmt(s); full.style.color = s <= 10 ? 'var(--coral)' : ''; } };
+  document.querySelectorAll('[data-m]').forEach(b => b.onclick = () => { total = left = +b.dataset.m * 60; run = false; show(); });
+  document.querySelector('[data-add]').onclick = () => { left += 30; total = Math.max(total, left); show(); };
+  $('tGo').onclick = () => { if (left <= 0) left = total; run = !run; last = performance.now(); show(); };
+  $('tReset').onclick = () => { run = false; left = total; show(); };
+  $('tFull').onclick = () => { full = document.createElement('div'); full.className = 'fs'; full.title = '누르면 닫혀요'; full.onclick = () => { full.remove(); full = null; }; document.body.appendChild(full); show(); };
+  let lastSec = null; const tick = now => { if (run) { left -= (now - last) / 1000; const s = Math.ceil(left); if (s !== lastSec && s <= 5 && s > 0) beep(660, .15); lastSec = s; if (left <= 0) { left = 0; run = false; beep(880, .4); beep(880, .4, .5); beep(1175, .8, 1); } show(); } last = now; requestAnimationFrame(tick); }; requestAnimationFrame(tick); show();
+  /* 명단 */
+  const roster = () => $('roster').value.split(/[\n,]/).map(s => s.trim()).filter(Boolean);
+  $('roster').value = store.get('class-roster') || ''; $('roster').oninput = () => { store.set('class-roster', $('roster').value); pool = null; };
+  /* 뽑기 */
+  let pool = null, used = []; const all = () => { const r = roster(); return r.length ? r : Array.from({length: Math.max(2, +$('maxN').value || 28)}, (_, i) => String(i + 1) + '번'); };
+  $('maxN').oninput = () => { pool = null; used = []; $('used').textContent = ''; };
+  $('pReset').onclick = () => { pool = null; used = []; $('used').textContent = ''; $('pick').textContent = '?'; };
+  $('pGo').onclick = () => { if (!pool || !$('noRep').checked) pool = all().filter(x => !$('noRep').checked || !used.includes(x)); if (!pool.length) { pool = all(); used = []; } const names = all(); let k = 0; const spin = setInterval(() => { $('pick').textContent = names[Math.floor(Math.random() * names.length)]; beep(400 + Math.random() * 300, .04); if (++k > 14) { clearInterval(spin); const i = Math.floor(Math.random() * pool.length), who = pool.splice(i, 1)[0]; if ($('noRep').checked) used.push(who); $('pick').textContent = who; beep(988, .3); $('used').textContent = used.length ? `뽑힌 순서: ${used.join(' → ')}` : ''; } }, 60); };
+  /* 모둠 */
+  $('gGo').onclick = () => { const r = roster(); if (r.length < 2) { $('gInfo').textContent = '명단을 2명 이상 넣어 주세요.'; return; } const n = Math.min(r.length, Math.max(2, +$('nG').value || 4)), a = r.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } const G = Array.from({length: n}, () => []); a.forEach((x, i) => G[i % n].push(x)); const esc = t => t.replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'})[c]); $('groups').innerHTML = G.map((g, i) => `<div><b>${i + 1}모둠</b>${g.map(esc).join('<br>')}</div>`).join(''); $('gInfo').textContent = `${r.length}명 → ${n}모둠`; };
+})();
+</script>
+</body>
+</html>

@@ -389,14 +389,14 @@ window.CATALOG = [
 ];
 
 /* 만들어진 자료. 새로 만들면 여기에 적습니다. 키: '책/단원폴더'
-   slides·act·ws: 만들어진 차시 번호, game: 게임 {href, title} */
+   slides·act·ws·prob: 만들어진 차시 번호(prob: 차시별 문제 probN.html), game: 게임 {href, title} */
 window.FILES = {
-  'm1/self': { slides:[1,2,3,4,5,6], act:[1,2,3,4,5,6], ws:[1,2,3,4,5,6], game:{ href:'app-judge.html', title:'마음 감별사' } },
-  'm1/others': { slides:[1,2,3,4,5,6,7], act:[1,2,3,4,5,6,7], ws:[1,2,3,4,5,6,7], game:{ href:'app-relation.html', title:'관계 감별사' } },
-  'm1/society': { slides:[1,2,3,4,5,6,7], act:[1,2,3,4,5,6,7], ws:[1,2,3,4,5,6,7], game:{ href:'app-community.html', title:'공동체 감별사' } },
-  'm1/nature': { slides:[1,2], act:[1,2], ws:[1,2], game:{ href:'app-life.html', title:'생명 감별사' } },
-  'm2/others': { slides:[1,2,3,4,5,6,7], act:[1,2,3,4,5,6,7], ws:[1,2,3,4,5,6,7], game:{ href:'app-peace.html', title:'평화 감별사' } },
-  'm2/self': { slides:[1,2,3,4,5,6,7,8,9,10], act:[1,2,3,4,5,6,7,8,9,10], ws:[1,2,3,4,5,6,7,8,9,10], game:{ href:'app-judge.html', title:'판단 감별사' } },
-  'm2/society': { slides:[1,2,3,4,5,6,7,8], act:[1,2,3,4,5,6,7,8], ws:[1,2,3,4,5,6,7,8], game:{ href:'app-justice.html', title:'정의 감별사' } },
-  'm2/nature': { slides:[1,2,3], act:[1,2,3], ws:[1,2,3], game:{ href:'app-earth.html', title:'공존 감별사' } }
+  'm1/self': { slides:[1,2,3,4,5,6], act:[1,2,3,4,5,6], ws:[1,2,3,4,5,6], prob:[1,2,3,4,5,6], game:{ href:'app-judge.html', title:'마음 감별사' } },
+  'm1/others': { slides:[1,2,3,4,5,6,7], act:[1,2,3,4,5,6,7], ws:[1,2,3,4,5,6,7], prob:[1,2,3,4,5,6,7], game:{ href:'app-relation.html', title:'관계 감별사' } },
+  'm1/society': { slides:[1,2,3,4,5,6,7], act:[1,2,3,4,5,6,7], ws:[1,2,3,4,5,6,7], prob:[1,2,3,4,5,6,7], game:{ href:'app-community.html', title:'공동체 감별사' } },
+  'm1/nature': { slides:[1,2], act:[1,2], ws:[1,2], prob:[1,2], game:{ href:'app-life.html', title:'생명 감별사' } },
+  'm2/others': { slides:[1,2,3,4,5,6,7], act:[1,2,3,4,5,6,7], ws:[1,2,3,4,5,6,7], prob:[1,2,3,4,5,6,7], game:{ href:'app-peace.html', title:'평화 감별사' } },
+  'm2/self': { slides:[1,2,3,4,5,6,7,8,9,10], act:[1,2,3,4,5,6,7,8,9,10], ws:[1,2,3,4,5,6,7,8,9,10], prob:[1,2,3,4,5,6,7,8,9,10], game:{ href:'app-judge.html', title:'판단 감별사' } },
+  'm2/society': { slides:[1,2,3,4,5,6,7,8], act:[1,2,3,4,5,6,7,8], ws:[1,2,3,4,5,6,7,8], prob:[1,2,3,4,5,6,7,8], game:{ href:'app-justice.html', title:'정의 감별사' } },
+  'm2/nature': { slides:[1,2,3], act:[1,2,3], ws:[1,2,3], prob:[1,2,3], game:{ href:'app-earth.html', title:'공존 감별사' } }
 };
