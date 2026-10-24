@@ -41,11 +41,11 @@
       var m = new Map().grid(250, 500, 80, 80, 7, 10);
       for (var i = 0; i < 7; i++) {
         var y = 600 + i * 300;
-        // 발판마다: 굴러가는 길 위에 핀 두 개(줄 서서 굴러가지 않게), 끝에는 빙빙 도는 막대, 3·5번째 발판 가운데엔 되돌이 구멍
+        // 발판마다: 길에 박힌 혹 두 개(구슬이 통통 튀어 줄 서서 굴러가지 않게), 끝에는 빙빙 도는 막대, 3·5번째 발판 위 공중엔 되돌이 구멍(떨어지는 구슬만 걸림)
         var surf = function (x) { return i % 2 ? y + (W - x) / (W - 230) * 70 : y + x / (W - 230) * 70; };
-        if (i % 2) { m.line(W, y, 230, y + 70).mill(115, y + 70, 150, 3.4, 1).bumper(560, y - 110, 26); [470, 330].forEach(function (x) { m.pegs.push({ x: x, y: surf(x) - 34, r: 9 }); }); }
-        else { m.line(0, y, W - 230, y + 70).mill(W - 115, y + 70, 150, -3.4, 1).bumper(240, y - 110, 26); [330, 470].forEach(function (x) { m.pegs.push({ x: x, y: surf(x) - 34, r: 9 }); }); }
-        if (i === 2 || i === 4) m.hole(i % 2 ? 400 : 400, surf(400) - 26, 600 + (i - 2) * 300);
+        if (i % 2) { m.line(W, y, 230, y + 70).mill(115, y + 70, 150, 3.4, 1).bumper(560, y - 110, 26); [470, 330].forEach(function (x) { m.pegs.push({ x: x, y: surf(x) + 2, r: 8 }); }); }
+        else { m.line(0, y, W - 230, y + 70).mill(W - 115, y + 70, 150, -3.4, 1).bumper(240, y - 110, 26); [330, 470].forEach(function (x) { m.pegs.push({ x: x, y: surf(x) + 2, r: 8 }); }); }
+        if (i === 2 || i === 4) m.hole(i % 2 ? 560 : 240, surf(i % 2 ? 560 : 240) - 70, 600 + (i - 2) * 300);
       }
       m.slider(400, 2700, 260, 240, 2);
       return m.gate(2820);
