@@ -122,3 +122,16 @@ mark{background:#ffe08a;color:inherit;border-radius:4px;padding:0 2px}
 .ls.nxt .pg{background:var(--coral);color:#fff}.ls.live .pg{background:var(--leaf);color:#fff}.ls.done .pg{color:var(--leaf)}
 .ls.part .pg{background:#ffe9b8;color:#7a5200}
 @media (prefers-reduced-motion:reduce){.cls-s.end{animation:none}}
+.chip.sm{font-size:14px;min-height:32px;padding:1px 11px}
+.chip:disabled{opacity:.35;cursor:not-allowed}
+.chip.add[aria-pressed="true"]{background:var(--soft);border-style:solid;border-color:var(--coral);color:var(--coral)}
+.cls-add{display:flex;flex-direction:column;gap:6px}
+.cls-add p{margin:0;display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.cls-add p>b{width:48px;font-size:14px}
+.cls-add .row{display:flex;gap:6px;margin-top:4px}
+.cls-add .row button{font:700 14px var(--body);border:2px solid var(--coral);background:var(--coral);color:#fff;border-radius:999px;padding:5px 14px;cursor:pointer;min-height:36px}
+.cls-add .row button:disabled{opacity:.5;cursor:default}
+.cls-add .row .ghost{background:#fff;color:var(--ink);border-color:var(--line)}
+.cls-s .nx .who{color:var(--ink)}
+.cls-s .tip{font-size:13px;margin-top:4px}
+.cls-s .row input{flex:1;min-width:160px;font:inherit;font-size:15px;padding:5px 12px;border:2px solid var(--line);border-radius:999px}

@@ -115,28 +115,34 @@
       .catch(function (e) { alert((file ? 'PPT를 올리지 못했어요: ' : '지우지 못했어요: ') + e.message); b.disabled = false; b.textContent = old; });
   }
 
-  /* ── 반별 진도: 제목 오른쪽에서 반을 고르고 ▶로 수업 → 끝나면 [끝까지 했어요]/[여기까지만] → 다음 시간에 어디부터인지 보여 줌.
+  /* ── 반별 진도: 제목 오른쪽 ‘우리 반’. 반은 [＋ 반]에서 학년·반 번호를 눌러 여러 개 한 번에 만들고,
+     [☑ 여러 반]을 켜면 여러 반을 같이 골라 한 번에 기록. ▶로 수업 → [끝까지 했어요]/[여기까지만] → 다음 시간에 어디부터인지 보여 줌.
+     차시 번호 동그라미를 누르면 고른 반 모두 ‘그 차시까지 끝냄’으로 한 번에 기록(다시 누르면 그 차시부터 지움).
      Cloudflare(교사·칠판)에서는 서버에 저장해 폰·칠판 어디서나 같고, 서버가 없으면(GitHub Pages) 이 브라우저에만 저장. 학생 화면에는 안 나옴. ── */
-  var PG = { classes: [], rec: {} }, cur = '', LOCAL = !R, PGKEY = 'moralProgress', ending = false;
-  try { cur = localStorage.getItem('moralClass') || ''; } catch (e) {}
+  var PG = { classes: [], rec: {} }, sel = [], multi = false, adding = null, partIn = false, LOCAL = !R, PGKEY = 'moralProgress', ending = false;
+  try { var sv = localStorage.getItem('moralClass') || ''; sel = sv.charAt(0) === '[' ? JSON.parse(sv) : sv ? [sv] : []; multi = localStorage.getItem('moralMulti') === '1'; } catch (e) {}
   var today = function () { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
   var md = function (d) { return d ? +d.slice(5, 7) + '/' + +d.slice(8, 10) : ''; };
-  var cls = function () { return PG.classes.filter(function (c) { return c.id === cur; })[0]; };
+  var byId = function (id) { return PG.classes.filter(function (c) { return c.id === id; })[0]; };
+  var chosen = function () { return sel.map(byId).filter(Boolean); };
+  var cls = function () { return chosen()[0]; };   // 차시 줄 표시는 처음 고른 반 기준
   var rec = function (id) { var r = PG.rec[id] || {}; r.done = r.done || {}; return r; };
   var lesson = function (k) { for (var b in ORDER) { var x = ORDER[b].filter(function (o) { return o.k === k; })[0]; if (x) return x; } };
   var label = function (x) { return x ? x.u + '-' + x.n + '차시 ‘' + x.t + '’' : ''; };
+  var names = function (cs) { return cs.map(function (c) { return c.name; }).join(', '); };
+  var natural = function (a, b) { return a.name.localeCompare(b.name, 'ko', { numeric: true }); };
+  function keep() { try { localStorage.setItem('moralClass', JSON.stringify(sel)); localStorage.setItem('moralMulti', multi ? '1' : ''); } catch (e) {} }
+  // body: {classes} 반 목록 바꾸기, {recs: {반 id: 진도}} 여러 반 진도 한 번에
   function pgSave(body) {
-    if (LOCAL) {
-      if (body.classes) { PG.classes = body.classes; Object.keys(PG.rec).forEach(function (id) { if (!body.classes.some(function (c) { return c.id === id; })) delete PG.rec[id]; }); }
-      if (body.id) PG.rec[body.id] = body.rec;
-      try { localStorage.setItem(PGKEY, JSON.stringify(PG)); } catch (e) {}
-      return Promise.resolve();
-    }
-    if (body.id) PG.rec[body.id] = body.rec; else PG.classes = body.classes;   // 화면 먼저 바꾸고 서버에 저장
+    if (body.classes) { PG.classes = body.classes; Object.keys(PG.rec).forEach(function (id) { if (!byId(id)) delete PG.rec[id]; }); }
+    if (body.recs) Object.keys(body.recs).forEach(function (id) { PG.rec[id] = body.recs[id]; });
+    if (LOCAL) { try { localStorage.setItem(PGKEY, JSON.stringify(PG)); } catch (e) {} return Promise.resolve(); }
     return fetch('/teacher/progress', { method: 'POST', keepalive: true, headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
       .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || r.status); PG = j; }); })
       .catch(function (e) { alert('진도를 저장하지 못했어요: ' + e.message); });
   }
+  // 고른 반마다 진도를 고쳐서 한 번에 저장
+  function each(fn) { var recs = {}; chosen().forEach(function (c) { var r = rec(c.id); fn(r, c); recs[c.id] = r; }); marks(); return pgSave({ recs: recs }).then(marks); }
   // 다음에 할 차시: 지난 시간이 중간에 끝났으면 그 차시, 아니면 그 다음 차시. 기록이 없으면 아직 안 한 첫 차시
   function nextOf(c) {
     var r = rec(c.id), list = ORDER[c.book] || [];
@@ -145,31 +151,57 @@
     for (var j = i + 1; j < list.length; j++) if (!r.done[list[j].k]) return list[j];
     return list.filter(function (o) { return !r.done[o.k]; })[0];
   }
+  function addForm() {
+    var a = adding, nums = []; for (var i = 1; i <= 12; i++) nums.push(i);
+    var tog = function (attr, v, on, txt) { return '<button type="button" class="chip sm" ' + attr + '="' + v + '" aria-pressed="' + on + '">' + txt + '</button>'; };
+    var exist = PG.classes.map(function (c) { return c.name; });
+    return '<div class="cls-add"><p><b>학년</b>' + [1, 2, 3].map(function (g) { return tog('data-g', g, a.g === g, g + '학년'); }).join('') + '</p>' +
+      '<p><b>반</b>' + nums.map(function (n) { return exist.indexOf(a.g + '-' + n) > -1 ? '<button type="button" class="chip sm" disabled title="이미 있어요">' + n + '</button>' : tog('data-n', n, a.n.indexOf(n) > -1, n); }).join('') + '</p>' +
+      '<p><b>교과서</b>' + C.map(function (b) { return tog('data-bk', b.id, a.book === b.id, esc(b.book)); }).join('') + '</p>' +
+      '<div class="row"><button type="button" data-make="1"' + (a.n.length ? '' : ' disabled') + '>' + (a.n.length ? a.g + '학년 ' + a.n.length + '개 반 만들기' : '반 번호를 눌러 골라요') + '</button><button type="button" class="ghost" data-close="1">닫기</button></div></div>';
+  }
   function panel() {
     var box = $('cls'); if (!box) return;
     box.hidden = false;
-    var c = cls(), h = '<div class="cls-h"><b>우리 반</b><span class="chips">' + PG.classes.map(function (x) {
-      return '<button type="button" class="chip" data-id="' + esc(x.id) + '" aria-pressed="' + (x.id === cur) + '">' + esc(x.name) + (rec(x.id).now ? ' <i title="수업 중">●</i>' : '') + '</button>';
-    }).join('') + '<button type="button" class="chip add" data-add="1" title="반 추가">＋ 반</button></span></div>';
-    if (!c) h += '<p class="cls-s">' + (PG.classes.length ? '반을 누르면 지난 진도와 다음 차시가 보여요.' : '＋ 반으로 수업하는 반(예: 1-3)을 만들어요. 지금 보고 있는 교과서(' + esc(C.filter(function (b) { return b.id === book; })[0].book) + ')로 만들어져요.') + '</p>';
+    var cs = chosen(), list = PG.classes.slice().sort(natural);
+    var h = '<div class="cls-h"><b>우리 반</b><span class="chips">' + list.map(function (x) {
+      return '<button type="button" class="chip" data-id="' + esc(x.id) + '" aria-pressed="' + (sel.indexOf(x.id) > -1) + '">' + esc(x.name) + (rec(x.id).now ? ' <i title="수업 중">●</i>' : '') + '</button>';
+    }).join('') + '<button type="button" class="chip add" data-add="1" title="반 여러 개 한 번에 만들기">＋ 반</button>' +
+      (PG.classes.length > 1 ? '<button type="button" class="chip add" data-multi="1" aria-pressed="' + multi + '" title="여러 반을 같이 골라 한 번에 기록">☑ 여러 반</button>' : '') +
+      (multi ? '<button type="button" class="chip add" data-alls="1">' + (cs.length === PG.classes.length ? '모두 해제' : '모두') + '</button>' : '') + '</span></div>';
+    if (adding) h += addForm();
+    else if (!cs.length) h += '<p class="cls-s">' + (PG.classes.length ? '반을 누르면 지난 진도와 다음 차시가 보여요.' + (PG.classes.length > 1 ? ' 같은 진도의 반은 <b>☑ 여러 반</b>으로 한꺼번에 기록해요.' : '') : '<b>＋ 반</b>을 눌러 학년과 반 번호를 고르면 한 번에 만들어져요.') + '</p>';
     else {
-      var r = rec(c.id), nx = nextOf(c), now = r.now && lesson(r.now.k);
-      if (now) {
-        h += '<div class="cls-s now' + (ending ? ' end' : '') + '"><p>🟢 <b>' + esc(c.name) + '</b> ' + esc(label(now)) + ' 수업 중</p>' +
-          '<div class="row"><button type="button" data-end="all">✓ 끝까지 했어요</button><button type="button" data-end="part" class="ghost">여기까지만 했어요…</button><button type="button" data-end="cancel" class="ghost sm" title="수업 중 표시만 지워요">취소</button></div></div>';
+      var live = cs.filter(function (c) { return rec(c.id).now; });
+      if (live.length) {
+        var now = lesson(rec(live[0].id).now.k);
+        h += '<div class="cls-s now' + (ending ? ' end' : '') + '"><p>🟢 <b>' + esc(names(live)) + '</b> · ' + esc(label(now)) + ' 수업 중</p>' +
+          (partIn ? '<div class="row"><input id="partIn" maxlength="40" placeholder="어디까지? 예: 12장, 활동 2 전" aria-label="어디까지 했는지"><button type="button" data-end="save">저장</button><button type="button" class="ghost sm" data-end="back">취소</button></div>'
+            : '<div class="row"><button type="button" data-end="all">✓ 끝까지 했어요</button><button type="button" data-end="part" class="ghost">여기까지만 했어요…</button><button type="button" data-end="cancel" class="ghost sm" title="수업 중 표시만 지워요">취소</button></div>') + '</div>';
       } else {
-        h += '<div class="cls-s">' + (r.last ? '<p class="last">지난 시간(' + md(r.last.d) + '): ' + esc(label(lesson(r.last.k))) + (r.last.part ? ' — <b>' + esc(r.last.part) + '</b>까지' : ' 끝') + '</p>' : '<p class="last">아직 기록이 없어요.</p>') +
-          (nx ? '<p class="nx">다음 시간: <b>' + esc(label(nx)) + '</b>' + (r.last && r.last.part ? ' <small>(' + esc(r.last.part) + '부터 이어서)</small>' : '') + '</p>' +
-            '<div class="row">' + (HREF[nx.k] ? '<a class="go" href="' + HREF[nx.k] + '" data-start="' + nx.k + '">▶ 수업 시작</a>' : '') + '<button type="button" class="ghost sm" data-del="1">반 지우기</button></div>'
-            : '<p class="nx">🎉 이 교과서의 모든 차시를 마쳤어요.</p><div class="row"><button type="button" class="ghost sm" data-del="1">반 지우기</button></div>') + '</div>';
+        // 다음 차시가 같은 반끼리 묶어서 한 줄씩
+        var groups = [];
+        cs.forEach(function (c) {
+          var r = rec(c.id), nx = nextOf(c), key = (nx ? nx.k : '') + '|' + (r.last && r.last.part || ''), g = groups.filter(function (x) { return x.key === key; })[0];
+          if (g) g.cs.push(c); else groups.push({ key: key, nx: nx, part: r.last && r.last.part, last: r.last, cs: [c] });
+        });
+        h += '<div class="cls-s">' + groups.map(function (g) {
+          return '<p class="nx">' + (cs.length > 1 ? '<b class="who">' + esc(names(g.cs)) + '</b> ' : '') +
+            (g.nx ? '다음: <b>' + esc(label(g.nx)) + '</b>' + (g.part ? ' <small>(' + esc(g.part) + '부터 이어서)</small>' : '') : '🎉 모든 차시를 마쳤어요') +
+            (g.last && cs.length === 1 ? '<br><small class="last">지난 시간 ' + md(g.last.d) + ': ' + esc(label(lesson(g.last.k))) + (g.part ? ' — ' + esc(g.part) + '까지' : ' 끝') + '</small>' : '') + '</p>';
+        }).join('') +
+          '<div class="row">' + (groups.length === 1 && groups[0].nx && HREF[groups[0].nx.k] ? '<a class="go" href="' + HREF[groups[0].nx.k] + '" data-start="' + groups[0].nx.k + '">▶ 수업 시작</a>' : '') +
+          '<button type="button" class="ghost sm" data-del="1">' + (cs.length > 1 ? cs.length + '개 반 지우기' : '반 지우기') + '</button></div>' +
+          '<p class="tip">차시 번호(①②③)를 누르면 ' + (cs.length > 1 ? '고른 반 모두 ' : '') + '그 차시까지 끝낸 것으로 한 번에 기록돼요.</p></div>';
       }
     }
     box.innerHTML = h;
+    if (partIn && $('partIn')) $('partIn').focus();
   }
   // 차시 줄 표시: 끝낸 차시 ✓, 중간까지 한 차시, 다음 차시, 수업 중인 차시
   function marks() {
     if (R === 'student') return;
-    var c = cls(); panel();
+    var c = cls(), more = chosen().length > 1; panel();
     document.querySelectorAll('.ls[data-k]').forEach(function (li) {
       li.classList.remove('done', 'nxt', 'part', 'live');
       var tag = li.querySelector('.pg'); if (tag) tag.remove();
@@ -179,52 +211,85 @@
       else if (nx && nx.k === k) { li.classList.add('nxt'); t = r.last && r.last.part ? '다음 · ' + r.last.part + '부터' : '다음 시간'; }
       if (r.done[k]) { li.classList.add('done'); if (!t) t = '✓ ' + md(r.done[k]); }
       else if (r.last && r.last.part && r.last.k === k && !t) { li.classList.add('part'); t = r.last.part + '까지'; }
-      li.querySelector('.ln').title = r.done[k] ? '눌러서 ‘끝낸 차시’ 표시 지우기' : '눌러서 ‘끝낸 차시’로 표시';
+      if (t && more) t = c.name + ' ' + t;
+      li.querySelector('.ln').title = r.done[k] ? '눌러서 이 차시부터 ‘끝냄’ 지우기' : '눌러서 이 차시까지 ‘끝냄’으로 기록';
       if (t) li.querySelector('.lw').insertAdjacentHTML('afterbegin', '<span class="pg">' + esc(t) + '</span>');
     });
   }
-  function setRec(r) { return pgSave({ id: cur, rec: r }).then(marks); }
-  function start(k) { var c = cls(); if (!c || !k) return; var r = rec(c.id); r.now = { k: k, d: today() }; pgSave({ id: c.id, rec: r }); marks(); }
+  // 차시 번호를 누름: 처음 고른 반에서 끝낸 차시면 그 차시부터 뒤를 지우고, 아니면 그 차시까지(앞 차시 포함) 모두 끝냄
+  function upTo(k) {
+    var c = cls(); if (!c) return;
+    var undo = !!rec(c.id).done[k];
+    each(function (r, x) {
+      var list = (ORDER[x.book] || []).map(function (o) { return o.k; }), i = list.indexOf(k); if (i < 0) return;
+      if (undo) {
+        list.slice(i).forEach(function (kk) { delete r.done[kk]; });
+        var prev = list.slice(0, i).filter(function (kk) { return r.done[kk]; }).pop();
+        r.last = prev ? { k: prev, d: r.done[prev] } : null;
+      } else {
+        list.slice(0, i + 1).forEach(function (kk) { if (!r.done[kk]) r.done[kk] = today(); });
+        r.last = { k: k, d: today() };
+      }
+      r.now = null;
+    });
+  }
+  function start(k) { if (!k || !cls()) return; each(function (r) { r.now = { k: k, d: today() }; }); }
   function pick(id) {
-    cur = cur === id ? '' : id; ending = false;
-    try { localStorage.setItem('moralClass', cur); } catch (e) {}
-    var c = cls();
-    if (c && c.book !== book && !q) { book = c.book; history.replaceState(null, '', '#' + book); render(); } else marks();
+    var i = sel.indexOf(id);
+    if (multi) { if (i > -1) sel.splice(i, 1); else sel.push(id); }
+    else sel = i > -1 && sel.length === 1 ? [] : [id];
+    ending = false; partIn = false; keep();
+    var c = byId(id);
+    if (sel.indexOf(id) > -1 && c && c.book !== book && !q) { book = c.book; history.replaceState(null, '', '#' + book); render(); } else marks();
+  }
+  function finish(part) {
+    ending = false; partIn = false;
+    each(function (r) {
+      var k = r.now && r.now.k; if (!k) return;
+      if (part) r.last = { k: k, d: today(), part: part };
+      else { r.done[k] = today(); r.last = { k: k, d: today() }; }
+      r.now = null;
+    });
   }
   function wireClasses() {
     var box = $('cls');
     box.onclick = function (e) {
-      var t = e.target.closest('button,a'); if (!t) return;
-      var c = cls();
-      if (t.dataset.add) {
-        var name = (prompt('반 이름 (예: 1-3, 2학년 4반)') || '').trim().slice(0, 20); if (!name) return;
-        var id = 'c' + Date.now().toString(36);
-        pgSave({ classes: PG.classes.concat([{ id: id, name: name, book: book }]) }).then(function () { cur = ''; pick(id); });
-      } else if (t.dataset.id) pick(t.dataset.id);
-      else if (t.dataset.del) {
-        if (!c || !confirm('‘' + c.name + '’ 반과 진도 기록을 지울까요?')) return;
-        pgSave({ classes: PG.classes.filter(function (x) { return x.id !== c.id; }) }).then(function () { cur = ''; marks(); });
-      } else if (t.dataset.start) start(t.dataset.start);
-      else if (t.dataset.end && c) {
-        var r = rec(c.id), k = r.now && r.now.k; if (!k) return;
-        if (t.dataset.end === 'all') { r.done[k] = today(); r.last = { k: k, d: today() }; }
-        else if (t.dataset.end === 'part') {
-          var part = (prompt('어디까지 했나요? (예: 12장, 활동 2 전, 빈칸 ③)') || '').trim().slice(0, 40); if (!part) return;
-          r.last = { k: k, d: today(), part: part };
-        }
-        r.now = null; ending = false; setRec(r);
+      var t = e.target.closest('button,a'); if (!t || t.disabled) return;
+      var d = t.dataset, cs = chosen();
+      if (d.add) { adding = adding ? null : { g: 1, n: [], book: book }; partIn = false; panel(); }
+      else if (d.g) { adding.g = +d.g; adding.n = []; panel(); }
+      else if (d.n) { var n = +d.n, i = adding.n.indexOf(n); if (i > -1) adding.n.splice(i, 1); else adding.n.push(n); panel(); }
+      else if (d.bk) { adding.book = d.bk; panel(); }
+      else if (d.close) { adding = null; panel(); }
+      else if (d.make) {
+        var t0 = Date.now(), bk = adding.book, add = adding.n.sort(function (a, b) { return a - b; }).map(function (n, j) { return { id: 'c' + (t0 + j).toString(36), name: adding.g + '-' + n, book: bk }; });
+        adding = null;
+        pgSave({ classes: PG.classes.concat(add) }).then(function () {
+          if (add.length > 1) multi = true;
+          sel = add.map(function (c) { return c.id; }); keep();
+          if (bk !== book && !q) { book = bk; history.replaceState(null, '', '#' + book); render(); } else marks();
+        });
       }
+      else if (d.multi) { multi = !multi; if (!multi) sel = sel.slice(0, 1); keep(); marks(); }
+      else if (d.alls) { sel = cs.length === PG.classes.length ? [] : PG.classes.slice().sort(natural).map(function (c) { return c.id; }); keep(); marks(); }
+      else if (d.id) pick(d.id);
+      else if (d.del) {
+        if (!cs.length || !confirm('‘' + names(cs) + '’ 반과 진도 기록을 지울까요?')) return;
+        pgSave({ classes: PG.classes.filter(function (x) { return sel.indexOf(x.id) < 0; }) }).then(function () { sel = []; keep(); marks(); });
+      } else if (d.start) start(d.start);
+      else if (d.end === 'all') finish();
+      else if (d.end === 'part') { partIn = true; panel(); }
+      else if (d.end === 'back') { partIn = false; panel(); }
+      else if (d.end === 'save') { var v = ($('partIn').value || '').trim(); if (!v) return $('partIn').focus(); finish(v); }
+      else if (d.end === 'cancel') each(function (r) { r.now = null; });
     };
-    // 반을 고른 채 차시를 열면(▶·제목·웹 슬라이드) 그 반의 ‘수업 중’으로 기록
+    box.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.id === 'partIn') { var v = e.target.value.trim(); if (v) finish(v); } });
+    // 반을 고른 채 차시를 열면(▶·제목·웹 슬라이드) 고른 반 모두 ‘수업 중’으로 기록
     $('units').addEventListener('click', function (e) {
-      var a = e.target.closest('.ls a'), ln = e.target.closest('.ls .ln'), c = cls();
-      if (!c) return;
+      var a = e.target.closest('.ls a'), ln = e.target.closest('.ls .ln');
+      if (!cls()) return;
       if (a && (a.classList.contains('play') || a.classList.contains('lt') || /slides\d+\.html$/.test(a.getAttribute('href') || ''))) start(a.closest('.ls').dataset.k);
-      else if (ln) {
-        var r = rec(c.id), k = ln.closest('.ls').dataset.k;
-        if (r.done[k]) delete r.done[k]; else r.done[k] = today();
-        setRec(r);
-      }
+      else if (ln) upTo(ln.closest('.ls').dataset.k);
     });
   }
   if (R !== 'student' && $('cls')) {
@@ -235,8 +300,8 @@
       : fetch('/teacher/progress').then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; });
     ready.then(function (j) {
       if (j && j.classes) PG = j;
-      if (!cls()) cur = '';
-      ending = endAsk && !!(cls() && rec(cur).now);
+      sel = sel.filter(byId);
+      ending = endAsk && chosen().some(function (c) { return rec(c.id).now; });
       var c = cls();
       if (c && c.book !== book && !q && !/^#m[12]$/.test(location.hash)) { book = c.book; history.replaceState(null, '', '#' + book); render(); } else marks();
       if (ending) $('cls').scrollIntoView({ block: 'center' });

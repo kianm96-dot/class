@@ -118,7 +118,7 @@ export class Settings extends DurableObject {
   async setProgress(op) {
     const p = await this.getProgress();
     if (op.classes) { p.classes = op.classes; const ids = op.classes.map(c => c.id); for (const id of Object.keys(p.rec)) if (!ids.includes(id)) delete p.rec[id]; }
-    if (op.id) p.rec[op.id] = op.rec;
+    if (op.recs) for (const [id, r] of Object.entries(op.recs)) p.rec[id] = r;
     await this.ctx.storage.put('progress', p); return p;
   }
 }
@@ -334,7 +334,7 @@ async function pptApi(request, env, url, role) {
 }
 
 /* ───────── 반별 진도 (교사·칠판). GET → {classes, rec}
-   POST {classes: [{id, name, book}]} 반 목록 바꾸기 · POST {id, rec: {done, last, now}} 한 반의 진도 바꾸기 ───────── */
+   POST {classes: [{id, name, book}]} 반 목록 바꾸기 · POST {recs: {반 id: {done, last, now}}} 여러 반 진도 한 번에 바꾸기 ───────── */
 async function progressApi(request, env, url, role) {
   if (role === 'student') return json({error: '교사 로그인(또는 QR로 연 칠판)에서만 쓸 수 있어요.'}, 401);
   const s = store(env); if (!s) return json({error: '저장소가 아직 준비되지 않았어요.'}, 503);
@@ -346,8 +346,8 @@ async function progressApi(request, env, url, role) {
   let b; try { b = JSON.parse(text); } catch (e) { return json({error: 'body'}, 400); }
   const op = {};
   if (Array.isArray(b.classes)) op.classes = b.classes.slice(0, 40).map(c => ({id: String(c.id).slice(0, 40), name: String(c.name).slice(0, 20), book: c.book === 'm2' ? 'm2' : 'm1'}));
-  if (typeof b.id === 'string' && b.rec && typeof b.rec === 'object') { op.id = b.id.slice(0, 40); op.rec = b.rec; }
-  if (!op.classes && !op.id) return json({error: 'body'}, 400);
+  if (b.recs && typeof b.recs === 'object') op.recs = Object.fromEntries(Object.entries(b.recs).slice(0, 40).filter(([, r]) => r && typeof r === 'object').map(([id, r]) => [id.slice(0, 40), r]));
+  if (!op.classes && !op.recs) return json({error: 'body'}, 400);
   return json(await s.setProgress(op));
 }
 
