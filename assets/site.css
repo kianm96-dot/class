@@ -175,3 +175,11 @@ button.txt{font:13px var(--body);border:0;background:none;color:var(--muted);tex
 .cls{flex:0 1 auto;max-width:560px;min-width:0}
 .cls-h{flex-wrap:wrap}
 .cls-s{font-size:13px}
+.intro-top{flex-wrap:nowrap;align-items:stretch}
+.intro-l{flex:1 1 auto;min-width:0;display:flex;flex-direction:column}
+.intro-l .quick{margin-top:auto;padding-top:12px}
+.cls{flex:0 0 auto;max-width:520px;justify-content:center}
+@media (max-width:860px){.intro-top{flex-wrap:wrap}.cls{flex:1 1 100%;max-width:none;margin-left:0}}
+.cls{justify-content:flex-start}
+.intro-top:has(.cls:not([hidden])) .quick small{display:none}
+.intro-top:has(.cls:not([hidden])) .quick a{font-size:16px;padding:5px 13px}
