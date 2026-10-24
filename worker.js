@@ -16,7 +16,10 @@
      ▶ 재생(/ppt/view)은 PowerPoint 웹 뷰어로 열고, 뷰어가 가져갈 수 있게 4시간짜리 서명 주소(/ppt-file/…)를 만듦
    - 수업 슬라이드(slidesN.html, 선생님이 학생 공개한 것 제외), 수업 진행 도구(tools/class.html): 로그인 화면으로 보냄
    - 슬라이드 발문 메모(data-note)
-   골든벨 '교사 진행' 모드는 화면에서 숨깁니다(window.IS_TEACHER). */
+   골든벨 '교사 진행' 모드는 화면에서 숨깁니다(window.IS_TEACHER).
+
+   선생님이 올린 수업 PPT(/teacher/ppt): 차시마다 하나. 올리면 그 차시의 ▶ 재생·📥 받기가 올린 파일로 바뀌고, [되돌리기]로 원래 파일로.
+   반별 진도(/teacher/progress): 반 목록, 반마다 끝낸 차시·지난 시간 어디까지·지금 수업 중인 차시. 교사·칠판 어디서 기록해도 같이 보임. */
 
 import {DurableObject} from 'cloudflare:workers';
 import {TEACHER_TOKEN} from './.teacher.js';   // 배포 때 build-teacher.mjs가 만듦
@@ -29,12 +32,15 @@ const PAIR_TTL = 2 * 60 * 1000;             // QR: 2분 동안만 유효, 한 �
 const TEACHER_ONLY = [/^\/tools\/class(\.html)?$/];   // 수업 진행 도구
 const SLIDE = /^(\/m[12]\/[a-z]+\/slides\d+)(?:\.html)?$/;
 const PPT = /^\/m[12]\/[a-z]+\/ppt\d+\.pptx$/;    // 교과서 수업 PPT
+const PPT_MAX = 25 * 1024 * 1024, PPT_CHUNK = 1024 * 1024;   // 올리는 PPT: 25MB까지, 저장소에는 1MB씩 나눠 저장
 const PPT_TTL = 4 * 60 * 60 * 1000;          // 화면에서 재생할 때 쓰는 임시 주소: 4시간     // 수업 슬라이드: 교사 전용, 단 선생님이 '학생 공개'로 연 것은 학생도 볼 수 있음
 
 /* 저장소 (Cloudflare Durable Object, 설정은 wrangler.jsonc)
    - openSlides: 학생에게 공개한 슬라이드 목록
    - pair:<코드>: 칠판 QR (누가 승인했는지, 칠판 확인용 비밀값의 지문)
-   - sess:<지문>: 열린 칠판 세션 (시작 시각, 마지막 조작 시각) */
+   - sess:<지문>: 열린 칠판 세션 (시작 시각, 마지막 조작 시각)
+   - pptm:<파일 주소>, pptc:<파일 주소>:<번호>: 선생님이 올린 수업 PPT (이름·크기·시각, 1MB 조각들)
+   - progress: 반 목록과 반별 진도 */
 export class Settings extends DurableObject {
   async getOpen() { return (await this.ctx.storage.get('openSlides')) || []; }
   async setOpen(key, open) {
@@ -84,9 +90,47 @@ export class Settings extends DurableObject {
     return {ends: v.c + BOARD_MAX};
   }
   async endSession(sessHash) { await this.ctx.storage.delete('sess:' + sessHash); }
+
+  async listPpts() {
+    const out = {};
+    for (const [k, v] of await this.ctx.storage.list({prefix: 'pptm:'})) out[k.slice(5)] = v;
+    return out;
+  }
+  async putPpt(f, meta, chunks) {
+    await this.delPpt(f);
+    for (let i = 0; i < chunks.length; i++) await this.ctx.storage.put('pptc:' + f + ':' + i, chunks[i]);
+    await this.ctx.storage.put('pptm:' + f, {...meta, n: chunks.length});
+    return this.listPpts();
+  }
+  async getPpt(f) {
+    const m = await this.ctx.storage.get('pptm:' + f);
+    if (!m) return null;
+    const got = await this.ctx.storage.get([...Array(m.n).keys()].map(i => 'pptc:' + f + ':' + i));
+    return [...Array(m.n).keys()].map(i => got.get('pptc:' + f + ':' + i));
+  }
+  async delPpt(f) {
+    const m = await this.ctx.storage.get('pptm:' + f);
+    if (m) await this.ctx.storage.delete(['pptm:' + f, ...[...Array(m.n).keys()].map(i => 'pptc:' + f + ':' + i)]);
+    return this.listPpts();
+  }
+
+  async getProgress() { return (await this.ctx.storage.get('progress')) || {classes: [], rec: {}}; }
+  async setProgress(op) {
+    const p = await this.getProgress();
+    if (op.classes) { p.classes = op.classes; const ids = op.classes.map(c => c.id); for (const id of Object.keys(p.rec)) if (!ids.includes(id)) delete p.rec[id]; }
+    if (op.id) p.rec[op.id] = op.rec;
+    await this.ctx.storage.put('progress', p); return p;
+  }
 }
 const store = env => env.SETTINGS ? env.SETTINGS.get(env.SETTINGS.idFromName('main')) : null;
 async function openSlides(env) { try { const s = store(env); return s ? await s.getOpen() : []; } catch (e) { return []; } }
+async function myPpts(env) { try { const s = store(env); return s ? await s.listPpts() : {}; } catch (e) { return {}; } }
+// 수업 PPT 파일: 선생님이 올린 것이 있으면 그것, 없으면 사이트에 있는 원래 파일
+async function pptFile(env, origin, f) {
+  const s = store(env), up = s && await s.getPpt(f).catch(() => null);
+  if (up) return new Response(new Blob(up), {headers: {'Content-Type': 'application/vnd.openxmlformats-officedocument.presentationml.presentation'}});
+  return env.ASSETS.fetch(new Request(origin + f));
+}
 
 export default {
   fetch(request, env) { return handle(request, env); }
@@ -111,7 +155,7 @@ async function handle(request, env) {
   if (pf) {
     const [, exp, sig, f] = pf;
     if (!PPT.test(f) || +exp < Date.now() || !(await expected(env)) || !same(sig, await pptSig(env, f, exp))) return new Response('만료된 주소예요. 수업실에서 ▶를 다시 눌러 주세요.', {status: 403});
-    const r = await env.ASSETS.fetch(new Request(url.origin + f)), h = new Headers(r.headers);
+    const r = await pptFile(env, url.origin, f), h = new Headers(r.headers);
     h.set('Cache-Control', 'private, no-store'); h.set('X-Robots-Tag', 'noindex');
     h.set('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
     return new Response(r.body, {status: r.status, headers: h});
@@ -120,10 +164,12 @@ async function handle(request, env) {
   // css·js·그림 같은 파일은 역할 확인 없이 바로 보냄
   const isFile = /\.[a-z0-9]+$/i.test(path) && !path.endsWith('.html');
   const isPpt = /\.pptx$/i.test(path);   // 교과서 수업 PPT(출판사 자료 + 새 장)는 교사·칠판만
-  if (isFile && !isPpt && path !== '/teacher/slides') return env.ASSETS.fetch(request);
+  if (isFile && !isPpt) return env.ASSETS.fetch(request);
 
   const role = await getRole(request, env, true);
   if (path === '/teacher/slides') return slidesApi(request, env, url, role);
+  if (path === '/teacher/ppt') return pptApi(request, env, url, role);
+  if (path === '/teacher/progress') return progressApi(request, env, url, role);
   const can = role !== 'student';
   if (path === '/ppt/view') {   // ▶ 수업 PPT: 교사·칠판만, PowerPoint 웹 뷰어로 화면에서 재생
     const f = url.searchParams.get('f') || '';
@@ -134,7 +180,7 @@ async function handle(request, env) {
   }
   if (isPpt) {
     if (!can) return redirect('/teacher?next=' + encodeURIComponent(path));
-    const r = await env.ASSETS.fetch(request), h = new Headers(r.headers);
+    const r = await pptFile(env, url.origin, path), h = new Headers(r.headers);
     h.set('Cache-Control', 'private, no-store'); h.set('x-moral-role', role);   // 서비스 워커·중간 캐시가 저장하지 않도록
     return new Response(r.body, {status: r.status, headers: h});
   }
@@ -157,7 +203,7 @@ async function handle(request, env) {
   let out = new Response(res.body, {status: res.status, statusText: res.statusText, headers});
 
   // 학생 공개한 슬라이드 목록: 첫 화면과 ‘이 차시 자료’ 막대가 학생에게 보여 줄 슬라이드를 고를 때 씀
-  const extra = `window.OPEN_SLIDES=${JSON.stringify(await openSlides(env))};`;
+  const extra = `window.OPEN_SLIDES=${JSON.stringify(await openSlides(env))};` + (can ? `window.MY_PPT=${JSON.stringify(await myPpts(env))};` : '');
   const board = role === 'board' ? await boardInfo(request, env) : null;
   let rw = new HTMLRewriter().on('head', {element(e) {
     e.prepend(`<script>window.IS_TEACHER=${can};window.ROLE=${JSON.stringify(role)};${extra}</script>`, {html: true});
@@ -267,6 +313,44 @@ async function slidesApi(request, env, url, role) {
   return json({open: await s.setOpen(m[1], !!body.open)});
 }
 
+/* ───────── 선생님이 수업 PPT 올리기 (교사 기기만)
+   POST /teacher/ppt?f=/m1/self/ppt1.pptx  본문 = 파일 그대로, 머리글 x-name = 원래 파일 이름(encodeURIComponent)
+   DELETE 같은 주소 → 올린 파일 지우고 원래 PPT로 ───────── */
+async function pptApi(request, env, url, role) {
+  if (role !== 'teacher') return json({error: '선생님 기기에서 교사 로그인을 해야 올릴 수 있어요.'}, 401);
+  if (!sameOrigin(request, url)) return json({error: 'origin'}, 403);
+  const s = store(env); if (!s) return json({error: '저장소가 아직 준비되지 않았어요.'}, 503);
+  const f = url.searchParams.get('f') || '';
+  if (!PPT.test(f)) return json({error: '차시 PPT 주소가 아니에요.'}, 400);
+  if (request.method === 'DELETE') return json({mine: await s.delPpt(f)});
+  if (request.method !== 'POST') return json({error: 'method'}, 405);
+  const buf = new Uint8Array(await request.arrayBuffer());
+  if (!buf.length) return json({error: '빈 파일이에요.'}, 400);
+  if (buf.length > PPT_MAX) return json({error: '25MB보다 큰 파일은 올릴 수 없어요. 그림을 압축해서 다시 올려 주세요.'}, 413);
+  if (buf[0] !== 0x50 || buf[1] !== 0x4b) return json({error: 'PowerPoint(.pptx) 파일이 아니에요. .ppt는 PowerPoint에서 .pptx로 저장한 뒤 올려 주세요.'}, 400);
+  let name = 'PPT.pptx'; try { name = decodeURIComponent(request.headers.get('x-name') || '') || name; } catch (e) {}
+  const chunks = []; for (let i = 0; i < buf.length; i += PPT_CHUNK) chunks.push(buf.slice(i, i + PPT_CHUNK));
+  return json({mine: await s.putPpt(f, {name: name.slice(0, 120), size: buf.length, t: Date.now()}, chunks)});
+}
+
+/* ───────── 반별 진도 (교사·칠판). GET → {classes, rec}
+   POST {classes: [{id, name, book}]} 반 목록 바꾸기 · POST {id, rec: {done, last, now}} 한 반의 진도 바꾸기 ───────── */
+async function progressApi(request, env, url, role) {
+  if (role === 'student') return json({error: '교사 로그인(또는 QR로 연 칠판)에서만 쓸 수 있어요.'}, 401);
+  const s = store(env); if (!s) return json({error: '저장소가 아직 준비되지 않았어요.'}, 503);
+  if (request.method === 'GET') return json(await s.getProgress());
+  if (request.method !== 'POST') return json({error: 'method'}, 405);
+  if (!sameOrigin(request, url)) return json({error: 'origin'}, 403);
+  const text = await request.text();
+  if (text.length > 200000) return json({error: '너무 커요.'}, 413);
+  let b; try { b = JSON.parse(text); } catch (e) { return json({error: 'body'}, 400); }
+  const op = {};
+  if (Array.isArray(b.classes)) op.classes = b.classes.slice(0, 40).map(c => ({id: String(c.id).slice(0, 40), name: String(c.name).slice(0, 20), book: c.book === 'm2' ? 'm2' : 'm1'}));
+  if (typeof b.id === 'string' && b.rec && typeof b.rec === 'object') { op.id = b.id.slice(0, 40); op.rec = b.rec; }
+  if (!op.classes && !op.id) return json({error: 'body'}, 400);
+  return json(await s.setProgress(op));
+}
+
 /* ───────── 교사 비밀번호 ───────── */
 async function pptSig(env, f, exp) { return (await hash('ppt|' + (await expected(env)) + '|' + f + '|' + exp)).slice(0, 32); }
 
@@ -283,7 +367,7 @@ function pptPage(f, src, board) {
 #wrap{position:absolute;top:40px;left:0;right:0;bottom:0}#wrap iframe{width:100%;height:100%;border:0;display:block;background:#fff}
 #wrap:fullscreen{top:0}</style></head><body>
 <div class="top"><a href="/#${book}">← 목록</a><b>${book === 'm1' ? '도덕①' : '도덕②'} · ${n}차시 수업 PPT</b><small>클릭(또는 →)으로 빈칸이 하나씩 채워져요</small><span class="sp"></span>
-<button type="button" id="fs">전체 화면</button><a href="/${book}/${unit}/slides${n}.html">웹 슬라이드</a><a href="${esc(f)}" download>📥 내려받기</a></div>
+<a href="/?end=1#${book}" title="반별 진도에 어디까지 했는지 적어요">수업 끝 · 진도 기록</a><button type="button" id="fs">전체 화면</button><a href="/${book}/${unit}/slides${n}.html">웹 슬라이드</a><a href="${esc(f)}" download>📥 내려받기</a></div>
 <div id="wrap"><iframe src="${esc(view)}" allowfullscreen title="수업 PPT"></iframe></div>
 <script>document.getElementById('fs').onclick=function(){var w=document.getElementById('wrap');(w.requestFullscreen||w.webkitRequestFullscreen).call(w);};</script>
 ${board ? boardBar(board.ends) : ''}</body></html>`;
