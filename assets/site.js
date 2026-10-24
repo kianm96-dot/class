@@ -254,9 +254,9 @@
     var cs = chosen(), list = PG.classes.slice().sort(natural);
     var h = '<div class="cls-h"><b>우리 반</b><span class="chips">' + list.map(function (x) {
       return '<button type="button" class="chip" data-id="' + esc(x.id) + '" aria-pressed="' + (sel.indexOf(x.id) > -1) + '">' + esc(x.name) + (rec(x.id).now ? ' <i title="수업 중">●</i>' : '') + '</button>';
-    }).join('') + '<button type="button" class="chip add" data-add="1" title="반 여러 개 한 번에 만들기">＋ 반</button>' +
-      (PG.classes.length > 1 ? '<button type="button" class="chip add" data-multi="1" aria-pressed="' + multi + '" title="여러 반을 같이 골라 한 번에 기록">☑ 여러 반</button>' : '') +
-      (multi ? '<button type="button" class="chip add" data-alls="1">' + (cs.length === PG.classes.length ? '모두 해제' : '모두') + '</button>' : '') + '</span></div>';
+    }).join('') + '<button type="button" class="chip add" data-add="1" title="반 추가 (여러 개 한 번에)" aria-label="반 추가">＋</button>' +
+      (PG.classes.length > 1 ? '<button type="button" class="chip add" data-multi="1" aria-pressed="' + multi + '" title="여러 반을 같이 골라 한 번에 기록">여러 반</button>' : '') +
+      (multi ? '<button type="button" class="txt" data-alls="1">' + (cs.length === PG.classes.length ? '해제' : '모두') + '</button>' : '') + '</span></div>';
     if (adding) h += addForm();
     else if (!cs.length) h += '<p class="cls-s">' + (PG.classes.length ? '반을 누르면 지난 진도와 다음 차시가 보여요.' + (PG.classes.length > 1 ? ' 같은 진도의 반은 <b>☑ 여러 반</b>으로 한꺼번에 기록해요.' : '') : '<b>＋ 반</b>을 눌러 학년과 반 번호를 고르면 한 번에 만들어져요.') + '</p>';
     else {
@@ -279,8 +279,7 @@
             (g.last && cs.length === 1 ? '<br><small class="last">지난 시간 ' + md(g.last.d) + ': ' + esc(label(lesson(g.last.k))) + (g.part ? ' — ' + esc(g.part) + '까지' : ' 끝') + '</small>' : '') + '</p>';
         }).join('') +
           '<div class="row">' + (groups.length === 1 && groups[0].nx && HREF[groups[0].nx.k] ? '<a class="go" href="' + HREF[groups[0].nx.k] + '" data-start="' + groups[0].nx.k + '">▶ 수업 시작</a>' : '') +
-          '<button type="button" class="ghost sm" data-del="1">' + (cs.length > 1 ? cs.length + '개 반 지우기' : '반 지우기') + '</button></div>' +
-          '<p class="tip">차시 번호(①②③)를 누르면 ' + (cs.length > 1 ? '고른 반 모두 ' : '') + '그 차시까지 끝낸 것으로 한 번에 기록돼요.</p></div>';
+          '<span class="tip">차시 번호를 누르면 그 차시까지 끝냄</span><button type="button" class="txt" data-del="1" title="고른 반과 진도 기록 지우기">반 지우기</button></div></div>';
       }
     }
     box.innerHTML = h;
