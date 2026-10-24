@@ -183,3 +183,4 @@ button.txt{font:13px var(--body);border:0;background:none;color:var(--muted);tex
 .cls{justify-content:flex-start}
 .intro-top:has(.cls:not([hidden])) .quick small{display:none}
 .intro-top:has(.cls:not([hidden])) .quick a{font-size:16px;padding:5px 13px}
+#curr{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

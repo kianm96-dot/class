@@ -18,7 +18,7 @@
   if (R) $('who').innerHTML = R === 'teacher' ? '<a href="/teacher">교사 모드</a>' : R === 'board' ? '' : '<a href="/board?next=/">칠판 수업 시작</a><a href="/teacher?next=/">교사 로그인</a>';
   try { got = JSON.parse(localStorage.getItem('philoBadges') || '[]'); } catch (e) {}
   document.title = SITE.name;
-  $('curr').textContent = SITE.curriculum + ' · 실제 사례로 시작해 질문으로 생각하고, 한 문장으로 정리해요.';
+  $('curr').textContent = SITE.curriculum.replace(' 교육과정', '') + ' · 사례 → 질문 → 한 문장 정리';
   $('books').innerHTML = C.map(function (b) { return '<button type="button" data-b="' + b.id + '">' + esc(b.book) + '</button>'; }).join('');
   $('books').onclick = function (e) { var t = e.target.closest('button'); if (!t) return; book = t.dataset.b; q = ''; $('q').value = ''; history.replaceState(null, '', '#' + book); render(); };
   $('q').addEventListener('input', function (e) { q = e.target.value.trim(); render(); });
