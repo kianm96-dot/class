@@ -88,3 +88,37 @@ mark{background:#ffe08a;color:inherit;border-radius:4px;padding:0 2px}
 @media (max-width:560px){.search{max-width:none;margin-left:0}.brand span{display:none}.unit-head{padding:12px 14px}.lessons{padding:4px 14px 10px}.lt{font-size:16.5px}}
 .pub{font:700 12px var(--body);border:1.5px solid var(--line);background:#fff;color:var(--muted);border-radius:999px;padding:1px 9px;cursor:pointer}
 .pub[aria-pressed="true"]{border-color:var(--leaf);color:var(--leaf)}
+/* PPT 올리기 단추 (교사) */
+.up{font:700 12px var(--body);border:1.5px dashed var(--line);background:#fff;color:var(--muted);border-radius:999px;padding:1px 9px;cursor:pointer}
+.up:hover{border-color:var(--area);color:var(--area)}
+.up.undo{border-style:solid;font-weight:400}
+.up:disabled{opacity:.6;cursor:wait}
+/* 반별 진도: 제목 오른쪽 */
+.intro-top{display:flex;gap:12px 24px;align-items:flex-start;flex-wrap:wrap}
+.intro-top h1{flex:0 1 auto}
+.cls{flex:1 1 340px;max-width:520px;background:#fff;border:2px solid var(--line);border-radius:18px;padding:10px 14px;font-size:15px;display:flex;flex-direction:column;gap:6px}
+.cls-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cls-h>b{font:18px var(--disp)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font:16px var(--disp);border:2px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:2px 14px;cursor:pointer;min-height:36px}
+.chip[aria-pressed="true"]{background:var(--coral);border-color:var(--coral);color:#fff}
+.chip i{font-style:normal;color:var(--leaf);font-size:12px}.chip[aria-pressed="true"] i{color:#fff}
+.chip.add{border-style:dashed;color:var(--muted)}
+.cls-s{margin:0;color:var(--muted)}
+.cls-s p{margin:0}.cls-s .nx{color:var(--ink)}.cls-s .nx b{color:var(--coral)}
+.cls-s .row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.cls-s .row button,.cls-s .row .go{font:700 14px var(--body);border:2px solid var(--coral);background:var(--coral);color:#fff;border-radius:999px;padding:5px 14px;cursor:pointer;text-decoration:none;min-height:36px;display:inline-flex;align-items:center}
+.cls-s .row .ghost{background:#fff;color:var(--ink);border-color:var(--line)}
+.cls-s .row .sm{font-weight:400;color:var(--muted);margin-left:auto}
+.cls-s.now{color:var(--ink)}
+.cls-s.end{animation:clsPulse 1.2s ease-in-out 3}
+@keyframes clsPulse{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--coral) 30%,transparent);border-radius:12px}}
+/* 차시 줄 진도 표시 */
+.ls .ln[title]{cursor:pointer}
+.ls.done .ln{background:var(--leaf);color:#fff}
+.ls.nxt{background:color-mix(in srgb,var(--coral) 8%,transparent);border-radius:12px;box-shadow:0 0 0 2px var(--coral) inset;padding-left:6px;padding-right:6px}
+.ls.live{background:color-mix(in srgb,var(--leaf) 10%,transparent);border-radius:12px;box-shadow:0 0 0 2px var(--leaf) inset;padding-left:6px;padding-right:6px}
+.pg{align-self:flex-start;font:700 12px var(--body);border-radius:999px;padding:0 8px;background:var(--soft);color:var(--muted)}
+.ls.nxt .pg{background:var(--coral);color:#fff}.ls.live .pg{background:var(--leaf);color:#fff}.ls.done .pg{color:var(--leaf)}
+.ls.part .pg{background:#ffe9b8;color:#7a5200}
+@media (prefers-reduced-motion:reduce){.cls-s.end{animation:none}}
