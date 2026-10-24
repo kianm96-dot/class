@@ -53,6 +53,61 @@
     };
     document.getElementById('bN').parentNode.insertBefore(pub, document.getElementById('bN'));
   }
+  // 📥 내려받기 (교사·칠판, 또는 서버 없는 곳): HTML 한 파일(인터넷 없이도 클릭 진행 그대로, 사진까지 넣음) 또는 PDF(장마다 한 쪽, 빈칸 답까지 모두 펼침)
+  if (window.IS_TEACHER !== false && location.protocol !== 'file:') {
+    var dl = document.createElement('button'), menu = document.createElement('div'); dl.type = 'button'; dl.textContent = '📥 내려받기';
+    menu.className = 'dlmenu'; menu.hidden = true;
+    menu.innerHTML = '<button type="button" data-k="html">HTML 파일 <small>인터넷 없이도 클릭 진행 그대로</small></button><button type="button" data-k="pdf">PDF <small>인쇄 창에서 ‘PDF로 저장’ · 장마다 한 쪽</small></button>';
+    dl.onclick = function () { menu.hidden = !menu.hidden; };
+    menu.onclick = function (e) { var b = e.target.closest('button'); if (!b) return; menu.hidden = true; (b.dataset.k === 'html' ? saveHtml : savePdf)(dl); };
+    document.getElementById('bN').parentNode.insertBefore(dl, document.getElementById('bN'));
+    document.getElementById('bN').parentNode.appendChild(menu);
+  }
+  var fileName = function (ext) { return (document.title.split(' · ').reverse().join(' ') || 'slides').replace(/[\\/:*?"<>|]/g, '') + ext; };
+  function blobUrl(u) {   // 사진을 파일 안에 넣기(실패하면 원래 주소 그대로)
+    return fetch(u).then(function (r) { if (!r.ok) throw 0; return r.blob(); }).then(function (b) {
+      return new Promise(function (ok) { var f = new FileReader(); f.onload = function () { ok(f.result); }; f.onerror = function () { ok(u); }; f.readAsDataURL(b); });
+    }).catch(function () { return u; });
+  }
+  function saveHtml(btn) {
+    var old = btn.textContent; btn.disabled = true; btn.textContent = '만드는 중…';
+    fetch(location.pathname, { credentials: 'same-origin' }).then(function (r) { return r.text(); }).then(function (src) {
+      var d = new DOMParser().parseFromString(src, 'text/html'), abs = function (u) { return new URL(u, location.href).href; }, jobs = [];
+      d.querySelectorAll('script[src*="lessonbar"], link[rel="manifest"], #moral-board').forEach(function (x) { x.remove(); });
+      d.querySelectorAll('a[href]').forEach(function (a) { if (!/^#/.test(a.getAttribute('href'))) a.href = abs(a.getAttribute('href')); });
+      d.querySelectorAll('link[rel~="icon"], link[rel="apple-touch-icon"]').forEach(function (l) { l.href = abs(l.getAttribute('href')); });
+      d.querySelectorAll('link[rel="stylesheet"]').forEach(function (l) {
+        var u = abs(l.getAttribute('href')); if (new URL(u).origin !== location.origin) return;
+        jobs.push(fetch(u).then(function (r) { return r.text(); }).then(function (css) { var st = d.createElement('style'); st.textContent = css; l.replaceWith(st); }));
+      });
+      d.querySelectorAll('script[src]').forEach(function (sc) {
+        var u = abs(sc.getAttribute('src'));
+        jobs.push(fetch(u).then(function (r) { return r.text(); }).then(function (js) { var n = d.createElement('script'); n.textContent = js.replace(/<\/script/gi, '<\\/script'); sc.replaceWith(n); }));
+      });
+      d.querySelectorAll('img').forEach(function (im) {
+        var u = im.getAttribute('data-src') || im.getAttribute('src'); if (!u || /^data:/.test(u)) return;
+        jobs.push(blobUrl(abs(u)).then(function (v) { im.setAttribute(im.hasAttribute('data-src') ? 'data-src' : 'src', v); }));
+      });
+      return Promise.all(jobs).then(function () {
+        var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['<!doctype html>\n' + d.documentElement.outerHTML], { type: 'text/html' }));
+        a.download = fileName('.html'); document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 5000);
+      });
+    }).catch(function (e) { alert('내려받지 못했어요: ' + (e && e.message || e)); })
+      .then(function () { btn.disabled = false; btn.textContent = old; });
+  }
+  function savePdf(btn) {
+    var old = btn.textContent; btn.disabled = true; btn.textContent = '사진 불러오는 중…';
+    S.forEach(load);
+    var imgs = [].slice.call(document.querySelectorAll('.s img'));
+    Promise.all(imgs.map(function (im) { return im.complete ? 0 : new Promise(function (ok) { im.addEventListener('load', ok); im.addEventListener('error', ok); setTimeout(ok, 8000); }); })).then(function () {
+      btn.disabled = false; btn.textContent = old;
+      var t = document.title, hid = [].slice.call(document.querySelectorAll('.s .f:not(.show)'));
+      hid.forEach(function (f) { f.classList.add('show'); });   // 하나씩 나오던 질문·빈칸 답을 모두 펼쳐서 인쇄
+      addEventListener('afterprint', function back() { removeEventListener('afterprint', back); hid.forEach(function (f) { f.classList.remove('show'); }); document.title = t; });
+      document.title = fileName('').replace(/\.$/, '');
+      window.print();
+    });
+  }
   addEventListener('hashchange', function () { var n = +location.hash.slice(1); if (n && n - 1 !== i) show(n - 1); });
   show((+location.hash.slice(1) || 1) - 1);
 })();
