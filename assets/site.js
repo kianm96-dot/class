@@ -265,7 +265,8 @@
         var now = lesson(rec(live[0].id).now.k);
         h += '<div class="cls-s now' + (ending ? ' end' : '') + '"><p>🟢 <b>' + esc(names(live)) + '</b> · ' + esc(label(now)) + ' 수업 중</p>' +
           (partIn ? '<div class="row"><input id="partIn" maxlength="40" placeholder="어디까지? 예: 12장, 활동 2 전" aria-label="어디까지 했는지"><button type="button" data-end="save">저장</button><button type="button" class="ghost sm" data-end="back">취소</button></div>'
-            : '<div class="row"><button type="button" data-end="all">✓ 끝까지 했어요</button><button type="button" data-end="part" class="ghost">여기까지만 했어요…</button><button type="button" data-end="cancel" class="ghost sm" title="수업 중 표시만 지워요">취소</button></div>') + '</div>';
+            : '<div class="row"><button type="button" data-end="all">✓ 끝까지 했어요</button><button type="button" data-end="part" class="ghost">여기까지만 했어요…</button><button type="button" data-end="cancel" class="ghost sm" title="수업 중 표시만 지워요">취소</button></div>') +
+          '<div class="row"><span class="tip"></span><button type="button" class="txt" data-reset="1" title="고른 반의 진도 기록만 지우고 반은 남김">진도 지우기</button><button type="button" class="txt" data-del="1" title="고른 반과 진도 기록 지우기">반 지우기</button></div></div>';
       } else {
         // 다음 차시가 같은 반끼리 묶어서 한 줄씩
         var groups = [];
