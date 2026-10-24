@@ -159,7 +159,7 @@
     inp.click();
   }
   function table(rows) {
-    var dl = $('bulk'); if (!dl) { dl = document.createElement('dialog'); dl.id = 'bulk'; document.body.appendChild(dl); }
+    var dl = $('bulk'); if (!dl) { dl = document.createElement('dialog'); dl.id = 'bulk'; dl.className = 'bk'; document.body.appendChild(dl); }
     var opts = C.map(function (b) {
       return b.units.map(function (u) {
         return '<optgroup label="' + esc(b.book + ' ' + ROMAN[u.no - 1] + ' ' + u.title) + '">' + ORDER[b.id].filter(function (o) { return o.dir === u.dir; }).map(function (o) {
@@ -197,10 +197,59 @@
     };
     paint(); dl.showModal();
   }
-  if (R === 'teacher' && $('who')) {
-    var bb = document.createElement('a'); bb.href = '#'; bb.className = 'bulkbtn'; bb.innerHTML = '⬆ 한꺼번에 올리기 <small>PPT · 학습지</small>';
-    bb.onclick = function (e) { e.preventDefault(); bulk(); };
-    $('who').parentNode.insertBefore(bb, $('who'));
+  /* ── ⬇ 한꺼번에 다운로드 (교사·칠판): 책 · 단원 · 종류(수업 PPT, 올린 학습지 파일)를 골라 ZIP 하나로. 파일 이름은 ‘도덕① Ⅰ-3 제목.pptx’ ── */
+  function bulkDown() {
+    var dl = $('bulkd'); if (!dl) { dl = document.createElement('dialog'); dl.id = 'bulkd'; dl.className = 'bk'; document.body.appendChild(dl); }
+    var st = { book: book, units: {}, ppt: true, ws: true, busy: '' };
+    C.forEach(function (b) { b.units.forEach(function (u) { st.units[b.id + '/' + u.dir] = true; }); });
+    function files() {
+      var out = [], b = C.filter(function (x) { return x.id === st.book; })[0];
+      b.units.forEach(function (u) {
+        var key = b.id + '/' + u.dir; if (!st.units[key]) return;
+        u.lessons.forEach(function (l, i) {
+          var n = i + 1, nm = (b.book + ' ' + ROMAN[u.no - 1] + '-' + n + ' ' + l[0]).replace(/[\\/:*?"<>|]/g, ''), pf = '/' + key + '/ppt' + n + '.pptx', wf = '/' + key + '/wsfile' + n;
+          if (st.ppt && (made(key, 'ppt', n) || MY[pf])) out.push({ url: pf, name: nm + '.pptx' });
+          if (st.ws && MY[wf]) out.push({ url: wf, name: nm + ' 학습지' + ((MY[wf].name.match(/\.[a-z0-9]+$/i) || [''])[0]) });
+        });
+      });
+      return out;
+    }
+    function paint() {
+      var b = C.filter(function (x) { return x.id === st.book; })[0], fs = files();
+      dl.innerHTML = '<form method="dialog"><h2>⬇ 한꺼번에 다운로드</h2><p class="d">고른 자료를 ZIP 파일 하나로 받아요. 올린 PPT가 있는 차시는 올린 파일로 받아요.</p>' +
+        '<p class="opt"><b>교과서</b>' + C.map(function (x) { return '<label><input type="radio" name="bk" value="' + x.id + '"' + (x.id === st.book ? ' checked' : '') + '> ' + esc(x.book) + '</label>'; }).join('') + '</p>' +
+        '<p class="opt"><b>단원</b>' + b.units.map(function (u) { var k = b.id + '/' + u.dir; return '<label><input type="checkbox" data-u="' + k + '"' + (st.units[k] ? ' checked' : '') + '> ' + ROMAN[u.no - 1] + ' ' + esc(u.title) + '</label>'; }).join('') + '</p>' +
+        '<p class="opt"><b>자료</b><label><input type="checkbox" data-kind="ppt"' + (st.ppt ? ' checked' : '') + '> 수업 PPT</label><label><input type="checkbox" data-kind="ws"' + (st.ws ? ' checked' : '') + '> 올린 학습지 파일</label></p>' +
+        '<div class="row"><span class="d" style="margin-right:auto">' + esc(st.busy || fs.length + '개 파일') + '</span><button type="button" data-go="1"' + (fs.length && !st.busy ? '' : ' disabled') + '>ZIP 내려받기</button><button value="close" class="ghost">닫기</button></div></form>';
+    }
+    dl.onchange = function (e) {
+      var t = e.target;
+      if (t.name === 'bk') st.book = t.value; else if (t.dataset.u) st.units[t.dataset.u] = t.checked; else if (t.dataset.kind) st[t.dataset.kind] = t.checked;
+      paint();
+    };
+    dl.onclick = function (e) {
+      if (!e.target.closest('[data-go]')) return;
+      var fs = files(), zipName = C.filter(function (x) { return x.id === st.book; })[0].book + ' 수업 자료.zip';
+      var lib = window.JSZip ? Promise.resolve() : new Promise(function (ok, no) { var sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js'; sc.onload = ok; sc.onerror = function () { no(new Error('ZIP 도구를 불러오지 못했어요')); }; document.head.appendChild(sc); });
+      lib.then(function () {
+        var zip = new JSZip(), i = 0;
+        return fs.reduce(function (p, f) {
+          return p.then(function () { st.busy = '받는 중 ' + (++i) + ' / ' + fs.length; paint(); return fetch(f.url).then(function (r) { if (!r.ok) throw new Error(f.name + ' (' + r.status + ')'); return r.blob(); }).then(function (bl) { zip.file(f.name, bl); }); });
+        }, Promise.resolve()).then(function () { st.busy = 'ZIP 만드는 중…'; paint(); return zip.generateAsync({ type: 'blob', compression: 'STORE' }); });
+      }).then(function (blob) {
+        var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = zipName; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 10000);
+        st.busy = '✓ ' + fs.length + '개를 받았어요'; paint();
+      }).catch(function (err) { st.busy = ''; paint(); alert('다운로드하지 못했어요: ' + err.message); });
+    };
+    paint(); dl.showModal();
+  }
+  if ((R === 'teacher' || R === 'board') && $('who')) {
+    [R === 'teacher' && ['⬆ 업로드', '수업 PPT · 학습지 파일을 여러 개 한 번에 올리기 (파일 이름으로 차시 자동 배치)', bulk], ['⬇ 다운로드', '수업 PPT · 학습지 파일을 ZIP으로 한 번에 받기', bulkDown]].forEach(function (x) {
+      if (!x) return;
+      var bb = document.createElement('a'); bb.href = '#'; bb.className = 'bulkbtn'; bb.textContent = x[0]; bb.title = x[1];
+      bb.onclick = function (e) { e.preventDefault(); x[2](); };
+      $('who').parentNode.insertBefore(bb, $('who'));
+    });
   }
 
   /* ── 반별 진도: 제목 오른쪽 ‘우리 반’. 반은 [＋ 반]에서 학년·반 번호를 눌러 여러 개 한 번에 만들고,
@@ -265,8 +314,8 @@
         var now = lesson(rec(live[0].id).now.k);
         h += '<div class="cls-s now' + (ending ? ' end' : '') + '"><p>🟢 <b>' + esc(names(live)) + '</b> · ' + esc(label(now)) + ' 수업 중</p>' +
           (partIn ? '<div class="row"><input id="partIn" maxlength="40" placeholder="어디까지? 예: 12장, 활동 2 전" aria-label="어디까지 했는지"><button type="button" data-end="save">저장</button><button type="button" class="ghost sm" data-end="back">취소</button></div>'
-            : '<div class="row"><button type="button" data-end="all">✓ 끝까지 했어요</button><button type="button" data-end="part" class="ghost">여기까지만 했어요…</button><button type="button" data-end="cancel" class="ghost sm" title="수업 중 표시만 지워요">취소</button></div>') +
-          '<div class="row"><span class="tip"></span><button type="button" class="txt" data-reset="1" title="고른 반의 진도 기록만 지우고 반은 남김">진도 지우기</button><button type="button" class="txt" data-del="1" title="고른 반과 진도 기록 지우기">반 지우기</button></div></div>';
+            : '<div class="row"><button type="button" data-end="all">✓ 끝까지 했어요</button><button type="button" data-end="part" class="ghost">여기까지만 했어요…</button><button type="button" data-end="cancel" class="ghost sm" title="수업 중 표시만 지워요">취소</button>' +
+              '<button type="button" class="txt" data-reset="1" title="고른 반의 진도 기록만 지우고 반은 남김">진도 지우기</button><button type="button" class="txt" data-del="1" title="고른 반과 진도 기록 지우기">반 지우기</button></div>') + '</div>';
       } else {
         // 다음 차시가 같은 반끼리 묶어서 한 줄씩
         var groups = [];
