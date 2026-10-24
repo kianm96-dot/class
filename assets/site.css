@@ -136,22 +136,22 @@ mark{background:#ffe08a;color:inherit;border-radius:4px;padding:0 2px}
 .cls-s .tip{font-size:13px;margin-top:4px}
 .cls-s .row input{flex:1;min-width:160px;font:inherit;font-size:15px;padding:5px 12px;border:2px solid var(--line);border-radius:999px}
 /* ⬆ 한꺼번에 올리기 창 */
-#bulk{border:0;border-radius:20px;padding:0;width:min(980px,96vw);max-height:90vh;box-shadow:0 20px 60px rgba(0,0,0,.25);color:var(--ink);font:15px/1.5 var(--body)}
-#bulk::backdrop{background:rgba(43,33,30,.45)}
-#bulk form{display:flex;flex-direction:column;gap:10px;padding:20px;max-height:90vh;box-sizing:border-box}
-#bulk h2{margin:0;font:24px var(--disp)}#bulk .d{margin:0;color:var(--muted);font-size:14px}
-#bulk .t-q{background:#fff3c4;padding:0 4px;border-radius:4px}#bulk .t-x{background:#ffe1dc;padding:0 4px;border-radius:4px}
-#bulk .tbl{overflow:auto;border:2px solid var(--line);border-radius:12px;min-height:0}
-#bulk table{border-collapse:collapse;width:100%}
-#bulk th{position:sticky;top:0;background:var(--soft);text-align:left;font-size:13px;padding:6px 8px}
-#bulk td{border-top:1px solid var(--line);padding:5px 8px;vertical-align:middle}
-#bulk td.fn{word-break:break-all;font-size:14px;max-width:320px}#bulk td.fn small{color:var(--muted)}
-#bulk select{font:inherit;font-size:14px;max-width:340px;padding:3px 6px;border:1.5px solid var(--line);border-radius:8px;background:#fff}
-#bulk td.st{font-size:13px;color:var(--muted);white-space:nowrap}
-#bulk tr.q{background:#fffbe8}#bulk tr.x{background:#fff1ee}#bulk tr.ok{background:#eefaf2}#bulk tr.ok td.st{color:var(--leaf);font-weight:700}
-#bulk .row{display:flex;gap:8px;justify-content:flex-end}
-#bulk .row button{font:700 15px var(--body);border:2px solid var(--coral);background:var(--coral);color:#fff;border-radius:999px;padding:7px 18px;cursor:pointer}
-#bulk .row button:disabled{opacity:.5;cursor:default}#bulk .row .ghost{background:#fff;color:var(--ink);border-color:var(--line)}
+dialog.bk{border:0;border-radius:20px;padding:0;width:min(980px,96vw);max-height:90vh;box-shadow:0 20px 60px rgba(0,0,0,.25);color:var(--ink);font:15px/1.5 var(--body)}
+dialog.bk::backdrop{background:rgba(43,33,30,.45)}
+dialog.bk form{display:flex;flex-direction:column;gap:10px;padding:20px;max-height:90vh;box-sizing:border-box}
+dialog.bk h2{margin:0;font:24px var(--disp)}dialog.bk .d{margin:0;color:var(--muted);font-size:14px}
+dialog.bk .t-q{background:#fff3c4;padding:0 4px;border-radius:4px}dialog.bk .t-x{background:#ffe1dc;padding:0 4px;border-radius:4px}
+dialog.bk .tbl{overflow:auto;border:2px solid var(--line);border-radius:12px;min-height:0}
+dialog.bk table{border-collapse:collapse;width:100%}
+dialog.bk th{position:sticky;top:0;background:var(--soft);text-align:left;font-size:13px;padding:6px 8px}
+dialog.bk td{border-top:1px solid var(--line);padding:5px 8px;vertical-align:middle}
+dialog.bk td.fn{word-break:break-all;font-size:14px;max-width:320px}dialog.bk td.fn small{color:var(--muted)}
+dialog.bk select{font:inherit;font-size:14px;max-width:340px;padding:3px 6px;border:1.5px solid var(--line);border-radius:8px;background:#fff}
+dialog.bk td.st{font-size:13px;color:var(--muted);white-space:nowrap}
+dialog.bk tr.q{background:#fffbe8}dialog.bk tr.x{background:#fff1ee}dialog.bk tr.ok{background:#eefaf2}dialog.bk tr.ok td.st{color:var(--leaf);font-weight:700}
+dialog.bk .row{display:flex;gap:8px;justify-content:flex-end}
+dialog.bk .row button{font:700 15px var(--body);border:2px solid var(--coral);background:var(--coral);color:#fff;border-radius:999px;padding:7px 18px;cursor:pointer}
+dialog.bk .row button:disabled{opacity:.5;cursor:default}dialog.bk .row .ghost{background:#fff;color:var(--ink);border-color:var(--line)}
 .quick a.bulkbtn{border-style:dashed}
 /* 우리 반: 작고 가볍게 (위의 규칙을 덮어씀) */
 .cls{flex:0 1 460px;border:1.5px solid var(--line);border-radius:14px;padding:8px 12px;gap:4px;font-size:14px;margin-left:auto}
@@ -185,3 +185,10 @@ button.txt{font:13px var(--body);border:0;background:none;color:var(--muted);tex
 .intro-top:has(.cls:not([hidden])) .quick a{font-size:16px;padding:5px 13px}
 #curr{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cls{max-width:480px}
+dialog.bk .opt{margin:0;display:flex;gap:6px 14px;flex-wrap:wrap;align-items:center;font-size:14px}
+dialog.bk .opt>b{width:56px;font-size:14px}
+dialog.bk .opt label{display:inline-flex;gap:4px;align-items:center;cursor:pointer}
+.intro-l .quick{margin-top:0;padding-top:10px}
+.intro-top:has(.cls:not([hidden])) .quick{gap:6px}
+.intro-top:has(.cls:not([hidden])) .quick a{font-size:15px;padding:4px 11px}
+.intro-top:has(.cls:not([hidden])) #who{margin-left:0}

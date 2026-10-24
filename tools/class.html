@@ -59,7 +59,7 @@ textarea{width:100%;min-height:120px;font:16px var(--body);border:2px solid var(
   <section class="page-h"><h1>⏱ 수업 진행 도구</h1><p>반을 고르면 그 반 명단으로 발표자 뽑기 · 모둠 편성을 해요. 오늘 없는 학생은 이름을 눌러 빼요.</p></section>
   <div class="tools">
     <section class="panel roster-p" aria-label="우리 반 명단">
-      <div class="rhead"><h2>👩‍🎓 우리 반 명단</h2><div class="cchips" id="cchips"></div><span class="rcount" id="rcount"></span><button class="btn" id="rEditBtn" type="button">명단 넣기</button></div>
+      <div class="rhead"><h2>👩‍🎓 우리 반 명단</h2><div class="cchips" id="cchips"></div><span class="rcount" id="rcount"></span><button class="btn" id="rXls" type="button" title="엑셀(.xlsx) · CSV로 여러 반 명단을 한 번에">📥 엑셀로 넣기</button><button class="btn" id="rTpl" type="button" title="반마다 시트가 있는 엑셀 양식">양식 받기</button><button class="btn" id="rEditBtn" type="button">명단 넣기</button></div>
       <div class="studs" id="studs"></div>
       <p class="hint" id="rhint"></p>
       <div class="redit" id="redit" hidden>
@@ -142,6 +142,51 @@ textarea{width:100%;min-height:120px;font:16px var(--body);border:2px solid var(
     save().then(() => { $('redit').hidden = true; pool = null; paint(); }).catch(e => alert('명단을 저장하지 못했어요: ' + e.message)).then(() => { $('rSave').disabled = false; });
   };
   load().then(() => { if (!cls()) cur = ''; paint(); });
+  /* 엑셀로 명단 넣기: 시트 이름 = 반 이름(예: 2-3)이면 그 반에, ‘반’ 열이 있으면 줄마다 그 반에, 둘 다 아니면 지금 고른 반에.
+     ‘이름’(또는 ‘성명’) 열과 ‘번호’ 열을 찾아 ‘3 김민준’처럼 넣음. 없는 반은 새로 만듦. 엑셀 도구(SheetJS)는 누를 때만 불러옴 */
+  const xlsx = () => window.XLSX ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; sc.onload = ok; sc.onerror = () => no(new Error('엑셀 도구를 불러오지 못했어요(인터넷 연결 확인)')); document.head.appendChild(sc); });
+  const flat = t => String(t || '').replace(/\s/g, '');
+  const findCls = (name, ban, grade) => PG.classes.find(c => flat(c.name) === flat(name)) || (ban ? PG.classes.find(c => grade ? flat(c.name) === grade + '-' + ban : c.name.split('-').pop() === String(ban)) : null);
+  $('rTpl').onclick = () => xlsx().then(() => {
+    const wb = XLSX.utils.book_new(), list = PG.classes.length ? PG.classes.slice().sort((a, b) => a.name.localeCompare(b.name, 'ko', {numeric: true})) : [{name: '2-1', roster: []}];
+    list.forEach(c => {
+      const rows = [['번호', '이름']], have = (c.roster || []).map(x => { const m = String(x).match(/^(\d+)\s+(.+)$/); return m ? [+m[1], m[2]] : ['', x]; });
+      for (let i = 0; i < Math.max(30, have.length); i++) rows.push(have[i] || [i + 1, '']);
+      const ws = XLSX.utils.aoa_to_sheet(rows); ws['!cols'] = [{wch: 6}, {wch: 14}];
+      XLSX.utils.book_append_sheet(wb, ws, String(c.name).replace(/[\\/?*[\]:]/g, '').slice(0, 31) || '반');
+    });
+    XLSX.writeFile(wb, '학생명단_양식.xlsx');
+  }).catch(e => alert(e.message));
+  $('rXls').onclick = () => {
+    const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.xlsx,.xls,.csv';
+    inp.onchange = () => { const f = inp.files[0]; if (!f) return; xlsx().then(() => f.arrayBuffer()).then(buf => {
+      const wb = XLSX.read(buf, {type: 'array'}), got = {}, fresh = [];
+      wb.SheetNames.forEach(sn => {
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[sn], {header: 1, defval: ''}).map(r => r.map(x => String(x).trim()));
+        let h = rows.findIndex(r => r.some(x => /이름|성명/.test(x))), col = {};
+        if (h > -1) rows[h].forEach((x, i) => { if (/이름|성명/.test(x) && col.name == null) col.name = i; else if (/번호/.test(x) && col.num == null) col.num = i; else if (/^(학?반)$/.test(x)) col.ban = i; else if (/학년/.test(x)) col.grade = i; });
+        rows.slice(h + 1).forEach(r => {
+          let num = '', name = '';
+          if (col.name != null) { name = r[col.name]; num = col.num != null ? r[col.num] : ''; }
+          else { const v = r.filter(Boolean); if (/^\d+$/.test(v[0]) && v[1]) { num = v[0]; name = v[1]; } else name = v[0] || ''; }
+          if (!name || /이름|성명/.test(name)) return;
+          let c = col.ban != null && r[col.ban] ? findCls('', String(r[col.ban]).replace(/\D/g, ''), col.grade != null ? String(r[col.grade]).replace(/\D/g, '') : '') : findCls(sn);
+          let key = c ? c.id : col.ban != null && r[col.ban] ? (col.grade != null ? String(r[col.grade]).replace(/\D/g, '') + '-' : '') + String(r[col.ban]).replace(/\D/g, '') : wb.SheetNames.length > 1 && /\d/.test(sn) ? sn.trim() : cur;
+          if (!key) return;
+          if (!c && !PG.classes.find(x => x.id === key) && !fresh.includes(key)) fresh.push(key);
+          (got[key] = got[key] || []).push((num ? num + ' ' : '') + name);
+        });
+      });
+      const keys = Object.keys(got);
+      if (!keys.length) return alert(cur || wb.SheetNames.length > 1 ? '이름을 찾지 못했어요. ‘이름’ 열이 있는지 확인하거나 [양식 받기]로 받은 파일에 넣어 주세요.' : '먼저 위에서 반을 고르거나, 시트 이름을 반 이름(예: 2-3)으로 해 주세요.');
+      const label = k => (PG.classes.find(c => c.id === k) || {name: k}).name;
+      if (!confirm(keys.map(k => `${label(k)} ${got[k].length}명${fresh.includes(k) ? ' (새 반)' : ''}`).join('\n') + '\n\n이대로 넣을까요? 원래 명단은 바뀌어요.')) return;
+      const bk = (PG.classes[0] || {}).book || 'm1';
+      keys.forEach((k, i) => { let c = PG.classes.find(x => x.id === k); if (!c) { c = {id: 'c' + (Date.now() + i).toString(36), name: k.slice(0, 20), book: bk}; PG.classes.push(c); } c.roster = got[k].slice(0, 60); if (!cur) cur = c.id; });
+      return save().then(() => { pool = null; paint(); });
+    }).catch(e => alert('엑셀을 읽지 못했어요: ' + e.message)); };
+    inp.click();
+  };
   /* 뽑기 */
   let pool = null, used = []; const all = () => { const r = present(); return names().length ? r : Array.from({length: Math.max(2, +$('maxN').value || 28)}, (_, i) => String(i + 1) + '번'); };
   $('maxN').oninput = () => { pool = null; used = []; $('used').textContent = ''; };
