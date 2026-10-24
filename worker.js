@@ -393,7 +393,8 @@ async function progressApi(request, env, url, role) {
   if (text.length > 200000) return json({error: '너무 커요.'}, 413);
   let b; try { b = JSON.parse(text); } catch (e) { return json({error: 'body'}, 400); }
   const op = {};
-  if (Array.isArray(b.classes)) op.classes = b.classes.slice(0, 40).map(c => ({id: String(c.id).slice(0, 40), name: String(c.name).slice(0, 20), book: c.book === 'm2' ? 'm2' : 'm1'}));
+  if (Array.isArray(b.classes)) op.classes = b.classes.slice(0, 40).map(c => ({id: String(c.id).slice(0, 40), name: String(c.name).slice(0, 20), book: c.book === 'm2' ? 'm2' : 'm1',
+    ...(Array.isArray(c.roster) ? {roster: c.roster.slice(0, 60).map(x => String(x).slice(0, 24))} : {})}));   // roster: 학생 명단(교사·칠판만 읽음)
   if (b.recs && typeof b.recs === 'object') op.recs = Object.fromEntries(Object.entries(b.recs).slice(0, 40).filter(([, r]) => r && typeof r === 'object').map(([id, r]) => [id.slice(0, 40), r]));
   if (!op.classes && !op.recs) return json({error: 'body'}, 400);
   return json(await s.setProgress(op));

@@ -29,17 +29,44 @@ textarea{width:100%;min-height:120px;font:16px var(--body);border:2px solid var(
 .used,.note{font-size:14px;color:var(--muted);text-align:center;min-height:1.2em;margin:6px 0 0}
 .fs{position:fixed;inset:0;z-index:50;background:var(--bg);display:grid;place-items:center;font:min(30vw,52vh) var(--disp);font-variant-numeric:tabular-nums;cursor:pointer}
 .back{display:inline-block;margin-top:16px;font-size:15px;color:var(--muted)}
+.roster-p{grid-column:1/-1}
+.rhead{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.rhead h2{margin:0 8px 0 0}
+.cchips{display:flex;gap:6px;flex-wrap:wrap}
+.cchip{font:600 15px var(--body);border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:3px 14px;cursor:pointer;min-height:34px}
+.cchip[aria-pressed="true"]{background:color-mix(in srgb,var(--coral) 14%,#fff);border-color:var(--coral);color:#c2321f}
+.rcount{margin-left:auto;font-size:14px;color:var(--muted)}
+.studs{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:6px;margin-top:12px}
+.stu{font:16px var(--body);border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:6px 8px;cursor:pointer;text-align:left;min-height:40px}
+.stu[aria-pressed="false"]{background:#f3eee9;color:#b3a59c;text-decoration:line-through;border-style:dashed}
+.stu.hit{border-color:var(--coral);background:color-mix(in srgb,var(--coral) 12%,#fff)}
+.redit{margin-top:10px}.redit[hidden]{display:none}
+.redit .row{justify-content:flex-start;margin-top:8px}
+.hint{font-size:14px;color:var(--muted);margin:8px 0 0}
+.fs.names{font:min(9vw,15vh)/1.25 var(--disp);text-align:center;padding:4vh 4vw;display:grid;place-items:center;overflow:auto}
+.fs .gg{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,26vw),1fr));gap:2vh 2vw;width:100%;font:min(3.4vw,4.6vh)/1.35 var(--disp)}
+.fs .gg div{background:#fff;border-radius:2vh;padding:2vh 2vw;text-align:left}.fs .gg b{display:block;color:var(--coral)}
 </style>
 <link rel="manifest" href="../manifest.webmanifest">
 <link rel="icon" type="image/png" href="../icons/icon-192.png">
 <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png">
 <script src="../assets/lessonbar.js" defer></script>
+<script src="../assets/marble.js"></script>
 </head>
 <body>
 <header class="topbar"><div class="in"><a class="brand" href="../index.html"><i aria-hidden="true">🌱</i><span>도덕 수업실</span></a></div></header>
 <div class="wrap">
-  <section class="page-h"><h1>⏱ 수업 진행 도구</h1><p>타이머 · 발표자 뽑기 · 모둠 편성. 명단은 이 브라우저에만 저장돼요.</p></section>
+  <section class="page-h"><h1>⏱ 수업 진행 도구</h1><p>반을 고르면 그 반 명단으로 발표자 뽑기 · 모둠 편성을 해요. 오늘 없는 학생은 이름을 눌러 빼요.</p></section>
   <div class="tools">
+    <section class="panel roster-p" aria-label="우리 반 명단">
+      <div class="rhead"><h2>👩‍🎓 우리 반 명단</h2><div class="cchips" id="cchips"></div><span class="rcount" id="rcount"></span><button class="btn" id="rEditBtn" type="button">명단 넣기</button></div>
+      <div class="studs" id="studs"></div>
+      <p class="hint" id="rhint"></p>
+      <div class="redit" id="redit" hidden>
+        <textarea id="roster" placeholder="한 줄에 한 명씩 (예: 1 김민준). 엑셀·나이스에서 번호와 이름 두 칸을 복사해 그대로 붙여 넣어도 돼요."></textarea>
+        <div class="row"><button class="btn primary" id="rSave" type="button">명단 저장</button><button class="btn" id="rCancel" type="button">닫기</button><span class="note" id="rInfo" style="margin:0"></span></div>
+      </div>
+    </section>
     <section class="panel" aria-label="타이머">
       <h2>⏱ 활동 타이머</h2>
       <div class="big" id="clock">05:00</div>
@@ -52,12 +79,12 @@ textarea{width:100%;min-height:120px;font:16px var(--body);border:2px solid var(
       <p class="used" id="used"></p>
       <div class="row"><label class="field">번호 1 ~ <input type="number" id="maxN" min="2" max="60" value="28"></label><label class="field"><input type="checkbox" id="noRep" checked> 뽑힌 사람 빼기</label></div>
       <div class="row" style="margin-top:8px"><button class="btn primary" id="pGo">뽑기</button><button class="btn" id="pReset">처음부터</button></div>
-      <p class="note">아래 ‘모둠 편성’에 명단을 넣으면 번호 대신 이름으로 뽑아요.</p>
+      <div class="row" style="margin-top:8px"><button class="btn primary" id="pRace" type="button">🎱 구슬 레이스로 뽑기</button><button class="btn" id="pFull" type="button">크게 보기</button></div>
+      <p class="note" id="pNote">반 명단이 있으면 번호 대신 이름으로 뽑아요(결석 빼고).</p>
     </section>
     <section class="panel" aria-label="모둠 편성" style="grid-column:1/-1">
       <h2>👥 모둠 편성</h2>
-      <textarea id="roster" placeholder="한 줄에 한 명씩, 또는 쉼표로 나눠 이름을 넣으세요"></textarea>
-      <div class="row" style="justify-content:flex-start;margin-top:8px"><label class="field">모둠 수 <input type="number" id="nG" min="2" max="12" value="6"></label><button class="btn primary" id="gGo">무작위 편성</button><span class="note" id="gInfo" style="margin:0"></span></div>
+      <div class="row" style="justify-content:flex-start;margin-top:8px"><label class="field">모둠 수 <input type="number" id="nG" min="2" max="12" value="6"></label><button class="btn primary" id="gGo">무작위 편성</button><button class="btn" id="gFull" type="button">크게 보기</button><span class="note" id="gInfo" style="margin:0"></span></div>
       <div class="groups" id="groups"></div>
     </section>
   </div>
@@ -76,16 +103,68 @@ textarea{width:100%;min-height:120px;font:16px var(--body);border:2px solid var(
   $('tReset').onclick = () => { run = false; left = total; show(); };
   $('tFull').onclick = () => { full = document.createElement('div'); full.className = 'fs'; full.title = '누르면 닫혀요'; full.onclick = () => { full.remove(); full = null; }; document.body.appendChild(full); show(); };
   let lastSec = null; const tick = now => { if (run) { left -= (now - last) / 1000; const s = Math.ceil(left); if (s !== lastSec && s <= 5 && s > 0) beep(660, .15); lastSec = s; if (left <= 0) { left = 0; run = false; beep(880, .4); beep(880, .4, .5); beep(1175, .8, 1); } show(); } last = now; requestAnimationFrame(tick); }; requestAnimationFrame(tick); show();
-  /* 명단 */
-  const roster = () => $('roster').value.split(/[\n,]/).map(s => s.trim()).filter(Boolean);
-  $('roster').value = store.get('class-roster') || ''; $('roster').oninput = () => { store.set('class-roster', $('roster').value); pool = null; };
+  /* 명단: 첫 화면 ‘우리 반’의 반마다 저장(Cloudflare에서는 서버, 교사·칠판만 읽음 / 서버가 없으면 이 브라우저). 결석은 오늘 이 기기에서만 */
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'})[c]);
+  const LOCAL = !window.ROLE, today = new Date().toISOString().slice(0, 10);
+  let PG = {classes: [], rec: {}}, cur = '', away = {};
+  try { const v = store.get('moralClass') || ''; cur = v.charAt(0) === '[' ? (JSON.parse(v)[0] || '') : v; cur = store.get('toolClass') || cur; } catch (e) {}
+  try { const a = JSON.parse(store.get('toolAway') || '{}'); if (a.d === today) away = a.m || {}; } catch (e) {}
+  const cls = () => PG.classes.find(c => c.id === cur);
+  const names = () => { const c = cls(); return c && c.roster ? c.roster : []; };
+  const present = () => names().filter(n => !(away[cur] || []).includes(n));
+  const parse = t => t.split(/\r?\n/).length > 1 || !t.includes(',') ? t.split(/\r?\n/).map(l => l.split('\t').map(x => x.trim()).filter(Boolean).join(' ')).filter(Boolean) : t.split(',').map(x => x.trim()).filter(Boolean);
+  function load() {
+    if (LOCAL) { try { const j = JSON.parse(store.get('moralProgress') || 'null'); if (j && j.classes) PG = j; } catch (e) {} return Promise.resolve(); }
+    return fetch('/teacher/progress').then(r => r.ok ? r.json() : null).then(j => { if (j && j.classes) PG = j; }).catch(() => {});
+  }
+  function save() {
+    if (LOCAL) { store.set('moralProgress', JSON.stringify(PG)); return Promise.resolve(); }
+    return fetch('/teacher/progress', {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({classes: PG.classes})})
+      .then(r => r.json().then(j => { if (!r.ok) throw new Error(j.error || r.status); PG = j; }));
+  }
+  function paint() {
+    const list = PG.classes.slice().sort((a, b) => a.name.localeCompare(b.name, 'ko', {numeric: true})), c = cls(), n = names(), off = away[cur] || [];
+    $('cchips').innerHTML = list.map(x => `<button type="button" class="cchip" data-id="${esc(x.id)}" aria-pressed="${x.id === cur}">${esc(x.name)}</button>`).join('');
+    $('studs').innerHTML = n.map(x => `<button type="button" class="stu" data-n="${esc(x)}" aria-pressed="${!off.includes(x)}" title="누르면 오늘 결석/출석">${esc(x)}</button>`).join('');
+    $('rcount').textContent = n.length ? `오늘 ${present().length} / ${n.length}명` : '';
+    $('rEditBtn').hidden = !c; $('rEditBtn').textContent = n.length ? '명단 고치기' : '명단 넣기';
+    $('rhint').textContent = !PG.classes.length ? '첫 화면 ‘우리 반’에서 ＋로 반을 만들면 여기서 반마다 명단을 넣을 수 있어요. 명단이 없으면 번호로 뽑아요.' : !c ? '반을 고르세요.' : !n.length ? '[명단 넣기]로 이 반 학생 이름을 넣어요. 엑셀에서 번호·이름 두 칸을 복사해 붙여 넣어도 돼요.' : '이름을 누르면 오늘 결석으로 빠져요(다시 누르면 돌아옴). 뽑기와 모둠 편성은 출석한 학생만.';
+    $('pNote').textContent = n.length ? `${c.name} 출석 ${present().length}명 중에서 뽑아요.` : '반 명단이 있으면 번호 대신 이름으로 뽑아요(결석 빼고).';
+    $('maxN').closest('label').hidden = !!n.length;
+  }
+  $('cchips').onclick = e => { const b = e.target.closest('[data-id]'); if (!b) return; cur = cur === b.dataset.id ? '' : b.dataset.id; store.set('toolClass', cur); pool = null; used = []; $('used').textContent = ''; $('pick').textContent = '?'; $('redit').hidden = true; paint(); };
+  $('studs').onclick = e => { const b = e.target.closest('[data-n]'); if (!b) return; const a = away[cur] = away[cur] || [], i = a.indexOf(b.dataset.n); i > -1 ? a.splice(i, 1) : a.push(b.dataset.n); store.set('toolAway', JSON.stringify({d: today, m: away})); pool = null; paint(); };
+  $('rEditBtn').onclick = () => { $('redit').hidden = !$('redit').hidden; $('roster').value = names().join('\n'); $('rInfo').textContent = ''; if (!$('redit').hidden) $('roster').focus(); };
+  $('rCancel').onclick = () => { $('redit').hidden = true; };
+  $('roster').oninput = () => { $('rInfo').textContent = parse($('roster').value).length + '명'; };
+  $('rSave').onclick = () => {
+    const c = cls(); if (!c) return; c.roster = parse($('roster').value).slice(0, 60); $('rSave').disabled = true;
+    save().then(() => { $('redit').hidden = true; pool = null; paint(); }).catch(e => alert('명단을 저장하지 못했어요: ' + e.message)).then(() => { $('rSave').disabled = false; });
+  };
+  load().then(() => { if (!cls()) cur = ''; paint(); });
   /* 뽑기 */
-  let pool = null, used = []; const all = () => { const r = roster(); return r.length ? r : Array.from({length: Math.max(2, +$('maxN').value || 28)}, (_, i) => String(i + 1) + '번'); };
+  let pool = null, used = []; const all = () => { const r = present(); return names().length ? r : Array.from({length: Math.max(2, +$('maxN').value || 28)}, (_, i) => String(i + 1) + '번'); };
   $('maxN').oninput = () => { pool = null; used = []; $('used').textContent = ''; };
-  $('pReset').onclick = () => { pool = null; used = []; $('used').textContent = ''; $('pick').textContent = '?'; };
-  $('pGo').onclick = () => { if (!pool || !$('noRep').checked) pool = all().filter(x => !$('noRep').checked || !used.includes(x)); if (!pool.length) { pool = all(); used = []; } const names = all(); let k = 0; const spin = setInterval(() => { $('pick').textContent = names[Math.floor(Math.random() * names.length)]; beep(400 + Math.random() * 300, .04); if (++k > 14) { clearInterval(spin); const i = Math.floor(Math.random() * pool.length), who = pool.splice(i, 1)[0]; if ($('noRep').checked) used.push(who); $('pick').textContent = who; beep(988, .3); $('used').textContent = used.length ? `뽑힌 순서: ${used.join(' → ')}` : ''; } }, 60); };
+  $('pReset').onclick = () => { pool = null; used = []; $('used').textContent = ''; $('pick').textContent = '?'; document.querySelectorAll('.stu.hit').forEach(x => x.classList.remove('hit')); };
+  let pFull = null;
+  $('pGo').onclick = () => { if (!pool || !$('noRep').checked) pool = all().filter(x => !$('noRep').checked || !used.includes(x)); if (!pool.length) { pool = all(); used = []; } const nm = all(); if (!nm.length) { $('pick').textContent = '?'; return; } let k = 0; const spin = setInterval(() => { const t = nm[Math.floor(Math.random() * nm.length)]; $('pick').textContent = t; if (pFull) pFull.textContent = t; beep(400 + Math.random() * 300, .04); if (++k > 14) { clearInterval(spin); const i = Math.floor(Math.random() * pool.length), who = pool.splice(i, 1)[0]; if ($('noRep').checked) used.push(who); $('pick').textContent = who; if (pFull) pFull.textContent = who; beep(988, .3); $('used').textContent = used.length ? `뽑힌 순서: ${used.join(' → ')}` : ''; document.querySelectorAll('.stu').forEach(x => x.classList.toggle('hit', used.includes(x.dataset.n))); } }, 60); };
+  // 🎱 구슬 레이스: 남은 사람(뽑힌 사람 빼기 켜면) 구슬로 경주 → 1등이 뽑힘. [다시 굴리기]하면 앞 결과는 취소
+  $('pRace').onclick = () => {
+    if (!pool || !$('noRep').checked) pool = all().filter(x => !$('noRep').checked || !used.includes(x)); if (!pool.length) { pool = all(); used = []; }
+    if (pool.length < 2) { if (pool.length) $('pGo').click(); return; }
+    const racers = pool.slice(); let prev = null;
+    MarbleRace(racers, who => {
+      if (prev !== null) { const k = used.lastIndexOf(prev); if (k > -1) used.splice(k, 1); if (!pool.includes(prev)) pool.push(prev); }
+      prev = who; const i = pool.indexOf(who); if ($('noRep').checked && i > -1) { pool.splice(i, 1); used.push(who); }
+      $('pick').textContent = who; $('used').textContent = used.length ? `뽑힌 순서: ${used.join(' → ')}` : '';
+      document.querySelectorAll('.stu').forEach(x => x.classList.toggle('hit', used.includes(x.dataset.n)));
+    });
+  };
+  $('pFull').onclick = () => { pFull = document.createElement('div'); pFull.className = 'fs names'; pFull.title = '누르면 다음 사람 뽑기 · 바깥 Esc로 닫기'; pFull.textContent = $('pick').textContent; pFull.onclick = () => $('pGo').click(); document.body.appendChild(pFull); };
+  addEventListener('keydown', e => { if (e.key === 'Escape') { if (pFull) { pFull.remove(); pFull = null; } document.querySelectorAll('.fs').forEach(x => x.remove()); full = null; } });
   /* 모둠 */
-  $('gGo').onclick = () => { const r = roster(); if (r.length < 2) { $('gInfo').textContent = '명단을 2명 이상 넣어 주세요.'; return; } const n = Math.min(r.length, Math.max(2, +$('nG').value || 4)), a = r.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } const G = Array.from({length: n}, () => []); a.forEach((x, i) => G[i % n].push(x)); const esc = t => t.replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'})[c]); $('groups').innerHTML = G.map((g, i) => `<div><b>${i + 1}모둠</b>${g.map(esc).join('<br>')}</div>`).join(''); $('gInfo').textContent = `${r.length}명 → ${n}모둠`; };
+  $('gGo').onclick = () => { const r = present(); if (r.length < 2) { $('gInfo').textContent = names().length ? '출석한 학생이 2명 이상이어야 해요.' : '먼저 위에서 반을 고르고 명단을 넣어 주세요.'; return; } const n = Math.min(r.length, Math.max(2, +$('nG').value || 4)), a = r.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } const G = Array.from({length: n}, () => []); a.forEach((x, i) => G[i % n].push(x)); $('groups').innerHTML = G.map((g, i) => `<div><b>${i + 1}모둠</b>${g.map(esc).join('<br>')}</div>`).join(''); $('gInfo').textContent = `${cls() ? cls().name + ' ' : ''}${r.length}명 → ${n}모둠`; };
+  $('gFull').onclick = () => { if (!$('groups').innerHTML) $('gGo').click(); if (!$('groups').innerHTML) return; const f = document.createElement('div'); f.className = 'fs names'; f.title = '누르면 닫혀요'; f.innerHTML = '<div class="gg">' + $('groups').innerHTML + '</div>'; f.onclick = () => f.remove(); document.body.appendChild(f); };
 })();
 </script>
 </body>
