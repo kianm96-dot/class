@@ -20,6 +20,17 @@
     function bad() { f.classList.add('err'); }
     if (im.complete && !im.naturalWidth && im.src) bad(); else im.addEventListener('error', bad);
   });
-  var h = location.hash.slice(1), el = h && (document.getElementById('l' + h + 'c') || document.getElementById('l' + h));   // 개념 채우기 면이 있으면 그 면부터
-  if (el) el.scrollIntoView();
+  // 주소 끝 #3 → 3차시 면(개념 채우기 l3c · 활동 l3 · 추가 활동지 l3p)만 보이고 인쇄됨. 주소 끝이 없으면 단원 전체(‘단원 학습지 모아 인쇄’)
+  var bar = document.querySelector('.bar'), all = document.querySelector('.bar .all');
+  function only() {
+    var h = location.hash.slice(1), re = new RegExp('^l' + h + '[cp]?$'), sheets = document.querySelectorAll('.sheet[id]');
+    var hit = /^\d+$/.test(h) && [].some.call(sheets, function (x) { return re.test(x.id); });
+    sheets.forEach(function (x) { x.hidden = hit && !re.test(x.id); });
+    if (hit && !all && bar) { all = document.createElement('a'); all.className = 'all'; all.href = location.pathname; all.textContent = '단원 전체 보기'; bar.querySelector('.tools').insertBefore(all, bar.querySelector('.tools').firstChild); }
+    if (all) all.hidden = !hit;
+    var el = hit && (document.getElementById('l' + h + 'c') || document.getElementById('l' + h));   // 개념 채우기 면이 있으면 그 면부터
+    if (el) el.scrollIntoView(); else if (hit === false && h) { var x = document.getElementById(h); if (x) x.scrollIntoView(); }
+  }
+  only();
+  addEventListener('hashchange', only);
 })();
