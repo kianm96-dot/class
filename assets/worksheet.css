@@ -8,6 +8,13 @@ html,body{margin:0;background:var(--desk);color:var(--ink);font:14px/1.6 var(--s
 .bar .tools{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .bar .all{opacity:1;border-bottom:1.5px solid rgba(255,255,255,.7);margin-right:6px}
 .sheet[hidden]{display:none!important}
+.bar button.em{background:#fff;color:#e8604f;border-color:#fff;font-weight:700}
+body.editing .sheet{outline:3px dashed #ff7a6b;outline-offset:4px;cursor:text}
+body.editing .sheet:focus{outline-style:solid}
+body.editing .bar::after{content:'글자를 눌러 고친 뒤 [💾 저장]';flex-basis:100%;font-size:12px;opacity:.9}
+.sheet.edited{position:relative}
+.sheet.edited::before{content:'✏️ 고친 학습지';position:absolute;top:6px;right:8px;font-size:11px;color:#e8604f;background:#fff3f1;border-radius:999px;padding:0 8px}
+@media print{.sheet.edited::before{display:none}body.editing .sheet{outline:0}}
 .bar button{font:500 13px var(--sans);border:2px solid rgba(255,255,255,.7);background:transparent;color:#fff;border-radius:999px;padding:5px 14px;cursor:pointer}
 .bar button[aria-pressed="true"]{background:#fff;color:#e8604f;border-color:#fff}
 .sheets{display:flex;flex-direction:column;align-items:center;gap:24px;padding:24px 12px 60px}
