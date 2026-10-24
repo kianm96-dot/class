@@ -52,7 +52,7 @@
         (made(key, 'ws', n) ? '<a href="' + base + 'worksheet.html#' + n + '">학습지</a>' : '') +
         (made(key, 'prob', n) ? '<a href="' + base + 'prob' + n + '.html">문제</a>' : '') +
         (hasPpt && window.IS_TEACHER !== false ? '<a class="ppt" href="' + base + 'ppt' + n + '.pptx" download="' + esc((b.book + ' ' + ROMAN[u.no - 1] + '단원 ' + n + '차시 ' + l[0]).replace(/[\\/:*?"<>|]/g, '')) + '.pptx">📥 PPT</a>' : '') +
-        (R === 'teacher' ? '<button type="button" class="up" data-f="' + pf + '" title="' + (mine ? esc('올린 파일: ' + mine.name) : '이 차시에 쓸 수업 PPT(.pptx) 올리기') + '">' + (mine ? '⬆ 내 PPT ✓' : '⬆ PPT 올리기') + '</button>' +
+        (R === 'teacher' || R === 'board' ? '<button type="button" class="up" data-f="' + pf + '" title="' + (mine ? esc('올린 파일: ' + mine.name) : '이 차시에 쓸 수업 PPT(.pptx) 올리기') + '">' + (mine ? '⬆ 내 PPT ✓' : '⬆ PPT 올리기') + '</button>' +
           (mine ? '<button type="button" class="up undo" data-f="' + pf + '" data-undo="1"' + (made(key, 'ppt', n) ? ' title="올린 파일을 지우고 원래 PPT로">되돌리기' : ' title="올린 파일 지우기">지우기') + '</button>' : '') : '') +
         (ph ? '<a class="ph" href="philo/' + ph.id + '.html" style="--pc:' + ph.color + '">' + ph.emoji + ' ' + esc(ph.name) + ' 톡</a>' : '');
       var k = key + '/' + n; HREF[k] = sl; (ORDER[b.id] = ORDER[b.id] || []).push({k: k, n: n, t: l[0], u: ROMAN[u.no - 1]});
