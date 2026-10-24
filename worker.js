@@ -313,11 +313,11 @@ async function slidesApi(request, env, url, role) {
   return json({open: await s.setOpen(m[1], !!body.open)});
 }
 
-/* ───────── 선생님이 수업 PPT 올리기 (교사 기기만)
+/* ───────── 선생님이 수업 PPT 올리기 (교사 기기 또는 QR로 연 칠판 — PPT 파일이 교실 컴퓨터에 있는 경우가 많아서)
    POST /teacher/ppt?f=/m1/self/ppt1.pptx  본문 = 파일 그대로, 머리글 x-name = 원래 파일 이름(encodeURIComponent)
    DELETE 같은 주소 → 올린 파일 지우고 원래 PPT로 ───────── */
 async function pptApi(request, env, url, role) {
-  if (role !== 'teacher') return json({error: '선생님 기기에서 교사 로그인을 해야 올릴 수 있어요.'}, 401);
+  if (role === 'student') return json({error: '교사 로그인(또는 QR로 연 칠판)에서만 올릴 수 있어요.'}, 401);
   if (!sameOrigin(request, url)) return json({error: 'origin'}, 403);
   const s = store(env); if (!s) return json({error: '저장소가 아직 준비되지 않았어요.'}, 503);
   const f = url.searchParams.get('f') || '';
