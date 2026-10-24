@@ -32,6 +32,11 @@ const PAIR_TTL = 2 * 60 * 1000;             // QR: 2분 동안만 유효, 한 �
 const TEACHER_ONLY = [/^\/tools\/class(\.html)?$/];   // 수업 진행 도구
 const SLIDE = /^(\/m[12]\/[a-z]+\/slides\d+)(?:\.html)?$/;
 const PPT = /^\/m[12]\/[a-z]+\/ppt\d+\.pptx$/;    // 교과서 수업 PPT
+const WSF = /^\/m[12]\/[a-z]+\/wsfile\d+$/;      // 선생님이 올린 차시 학습지 파일(한글·PDF·워드), 교사·칠판만 받음
+const WS_EXT = {hwp: 'application/x-hwp', hwpx: 'application/hwp+zip', pdf: 'application/pdf', doc: 'application/msword',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png'};
+const WSPAGE = /^(\/m[12]\/[a-z]+\/worksheet)(?:\.html)?$/;   // 웹 학습지: 선생님이 화면에서 고친 면은 서버가 바꿔 끼워 보냄
 const PPT_MAX = 25 * 1024 * 1024, PPT_CHUNK = 1024 * 1024;   // 올리는 PPT: 25MB까지, 저장소에는 1MB씩 나눠 저장
 const PPT_TTL = 4 * 60 * 60 * 1000;          // 화면에서 재생할 때 쓰는 임시 주소: 4시간     // 수업 슬라이드: 교사 전용, 단 선생님이 '학생 공개'로 연 것은 학생도 볼 수 있음
 
@@ -40,7 +45,8 @@ const PPT_TTL = 4 * 60 * 60 * 1000;          // 화면에서 재생할 때 쓰�
    - pair:<코드>: 칠판 QR (누가 승인했는지, 칠판 확인용 비밀값의 지문)
    - sess:<지문>: 열린 칠판 세션 (시작 시각, 마지막 조작 시각)
    - pptm:<파일 주소>, pptc:<파일 주소>:<번호>: 선생님이 올린 수업 PPT (이름·크기·시각, 1MB 조각들)
-   - progress: 반 목록과 반별 진도 */
+   - progress: 반 목록과 반별 진도
+   - wsedit:<학습지 주소>: 선생님이 화면에서 고친 학습지 면 {면 id: {t: 교사용 HTML, s: 학생용 HTML(예시 답 뺌)}} */
 export class Settings extends DurableObject {
   async getOpen() { return (await this.ctx.storage.get('openSlides')) || []; }
   async setOpen(key, open) {
@@ -114,6 +120,14 @@ export class Settings extends DurableObject {
     return this.listPpts();
   }
 
+  async getWsEdit(path) { return (await this.ctx.storage.get('wsedit:' + path)) || {}; }
+  async setWsEdit(path, sheets, drop) {
+    const e = await this.getWsEdit(path);
+    Object.assign(e, sheets || {}); (drop || []).forEach(id => delete e[id]);
+    Object.keys(e).length ? await this.ctx.storage.put('wsedit:' + path, e) : await this.ctx.storage.delete('wsedit:' + path);
+    return Object.keys(e);
+  }
+
   async getProgress() { return (await this.ctx.storage.get('progress')) || {classes: [], rec: {}}; }
   async setProgress(op) {
     const p = await this.getProgress();
@@ -131,6 +145,7 @@ async function pptFile(env, origin, f) {
   if (up) return new Response(new Blob(up), {headers: {'Content-Type': 'application/vnd.openxmlformats-officedocument.presentationml.presentation'}});
   return env.ASSETS.fetch(new Request(origin + f));
 }
+async function wsEdits(env, path) { try { const s = store(env); return s ? await s.getWsEdit(path) : {}; } catch (e) { return {}; } }
 
 export default {
   fetch(request, env) { return handle(request, env); }
@@ -170,7 +185,16 @@ async function handle(request, env) {
   if (path === '/teacher/slides') return slidesApi(request, env, url, role);
   if (path === '/teacher/ppt') return pptApi(request, env, url, role);
   if (path === '/teacher/progress') return progressApi(request, env, url, role);
+  if (path === '/teacher/wsedit') return wsEditApi(request, env, url, role);
   const can = role !== 'student';
+  if (WSF.test(path)) {   // 선생님이 올린 학습지 파일 받기: 교사·칠판만
+    if (!can) return redirect('/teacher?next=' + encodeURIComponent(path));
+    const s = store(env), meta = s && (await s.listPpts())[path], up = meta && await s.getPpt(path);
+    if (!up) return new Response('올린 학습지가 없어요.', {status: 404});
+    const ext = (meta.name.match(/\.([a-z0-9]+)$/i) || [, ''])[1].toLowerCase();
+    return new Response(new Blob(up), {headers: {'Content-Type': WS_EXT[ext] || 'application/octet-stream', 'Cache-Control': 'private, no-store', 'x-moral-role': role,
+      'Content-Disposition': `attachment; filename="${ext ? 'worksheet.' + ext : 'worksheet'}"; filename*=UTF-8''${encodeURIComponent(meta.name)}`}});
+  }
   if (path === '/ppt/view') {   // ▶ 수업 PPT: 교사·칠판만, PowerPoint 웹 뷰어로 화면에서 재생
     const f = url.searchParams.get('f') || '';
     if (!can) return redirect('/teacher?next=' + encodeURIComponent(path + url.search));
@@ -209,6 +233,11 @@ async function handle(request, env) {
     e.prepend(`<script>window.IS_TEACHER=${can};window.ROLE=${JSON.stringify(role)};${extra}</script>`, {html: true});
   }});
   if (board) rw = rw.on('body', {element(e) { e.append(boardBar(board.ends), {html: true}); }});
+  const wp = path.match(WSPAGE), ed = wp ? await wsEdits(env, wp[1]) : {};
+  if (Object.keys(ed).length) {   // 고친 학습지 면: 교사·칠판은 예시 답이 있는 것, 학생은 예시 답을 뺀 것으로 바꿔 끼움
+    rw = rw.on('head', {element(e) { e.append(`<script>window.WS_EDITED=${JSON.stringify(Object.keys(ed))};</script>`, {html: true}); }})
+      .on('article.sheet[id]', {element(e) { const x = ed[e.getAttribute('id')]; if (x) e.setInnerContent(can ? x.t : x.s, {html: true}); }});
+  }
   if (!can) {
     rw = rw
       .on('.ans', {element(e) { e.remove(); }})                                 // 예시 답·정답·해설 (빈칸 밑줄은 .blank 가 너비를 지킴)
@@ -320,17 +349,36 @@ async function pptApi(request, env, url, role) {
   if (role !== 'teacher') return json({error: '선생님 기기에서 교사 로그인을 해야 올릴 수 있어요.'}, 401);
   if (!sameOrigin(request, url)) return json({error: 'origin'}, 403);
   const s = store(env); if (!s) return json({error: '저장소가 아직 준비되지 않았어요.'}, 503);
-  const f = url.searchParams.get('f') || '';
-  if (!PPT.test(f)) return json({error: '차시 PPT 주소가 아니에요.'}, 400);
+  const f = url.searchParams.get('f') || '', ws = WSF.test(f);
+  if (!PPT.test(f) && !ws) return json({error: '차시 파일 주소가 아니에요.'}, 400);
   if (request.method === 'DELETE') return json({mine: await s.delPpt(f)});
   if (request.method !== 'POST') return json({error: 'method'}, 405);
   const buf = new Uint8Array(await request.arrayBuffer());
   if (!buf.length) return json({error: '빈 파일이에요.'}, 400);
   if (buf.length > PPT_MAX) return json({error: '25MB보다 큰 파일은 올릴 수 없어요. 그림을 압축해서 다시 올려 주세요.'}, 413);
-  if (buf[0] !== 0x50 || buf[1] !== 0x4b) return json({error: 'PowerPoint(.pptx) 파일이 아니에요. .ppt는 PowerPoint에서 .pptx로 저장한 뒤 올려 주세요.'}, 400);
-  let name = 'PPT.pptx'; try { name = decodeURIComponent(request.headers.get('x-name') || '') || name; } catch (e) {}
+  let name = ws ? 'worksheet' : 'PPT.pptx'; try { name = decodeURIComponent(request.headers.get('x-name') || '') || name; } catch (e) {}
+  if (ws && !WS_EXT[(name.match(/\.([a-z0-9]+)$/i) || [, ''])[1].toLowerCase()]) return json({error: '한글(hwp·hwpx) · PDF · 워드(docx) · 그림 파일만 올릴 수 있어요.'}, 400);
+  if (!ws && (buf[0] !== 0x50 || buf[1] !== 0x4b)) return json({error: 'PowerPoint(.pptx) 파일이 아니에요. .ppt는 PowerPoint에서 .pptx로 저장한 뒤 올려 주세요.'}, 400);
   const chunks = []; for (let i = 0; i < buf.length; i += PPT_CHUNK) chunks.push(buf.slice(i, i + PPT_CHUNK));
   return json({mine: await s.putPpt(f, {name: name.slice(0, 120), size: buf.length, t: Date.now()}, chunks)});
+}
+
+/* ───────── 웹 학습지 화면에서 고치기 (교사 기기만)
+   POST {path: '/m1/self/worksheet', sheets: {l3: {t, s}}} 고친 면 저장 · POST {path, drop: ['l3']} 원래대로 ───────── */
+async function wsEditApi(request, env, url, role) {
+  if (role !== 'teacher') return json({error: '선생님 기기에서 교사 로그인을 해야 고칠 수 있어요.'}, 401);
+  if (request.method !== 'POST') return json({error: 'method'}, 405);
+  if (!sameOrigin(request, url)) return json({error: 'origin'}, 403);
+  const s = store(env); if (!s) return json({error: '저장소가 아직 준비되지 않았어요.'}, 503);
+  const text = await request.text();
+  if (text.length > 1500000) return json({error: '너무 커요.'}, 413);
+  let b; try { b = JSON.parse(text); } catch (e) { return json({error: 'body'}, 400); }
+  const m = String(b.path || '').match(WSPAGE); if (!m) return json({error: '학습지 주소가 아니에요.'}, 400);
+  const clean = h => String(h || '').replace(/<script[\s\S]*?<\/script>/gi, '').replace(/\son\w+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, '').replace(/\scontenteditable(="[^"]*")?/gi, '');
+  const sheets = {};
+  for (const [id, v] of Object.entries(b.sheets || {})) if (/^l\d+[a-z]?$/.test(id) && v) sheets[id] = {t: clean(v.t), s: clean(v.s), at: Date.now()};
+  const drop = (Array.isArray(b.drop) ? b.drop : []).filter(id => /^l\d+[a-z]?$/.test(id));
+  return json({edited: await s.setWsEdit(m[1], sheets, drop)});
 }
 
 /* ───────── 반별 진도 (교사·칠판). GET → {classes, rec}

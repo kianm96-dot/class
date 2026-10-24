@@ -11,7 +11,9 @@
   var q = '', got = [];
   // 교사 잠금 서버(Cloudflare)가 넣어 주는 값. GitHub Pages처럼 서버가 없으면 undefined → 모두 보임
   var T = window.IS_TEACHER, R = window.ROLE, OPEN = window.OPEN_SLIDES || [], MY = window.MY_PPT || {};
-  var HREF = {}, ORDER = {};   // 차시 열기 주소, 책마다 차시 순서 (반별 진도에 씀)
+  var HREF = {}, ORDER = {};   // 차시 열기 주소, 책마다 차시 순서 (반별 진도·한꺼번에 올리기에 씀)
+  C.forEach(function (b) { ORDER[b.id] = []; b.units.forEach(function (u) { u.lessons.forEach(function (l, i) { ORDER[b.id].push({ k: b.id + '/' + u.dir + '/' + (i + 1), n: i + 1, t: l[0], u: ROMAN[u.no - 1], no: u.no, dir: u.dir, book: b.id }); }); }); });
+  var WS_EXT = /\.(hwp|hwpx|pdf|docx?|xlsx|jpe?g|png)$/i;
   var canSee = function (href) { return T !== false || OPEN.indexOf('/' + href.replace(/\.html$/, '')) > -1; };
   if (R) $('who').innerHTML = R === 'teacher' ? '<a href="/teacher">교사 모드</a>' : R === 'board' ? '' : '<a href="/board?next=/">칠판 수업 시작</a><a href="/teacher?next=/">교사 로그인</a>';
   try { got = JSON.parse(localStorage.getItem('philoBadges') || '[]'); } catch (e) {}
@@ -40,7 +42,7 @@
     var rows = u.lessons.map(function (l, i) {
       var n = i + 1, sl = made(key, 'slides', n) && base + 'slides' + n + '.html', ph = philoOf(key, n);
       if (sl && !canSee(sl)) sl = '';
-      var web = '', pf = '/' + base + 'ppt' + n + '.pptx', mine = MY[pf], hasPpt = made(key, 'ppt', n) || !!mine;
+      var web = '', pf = '/' + base + 'ppt' + n + '.pptx', mine = MY[pf], hasPpt = made(key, 'ppt', n) || !!mine, wf = '/' + base + 'wsfile' + n, myWs = MY[wf];
       if ((R === 'teacher' || R === 'board') && hasPpt) { web = sl; sl = '/ppt/view?f=' + encodeURIComponent('/' + base + 'ppt' + n + '.pptx'); }   // ▶ = 교과서 수업 PPT 재생
       var pub = R === 'teacher' && made(key, 'slides', n) ? '<button type="button" class="pub" data-s="/' + base + 'slides' + n + '" aria-pressed="' + (OPEN.indexOf('/' + base + 'slides' + n) > -1) + '">' + (OPEN.indexOf('/' + base + 'slides' + n) > -1 ? '학생 공개 중' : '비공개') + '</button>' : '';
       var head = '';
@@ -54,8 +56,11 @@
         (hasPpt && window.IS_TEACHER !== false ? '<a class="ppt" href="' + base + 'ppt' + n + '.pptx" download="' + esc((b.book + ' ' + ROMAN[u.no - 1] + '단원 ' + n + '차시 ' + l[0]).replace(/[\\/:*?"<>|]/g, '')) + '.pptx">📥 PPT</a>' : '') +
         (R === 'teacher' ? '<button type="button" class="up" data-f="' + pf + '" title="' + (mine ? esc('올린 파일: ' + mine.name) : '이 차시에 쓸 수업 PPT(.pptx) 올리기') + '">' + (mine ? '⬆ 내 PPT ✓' : '⬆ PPT 올리기') + '</button>' +
           (mine ? '<button type="button" class="up undo" data-f="' + pf + '" data-undo="1"' + (made(key, 'ppt', n) ? ' title="올린 파일을 지우고 원래 PPT로">되돌리기' : ' title="올린 파일 지우기">지우기') + '</button>' : '') : '') +
+        (myWs && (R === 'teacher' || R === 'board') ? '<a class="ppt" href="' + wf + '" title="' + esc(myWs.name) + '">📄 내 학습지</a>' : '') +
+        (R === 'teacher' ? '<button type="button" class="up" data-f="' + wf + '" title="' + (myWs ? esc('올린 파일: ' + myWs.name + ' · 누르면 바꾸기') : '이 차시 학습지 파일(한글·PDF·워드) 올리기') + '">' + (myWs ? '⬆ 학습지 ✓' : '⬆ 학습지 올리기') + '</button>' +
+          (myWs ? '<button type="button" class="up undo" data-f="' + wf + '" data-undo="1" title="올린 학습지 파일 지우기">지우기</button>' : '') : '') +
         (ph ? '<a class="ph" href="philo/' + ph.id + '.html" style="--pc:' + ph.color + '">' + ph.emoji + ' ' + esc(ph.name) + ' 톡</a>' : '');
-      var k = key + '/' + n; HREF[k] = sl; (ORDER[b.id] = ORDER[b.id] || []).push({k: k, n: n, t: l[0], u: ROMAN[u.no - 1]});
+      var k = key + '/' + n; HREF[k] = sl;
       return head + '<li class="ls" data-k="' + k + '"><span class="ln">' + n + '</span>' +
         '<span class="lw">' + (sl ? '<a class="lt" href="' + sl + '">' + hi(l[0]) + '</a>' : '<span class="lt off">' + hi(l[0]) + (made(key, 'slides', n) ? '' : ' <small>준비 중</small>') + '</span>') +
         '<span class="meta">' + (l[2] ? '교과서 ' + l[2] + '쪽' : '') + (links ? '<span class="lk">' + links + '</span>' : '') + pub + '</span></span>' +
@@ -93,14 +98,15 @@
 
   /* ── 선생님이 수업 PPT 올리기: 차시 줄의 [⬆ PPT 올리기] → 파일 고르기 → 서버에 저장. 올린 뒤 ▶·📥가 그 파일로 ── */
   function upload(b) {
-    var f = b.dataset.f;
+    var f = b.dataset.f, ws = /wsfile\d+$/.test(f);
     if (b.dataset.undo) {
-      if (!confirm('올린 PPT를 지울까요?')) return;
+      if (!confirm(ws ? '올린 학습지 파일을 지울까요?' : '올린 PPT를 지울까요?')) return;
       return send('DELETE', f, null, b);
     }
-    var inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation';
+    var inp = document.createElement('input'); inp.type = 'file'; inp.accept = ws ? '.hwp,.hwpx,.pdf,.doc,.docx,.xlsx,.jpg,.jpeg,.png' : '.pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation';
     inp.onchange = function () {
       var file = inp.files[0]; if (!file) return;
+      if (ws) { if (!WS_EXT.test(file.name)) return alert('한글(hwp·hwpx) · PDF · 워드(docx) · 그림 파일만 올릴 수 있어요.'); if (file.size > 25 * 1024 * 1024) return alert('25MB보다 커요.'); return send('POST', f, file, b); }
       if (!/\.pptx$/i.test(file.name)) return alert('.pptx 파일만 올릴 수 있어요. .ppt는 PowerPoint에서 “다른 이름으로 저장 → .pptx”로 바꿔 주세요.');
       if (file.size > 25 * 1024 * 1024) return alert('25MB보다 커요. PowerPoint의 “그림 압축”으로 줄인 뒤 올려 주세요.');
       if (file.size > 10 * 1024 * 1024 && !confirm('10MB가 넘으면 화면 재생(▶)이 안 될 수 있어요(내려받기는 돼요). 그래도 올릴까요?')) return;
@@ -112,7 +118,89 @@
     var old = b.textContent; b.disabled = true; b.textContent = file ? '올리는 중…' : '지우는 중…';
     fetch('/teacher/ppt?f=' + encodeURIComponent(f), { method: method, body: file, headers: file ? { 'x-name': encodeURIComponent(file.name) } : {} })
       .then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || r.status); MY = j.mine; render(); }); })
-      .catch(function (e) { alert((file ? 'PPT를 올리지 못했어요: ' : '지우지 못했어요: ') + e.message); b.disabled = false; b.textContent = old; });
+      .catch(function (e) { alert((file ? '올리지 못했어요: ' : '지우지 못했어요: ') + e.message); b.disabled = false; b.textContent = old; });
+  }
+
+  /* ── ⬆ 한꺼번에 올리기 (교사): PPT·학습지 파일을 여러 개 고르면 파일 이름을 보고 차시를 찾아 줌 → 표에서 확인·고친 뒤 [올리기].
+     찾는 순서: ① 파일 이름에 차시 제목이 있으면 그 차시 ② ‘Ⅱ단원 3차시’ · ‘2단원 3차시’ · ‘Ⅱ-3’ · ‘2-3’ ③ ‘Ⅱ_1_01_수업 PPT’처럼 단원만 있으면
+     그 단원 파일들의 이름 순서 = 차시 순서(교과서 수업 PPT 파일 이름 방식). 책은 이름의 ①② · ‘도덕2’, 없으면 지금 탭. ── */
+  var RN = { 'Ⅰ': 1, 'Ⅱ': 2, 'Ⅲ': 3, 'Ⅳ': 4, 'I': 1, 'II': 2, 'III': 3, 'IV': 4 };
+  var flat = function (t) { return String(t).normalize('NFC').toLowerCase().replace(/[^0-9a-z가-힣]/g, ''); };
+  function kindOf(name) { return /\.pptx$/i.test(name) && !/학습지|활동지|worksheet/i.test(name) ? 'ppt' : WS_EXT.test(name) || /\.pptx$/i.test(name) ? 'ws' : ''; }
+  function guess(files, defBook) {
+    var rows = files.map(function (f) {
+      var nm = f.name.normalize('NFC'), base = nm.replace(/\.[a-z0-9]+$/i, ''), r = { file: f, kind: kindOf(nm), k: '', how: '' };
+      var bk = /②|도덕\s*2|도덕\s*Ⅱ|2학년/.test(base) ? 'm2' : /①|도덕\s*1|도덕\s*Ⅰ|1학년/.test(base) ? 'm1' : defBook;
+      var fb = flat(base), list = ORDER[bk], hit = list.filter(function (o) { return flat(o.t).length > 3 && fb.indexOf(flat(o.t)) > -1; });
+      if (hit.length === 1) { r.k = hit[0].k; r.how = '제목'; return r; }
+      var clean = base.replace(/도덕\s*[12ⅠⅡ①②]|[①②]|[12]학년/g, ' ');
+      var mu = clean.match(/(Ⅳ|Ⅲ|Ⅱ|Ⅰ|(?:^|[^A-Za-z])(?:IV|III|II|I)(?=[^A-Za-z]|$))/), un = mu ? RN[mu[0].replace(/[^IVⅠⅡⅢⅣ]/g, '')] : 0;
+      var m = clean.match(/(\d)\s*단원/); if (!un && m) un = +m[1];
+      var ln = (clean.match(/(\d+)\s*차시/) || [])[1];
+      if (!ln) { m = clean.match(/(?:^|[^\d])(\d)\s*[-–]\s*(\d{1,2})(?!\d)/); if (m && (!un || un === +m[1])) { un = +m[1]; ln = m[2]; } }
+      if (!ln && un) { m = clean.match(/(?:Ⅳ|Ⅲ|Ⅱ|Ⅰ|IV|III|II|I)\s*[-–]\s*(\d{1,2})(?!\d)/); if (m) ln = m[1]; }
+      r.bk = bk; r.un = un;
+      if (un && ln) { var o = list.filter(function (x) { return x.no === un && x.n === +ln; })[0]; if (o) { r.k = o.k; r.how = '번호'; } }
+      return r;
+    });
+    // 단원만 알고 차시를 모르는 파일: 같은 책·단원·종류끼리 이름 순서대로 1, 2, 3 …차시
+    var groups = {};
+    rows.forEach(function (r) { if (!r.k && r.un && r.kind) (groups[r.bk + r.un + r.kind] = groups[r.bk + r.un + r.kind] || []).push(r); });
+    Object.keys(groups).forEach(function (g) {
+      groups[g].sort(function (a, b) { return a.file.name.localeCompare(b.file.name, 'ko', { numeric: true }); }).forEach(function (r, i) {
+        var o = ORDER[r.bk].filter(function (x) { return x.no === r.un && x.n === i + 1; })[0]; if (o) { r.k = o.k; r.how = '순서'; }
+      });
+    });
+    return rows;
+  }
+  function bulk() {
+    var inp = document.createElement('input'); inp.type = 'file'; inp.multiple = true; inp.accept = '.pptx,.hwp,.hwpx,.pdf,.doc,.docx,.xlsx,.jpg,.jpeg,.png';
+    inp.onchange = function () { if (inp.files.length) table(guess([].slice.call(inp.files), book)); };
+    inp.click();
+  }
+  function table(rows) {
+    var dl = $('bulk'); if (!dl) { dl = document.createElement('dialog'); dl.id = 'bulk'; document.body.appendChild(dl); }
+    var opts = C.map(function (b) {
+      return b.units.map(function (u) {
+        return '<optgroup label="' + esc(b.book + ' ' + ROMAN[u.no - 1] + ' ' + u.title) + '">' + ORDER[b.id].filter(function (o) { return o.dir === u.dir; }).map(function (o) {
+          return '<option value="' + o.k + '">' + esc(b.book.replace('도덕', '') + ' ' + o.u + '-' + o.n + ' ' + o.t) + '</option>';
+        }).join('') + '</optgroup>';
+      }).join('');
+    }).join('');
+    function paint() {
+      var seen = {};
+      rows.forEach(function (r) { r.dup = false; if (r.k && r.kind) { var t = r.kind + r.k; if (seen[t]) r.dup = seen[t].dup = true; else seen[t] = r; } });
+      var ok = rows.filter(function (r) { return r.k && r.kind && !r.done; }).length;
+      dl.innerHTML = '<form method="dialog"><h2>⬆ 한꺼번에 올리기</h2><p class="d">파일 이름을 보고 차시를 찾았어요. <b class="t-q">노란 줄</b>은 이름 순서로 짐작한 것, <b class="t-x">빨간 줄</b>은 못 찾은 것이에요. 차시를 골라 고친 뒤 올려요. 같은 차시에 이미 올린 파일이 있으면 바뀌어요.</p>' +
+        '<div class="tbl"><table><thead><tr><th>파일</th><th>종류</th><th>차시</th><th></th></tr></thead><tbody>' + rows.map(function (r, i) {
+          var cl = r.done ? 'ok' : r.err ? 'x' : !r.k || !r.kind || r.dup ? 'x' : r.how === '순서' ? 'q' : '';
+          return '<tr class="' + cl + '"><td class="fn">' + esc(r.file.name) + ' <small>' + (r.file.size / 1048576).toFixed(1) + 'MB</small></td>' +
+            '<td><select data-i="' + i + '" data-w="kind"' + (r.done ? ' disabled' : '') + '><option value="ppt"' + (r.kind === 'ppt' ? ' selected' : '') + (/\.pptx$/i.test(r.file.name) ? '' : ' disabled') + '>수업 PPT</option><option value="ws"' + (r.kind === 'ws' ? ' selected' : '') + '>학습지</option><option value=""' + (r.kind ? '' : ' selected') + '>안 올림</option></select></td>' +
+            '<td><select data-i="' + i + '" data-w="k"' + (r.done ? ' disabled' : '') + '><option value="">— 차시 고르기 —</option>' + opts.replace('value="' + r.k + '"', 'value="' + r.k + '" selected') + '</select></td>' +
+            '<td class="st">' + (r.done ? '✓ 올림' : r.err ? esc(r.err) : r.busy ? '올리는 중…' : r.dup ? '같은 차시 겹침' : !r.kind ? '' : !r.k ? '차시를 골라요' : r.how === '순서' ? '이름 순서로 짐작' : '') + '</td></tr>';
+        }).join('') + '</tbody></table></div>' +
+        '<div class="row"><button type="button" data-go="1"' + (ok && !rows.some(function (r) { return r.busy; }) ? '' : ' disabled') + '>' + (ok ? ok + '개 올리기' : '올릴 파일이 없어요') + '</button><button value="close" class="ghost">닫기</button></div></form>';
+    }
+    dl.onchange = function (e) { var t = e.target, r = rows[t.dataset.i]; if (!r) return; r[t.dataset.w] = t.value; r.how = '고름'; r.err = ''; paint(); };
+    dl.onclick = function (e) {
+      if (!e.target.closest('[data-go]')) return;
+      var todo = rows.filter(function (r) { return r.k && r.kind && !r.done; });
+      (function nextUp(i) {
+        if (i >= todo.length) { paint(); render(); return; }
+        var r = todo[i], p = r.k.split('/'), f = '/' + p[0] + '/' + p[1] + '/' + (r.kind === 'ppt' ? 'ppt' + p[2] + '.pptx' : 'wsfile' + p[2]);
+        r.busy = true; paint();
+        fetch('/teacher/ppt?f=' + encodeURIComponent(f), { method: 'POST', body: r.file, headers: { 'x-name': encodeURIComponent(r.file.name) } })
+          .then(function (res) { return res.json().then(function (j) { if (!res.ok) throw new Error(j.error || res.status); MY = j.mine; r.done = true; }); })
+          .catch(function (e) { r.err = e.message; })
+          .then(function () { r.busy = false; nextUp(i + 1); });
+      })(0);
+    };
+    paint(); dl.showModal();
+  }
+  if (R === 'teacher' && $('who')) {
+    var bb = document.createElement('a'); bb.href = '#'; bb.className = 'bulkbtn'; bb.innerHTML = '⬆ 한꺼번에 올리기 <small>PPT · 학습지</small>';
+    bb.onclick = function (e) { e.preventDefault(); bulk(); };
+    $('who').parentNode.insertBefore(bb, $('who'));
   }
 
   /* ── 반별 진도: 제목 오른쪽 ‘우리 반’. 반은 [＋ 반]에서 학년·반 번호를 눌러 여러 개 한 번에 만들고,
