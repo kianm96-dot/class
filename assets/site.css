@@ -172,3 +172,6 @@ button.txt{font:13px var(--body);border:0;background:none;color:var(--muted);tex
 .cls-add{gap:4px}.cls-add p>b{width:40px;font-size:13px}
 .cls-add .row button{font-size:13px;min-height:28px;padding:2px 12px;border-width:1.5px}
 .cls-s .nx{font-size:13.5px}.cls-s .nx b{color:var(--ink)}.cls-s .nx small{color:var(--muted)}
+.cls{flex:0 1 auto;max-width:560px;min-width:0}
+.cls-h{flex-wrap:wrap}
+.cls-s{font-size:13px}

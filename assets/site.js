@@ -258,7 +258,7 @@
       (PG.classes.length > 1 ? '<button type="button" class="chip add" data-multi="1" aria-pressed="' + multi + '" title="여러 반을 같이 골라 한 번에 기록">여러 반</button>' : '') +
       (multi ? '<button type="button" class="txt" data-alls="1">' + (cs.length === PG.classes.length ? '해제' : '모두') + '</button>' : '') + '</span></div>';
     if (adding) h += addForm();
-    else if (!cs.length) h += '<p class="cls-s">' + (PG.classes.length ? '반을 누르면 지난 진도와 다음 차시가 보여요.' + (PG.classes.length > 1 ? ' 같은 진도의 반은 <b>☑ 여러 반</b>으로 한꺼번에 기록해요.' : '') : '<b>＋ 반</b>을 눌러 학년과 반 번호를 고르면 한 번에 만들어져요.') + '</p>';
+    else if (!cs.length) h += '<p class="cls-s">' + (PG.classes.length ? '반을 고르면 다음 차시가 보여요.' : '＋를 눌러 반을 만들어요.') + '</p>';
     else {
       var live = cs.filter(function (c) { return rec(c.id).now; });
       if (live.length) {
