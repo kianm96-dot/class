@@ -279,7 +279,7 @@
             (g.last && cs.length === 1 ? '<br><small class="last">지난 시간 ' + md(g.last.d) + ': ' + esc(label(lesson(g.last.k))) + (g.part ? ' — ' + esc(g.part) + '까지' : ' 끝') + '</small>' : '') + '</p>';
         }).join('') +
           '<div class="row">' + (groups.length === 1 && groups[0].nx && HREF[groups[0].nx.k] ? '<a class="go" href="' + HREF[groups[0].nx.k] + '" data-start="' + groups[0].nx.k + '">▶ 수업 시작</a>' : '') +
-          '<span class="tip">차시 번호를 누르면 그 차시까지 끝냄</span><button type="button" class="txt" data-del="1" title="고른 반과 진도 기록 지우기">반 지우기</button></div></div>';
+          '<span class="tip">차시 번호를 누르면 그 차시까지 끝냄</span><button type="button" class="txt" data-reset="1" title="고른 반의 진도 기록만 지우고 반은 남김">진도 지우기</button><button type="button" class="txt" data-del="1" title="고른 반과 진도 기록 지우기">반 지우기</button></div></div>';
       }
     }
     box.innerHTML = h;
@@ -363,6 +363,9 @@
       else if (d.del) {
         if (!cs.length || !confirm('‘' + names(cs) + '’ 반과 진도 기록을 지울까요?')) return;
         pgSave({ classes: PG.classes.filter(function (x) { return sel.indexOf(x.id) < 0; }) }).then(function () { sel = []; keep(); marks(); });
+      } else if (d.reset) {
+        if (!cs.length || !confirm('‘' + names(cs) + '’ 반의 진도 기록을 모두 지울까요? (반은 남아요)')) return;
+        each(function (r) { r.done = {}; r.last = null; r.now = null; });
       } else if (d.start) start(d.start);
       else if (d.end === 'all') finish();
       else if (d.end === 'part') { partIn = true; panel(); }
