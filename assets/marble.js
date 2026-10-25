@@ -1,6 +1,6 @@
 /* 🎱 구슬 레이스 뽑기 (수업 진행 도구). 이름 구슬이 맵을 굴러 내려가 결승 앞 좁은 문을 먼저 빠져나온 구슬이 뽑힘.
    window.MarbleRace(이름 배열, 끝났을 때 함수(뽑힌 이름)) → 화면 전체에 띄움.
-   맵 4개(+무작위): 장치 = 핀, 빙빙 도는 막대·풍차, 범퍼(닿으면 튕겨 나감), 좌우로 움직이는 막대, 되돌이 구멍(빠지면 위로 되돌아감 · 구슬마다 2번까지), 선.
+   막혀서 구슬 여러 개가 뭉쳐 멈추면 💥 펑 터져 흩어짐. 맵 4개(+무작위): 장치 = 핀, 빙빙 도는 막대·풍차, 범퍼(닿으면 튕겨 나감), 좌우로 움직이는 막대, 되돌이 구멍(빠지면 위로 되돌아감 · 구슬마다 2번까지), 선.
    ×1 ×2 ×3 배속, 1등이 결승에 가까워지면 느린 화면 + 확대, 왼쪽 미니맵. 물리는 직접 계산(원-원, 원-선분), 외부 라이브러리 없음. */
 (function () {
   var W = 800, R = 15, G = 1500;
@@ -90,22 +90,38 @@
     document.body.appendChild(box);
     var cv = box.querySelector('canvas'), cx = cv.getContext('2d'), rank = box.querySelector('.rank'), win = box.querySelector('.win'), slowEl = box.querySelector('.slow'), toast = box.querySelector('.toast'), sel = box.querySelector('select');
     sel.value = MAPS[pick] || pick === 'random' ? pick : 'mill';
-    var C, FIN, H, balls, cam, camX, zoom, order, raf, last, over, speed = 1, AC = null, ticked = 0, toastT = 0;
+    var C, FIN, H, balls, cam, camX, zoom, order, raf, last, over, speed = 1, AC = null, ticked = 0, toastT = 0, booms = [], jamT = 0, boomCool = 0;
     function beep(f, d) { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); var o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = f; g.gain.setValueAtTime(.15, AC.currentTime); g.gain.exponentialRampToValueAtTime(.001, AC.currentTime + d); o.connect(g).connect(AC.destination); o.start(); o.stop(AC.currentTime + d); } catch (e) {} }
     function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
     function say(t) { toast.textContent = t; toastT = 1.6; }
     function start() {
       var k = sel.value === 'random' ? ORDER[Math.floor(Math.random() * ORDER.length)] : sel.value;
-      C = MAPS[k].make(); FIN = C.fin; H = C.h; order = []; over = false; win.innerHTML = ''; rank.innerHTML = ''; slowEl.hidden = true;
+      C = MAPS[k].make(); booms = []; jamT = 0; boomCool = 3; FIN = C.fin; H = C.h; order = []; over = false; win.innerHTML = ''; rank.innerHTML = ''; slowEl.hidden = true;
       if (sel.value === 'random') say('🎲 ' + MAPS[k].name);
       var cols = Math.min(names.length, 12), mix = names.slice().sort(function () { return Math.random() - .5; });
       balls = mix.map(function (n, i) { return { n: n, x: 60 + (i % cols) * ((W - 120) / Math.max(1, cols - 1)), y: 60 + Math.floor(i / cols) * 36, vx: Math.random() * 40 - 20, vy: 0, c: 'hsl(' + Math.round(names.indexOf(n) * 360 / names.length) + ' 85% 62%)', still: 0, done: false, traps: 0 }; });
       cam = 0; camX = W / 2; zoom = 1; last = performance.now(); cancelAnimationFrame(raf); raf = requestAnimationFrame(frame);
     }
+    /* 💥 펑: 느린 구슬 4개 이상이 한곳(지름 160 안)에 1.5초 넘게 뭉쳐 있으면 그 가운데서 터져 사방으로 흩어짐(2.5초에 한 번까지) */
+    function jam(dt) {
+      if ((boomCool -= dt) > 0) return;
+      var slow = balls.filter(function (b) { return !b.done && b.vx * b.vx + b.vy * b.vy < 90 * 90; }), best = null;
+      slow.forEach(function (a) { var g = slow.filter(function (b) { var dx = b.x - a.x, dy = b.y - a.y; return dx * dx + dy * dy < 80 * 80; }); if (!best || g.length > best.length) best = g; });
+      if (!best || best.length < 4) { jamT = 0; return; }
+      if ((jamT += dt) < 1.5) return;
+      var x = 0, y = 0; best.forEach(function (b) { x += b.x; y += b.y; }); x /= best.length; y /= best.length;
+      balls.forEach(function (b) {
+        if (b.done) return; var dx = b.x - x, dy = b.y - y, d = Math.sqrt(dx * dx + dy * dy) || 1; if (d > 220) return;
+        var f = 1300 * (1 - d / 260); b.vx += dx / d * f + (Math.random() - .5) * 300; b.vy += dy / d * f - 500 - Math.random() * 300; b.still = 0;
+      });
+      booms.push({ x: x, y: y, t: 0 }); jamT = 0; boomCool = 2.5; say('💥 펑! 막혀 있던 구슬이 흩어져요');
+      beep(90, .5); beep(160, .25);
+    }
     function step(dt) {
       C.spin.forEach(function (s) { s.t += s.w * dt; });
       C.slide.forEach(function (s) { s.t += dt; s.x = s.x0 + Math.sin(s.t * s.w) * s.amp; s.vx = Math.cos(s.t * s.w) * s.amp * s.w; s.x = Math.max(s.len / 2, Math.min(W - s.len / 2, s.x)); });
       C.bump.forEach(function (p) { if (p.hit > 0) p.hit -= dt; });
+      jam(dt);
       balls.forEach(function (b) {
         if (b.done) return;
         b.vy += G * dt; b.x += b.vx * dt; b.y += b.vy * dt;
@@ -176,6 +192,14 @@
       cx.shadowBlur = 0; for (var x = 0; x < W; x += 40) { cx.fillStyle = (x / 40) % 2 ? '#fff' : '#333'; cx.fillRect(x, FIN, 40, 14); }
       cx.fillStyle = '#ff5'; cx.font = '28px Jua, sans-serif'; cx.textAlign = 'center'; cx.fillText('🏁 결승선', W / 2, FIN + 50);
       drawMap(false);
+      booms = booms.filter(function (o) { o.t += dt; return o.t < .7; });
+      booms.forEach(function (o) {   // 펑: 퍼지는 고리 + 불꽃
+        var k = o.t / .7; cx.globalAlpha = 1 - k; cx.strokeStyle = '#ff5'; cx.shadowColor = '#f80'; cx.shadowBlur = 30; cx.lineWidth = 10 * (1 - k) + 2;
+        cx.beginPath(); cx.arc(o.x, o.y, 30 + k * 220, 0, 7); cx.stroke();
+        cx.fillStyle = '#fff'; cx.beginPath(); cx.arc(o.x, o.y, 40 * (1 - k), 0, 7); cx.fill();
+        cx.font = (60 + 40 * k) + 'px Jua, sans-serif'; cx.textAlign = 'center'; cx.fillStyle = '#ff5'; cx.fillText('💥', o.x, o.y - 30 - k * 40);
+        cx.globalAlpha = 1; cx.shadowBlur = 0;
+      });
       cx.font = '18px Jua, "Gowun Dodum", sans-serif';
       balls.forEach(function (b) {
         cx.fillStyle = b.c; cx.shadowColor = b.c; cx.shadowBlur = 10; cx.beginPath(); cx.arc(b.x, b.y, R, 0, 7); cx.fill(); cx.shadowBlur = 0;
