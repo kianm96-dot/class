@@ -90,25 +90,30 @@
     document.body.appendChild(box);
     var cv = box.querySelector('canvas'), cx = cv.getContext('2d'), rank = box.querySelector('.rank'), win = box.querySelector('.win'), slowEl = box.querySelector('.slow'), toast = box.querySelector('.toast'), sel = box.querySelector('select');
     sel.value = MAPS[pick] || pick === 'random' ? pick : 'mill';
-    var C, FIN, H, balls, cam, camX, zoom, order, raf, last, over, speed = 1, AC = null, ticked = 0, toastT = 0, booms = [], jamT = 0, boomCool = 0;
+    var C, FIN, H, balls, cam, camX, zoom, order, raf, last, over, speed = 1, AC = null, ticked = 0, toastT = 0, booms = [], jamT = 0, boomCool = 0, leadMax = 0, leadT = 0;
     function beep(f, d) { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); var o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = f; g.gain.setValueAtTime(.15, AC.currentTime); g.gain.exponentialRampToValueAtTime(.001, AC.currentTime + d); o.connect(g).connect(AC.destination); o.start(); o.stop(AC.currentTime + d); } catch (e) {} }
     function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
     function say(t) { toast.textContent = t; toastT = 1.6; }
     function start() {
       var k = sel.value === 'random' ? ORDER[Math.floor(Math.random() * ORDER.length)] : sel.value;
-      C = MAPS[k].make(); booms = []; jamT = 0; boomCool = 3; FIN = C.fin; H = C.h; order = []; over = false; win.innerHTML = ''; rank.innerHTML = ''; slowEl.hidden = true;
+      C = MAPS[k].make(); booms = []; jamT = 0; boomCool = 3; leadMax = 0; leadT = 0; FIN = C.fin; H = C.h; order = []; over = false; win.innerHTML = ''; rank.innerHTML = ''; slowEl.hidden = true;
       if (sel.value === 'random') say('🎲 ' + MAPS[k].name);
       var cols = Math.min(names.length, 12), mix = names.slice().sort(function () { return Math.random() - .5; });
       balls = mix.map(function (n, i) { return { n: n, x: 60 + (i % cols) * ((W - 120) / Math.max(1, cols - 1)), y: 60 + Math.floor(i / cols) * 36, vx: Math.random() * 40 - 20, vy: 0, c: 'hsl(' + Math.round(names.indexOf(n) * 360 / names.length) + ' 85% 62%)', still: 0, done: false, traps: 0 }; });
       cam = 0; camX = W / 2; zoom = 1; last = performance.now(); cancelAnimationFrame(raf); raf = requestAnimationFrame(frame);
     }
-    /* 💥 펑: 느린 구슬 4개 이상이 한곳(지름 160 안)에 1.5초 넘게 뭉쳐 있으면 그 가운데서 터져 사방으로 흩어짐(2.5초에 한 번까지) */
+    /* 💥 펑: 느린 구슬 3개 이상이 한곳에 1초 넘게 뭉쳐 있거나, 선두가 3초 동안 앞으로 못 나가면 그 가운데서 터져 사방으로 흩어짐(2.5초에 한 번까지) */
     function jam(dt) {
       if ((boomCool -= dt) > 0) return;
-      var slow = balls.filter(function (b) { return !b.done && b.vx * b.vx + b.vy * b.vy < 90 * 90; }), best = null;
-      slow.forEach(function (a) { var g = slow.filter(function (b) { var dx = b.x - a.x, dy = b.y - a.y; return dx * dx + dy * dy < 80 * 80; }); if (!best || g.length > best.length) best = g; });
-      if (!best || best.length < 4) { jamT = 0; return; }
-      if ((jamT += dt) < 1.5) return;
+      var live = balls.filter(function (b) { return !b.done; }), slow = live.filter(function (b) { return b.vx * b.vx + b.vy * b.vy < 160 * 160; }), best = null;
+      slow.forEach(function (a) { var g = slow.filter(function (b) { var dx = b.x - a.x, dy = b.y - a.y; return dx * dx + dy * dy < 110 * 110; }); if (!best || g.length > best.length) best = g; });
+      var lead = live.reduce(function (m, b) { return !m || b.y > m.y ? b : m; }, null);
+      if (lead && lead.y > leadMax + 40) { leadMax = lead.y; leadT = 0; } else leadT += dt;
+      var stuck = lead && leadT > 3 && !over;   // 선두가 3초 동안 앞으로 못 나감
+      if (stuck) best = live.filter(function (b) { var dx = b.x - lead.x, dy = b.y - lead.y; return dx * dx + dy * dy < 160 * 160; });
+      else if (!best || best.length < 3) { jamT = 0; return; }
+      else if ((jamT += dt) < 1) return;
+      leadT = 0; leadMax = lead ? lead.y : 0;
       var x = 0, y = 0; best.forEach(function (b) { x += b.x; y += b.y; }); x /= best.length; y /= best.length;
       balls.forEach(function (b) {
         if (b.done) return; var dx = b.x - x, dy = b.y - y, d = Math.sqrt(dx * dx + dy * dy) || 1; if (d > 220) return;
