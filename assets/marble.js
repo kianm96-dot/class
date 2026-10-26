@@ -66,9 +66,8 @@
     gate: function (y) {   // 결승 앞: 좁은 통로 + 통로 벽 뒤에 축이 있는 막대 두 개. 막대 끝이 통로 안을 아래→위로 쓸어 올려 들어간 구슬을 다시 퍼 올림
       this.funnel(y, 150, 180);
       this.line(325, y + 180, 325, y + 600).line(475, y + 180, 475, y + 600);
-      if (this.g < G) this.mill(560, y + 420, 420, GW, 1);   // 느린 맵은 막대 하나만(안 그러면 끝없이 튕겨 나옴)
-      else this.mill(240, y + 340, 420, -GW, 1).mill(560, y + 470, 420, GW * .9, 1);   // 왼쪽은 시계 반대, 오른쪽은 시계 방향 → 통로 안에서는 둘 다 위로 올라감
-      this.spin.slice(this.g < G ? -1 : -2).forEach(function (s, i) { s.kick = GK; s.t = i * 1.7; s.goal = true; });
+      this.mill(560, y + 420, 420, GW, 1);   // 막대 하나: 시계 방향으로 돌아 통로 안에서는 아래→위로 쓸어 올림
+      this.spin.slice(-1).forEach(function (s) { s.kick = GK; s.goal = true; });
       this.hold.push({ y0: y + 40, y1: y + 600, k: 'goal' });
       this.fin = y + 660; this.h = y + 820; return this;
     }
@@ -86,7 +85,7 @@
     }
     return m;
   }
-  var GW = 1.6, GK = 1.6;   // 결승 막대 도는 빠르기·튕기는 힘
+  var GW = 1.9, GK = 2.4;   // 결승 막대 도는 빠르기·튕기는 힘
   var MAPS = {
     reverse: { name: '🎢 역전 대소동', make: function () {
       var m = new Map().grid(250, 520, 80, 78, 7, 12), o;
