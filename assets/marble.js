@@ -50,7 +50,7 @@
     },
     // ⏳ 모래시계 병목: 구슬 하나만 겨우 지나는 목 + 개찰구처럼 도는 짧은 막대
     hourglass: function (y) {
-      this.line(0, y, 377, y + 240).line(W, y, 423, y + 240).mill(400, y + 196, 74, 2.4, 1);
+      this.line(0, y, 377, y + 240).line(W, y, 423, y + 240).mill(400, y + 190, 240, 1.6, 1);
       this.hold.push({ y0: y - 60, y1: y + 260, k: 'hour' });
       return this;
     },
@@ -528,7 +528,7 @@
         cx.fillStyle = d.open ? '#3f6' : '#f33'; cx.beginPath(); cx.arc(mx - 20, my - 1, 11, 0, 7); cx.fill();
         cx.fillStyle = '#fff'; cx.font = '22px Jua, sans-serif'; cx.textAlign = 'center'; cx.fillText(Math.ceil(left), mx + 14, my + 7);
       });
-      if (!mini) C.hold.forEach(function (h) { cx.shadowBlur = 0; cx.fillStyle = h.k === 'light' ? '#f88' : '#fd8'; cx.font = '20px Jua, sans-serif'; cx.textAlign = 'center'; if (h.k !== 'goal') cx.fillText(h.k === 'light' ? '🚦 신호등 정체' : '⏳ 모래시계 병목 (한 줄로!)', MW / 2, h.y0 + 30); });
+      if (!mini) C.hold.forEach(function (h) { cx.shadowBlur = 0; cx.fillStyle = h.k === 'light' ? '#f88' : '#fd8'; cx.font = '20px Jua, sans-serif'; cx.textAlign = 'center'; if (h.k === 'light') cx.fillText('🚦 신호등 정체', MW / 2, h.y0 + 30); });
       // 깨지는 벽: 금이 갈수록 흐려짐
       C.brick.forEach(function (w) {
         if (w.life <= 0) return; var k = w.life / w.max;
