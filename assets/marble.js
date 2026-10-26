@@ -64,8 +64,8 @@
       return this;
     },
     gate: function (y) {   // 결승 앞: 좁은 세로 통로를 가로막는 통로보다 훨씬 긴 막대 세 개가 천천히 돌며(회전문) 구슬을 넘기거나 위로 쳐 올림
-      this.funnel(y, 300, 140);
-      this.line(250, y + 140, 250, y + 840).line(550, y + 140, 550, y + 840);
+      this.funnel(y, 150, 140);
+      this.line(325, y + 140, 325, y + 840).line(475, y + 140, 475, y + 840);
       this.mill(W / 2, y + 270, 680, 1, 1).mill(W / 2, y + 500, 680, -.8, 1).mill(W / 2, y + 730, 680, .9, 1);
       this.spin.slice(-3).forEach(function (s, i) { s.kick = 2; s.t = i * 1.1; });   // 막대에 맞으면 막대가 움직이는 쪽으로 세게 튕김
       this.hold.push({ y0: y + 40, y1: y + 840, k: 'goal' });
