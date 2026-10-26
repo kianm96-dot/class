@@ -4,6 +4,7 @@
    🧱 깨지는 벽(먼저 온 구슬이 막혀 있다가 무리가 쌓이면 와르르), ↩ 되돌이 구멍, 풍차·범퍼·움직이는 막대·핀.
    ⚡ 이변(켜고 끌 수 있음): 1등 번개, 꼴찌 로켓, 자리 바꾸기, 돌풍 + 구슬마다 가끔 💨 밀치기.
    오른쪽 실시간 순위판(▲▼, 누르면 그 구슬 따라가기), 역전되면 큰 알림. 1등 뽑기 / 꼴등 뽑기.
+   ⚙️ 톱니 막대 줄·🫧 터지는 방울·🧅 겹겹 방울은 lazygyu 룰렛(구슬 룰렛)을 참고, 원작 맵 2개(운명의 수레바퀴·버블 팝)는 그 맵 데이터를 옮김(아래 MIT 표기).
    ×1 ×2 ×3 배속, 결승 직전 느린 화면 + 확대, 왼쪽 미니맵. 물리는 직접 계산(원-원, 원-선분), 외부 라이브러리 없음. */
 (function () {
   var W = 800, R = 15, G = 1500, TAU = Math.PI * 2;
@@ -11,7 +12,7 @@
   function pickOne(a) { return a[Math.floor(Math.random() * a.length)]; }
 
   /* ───── 맵 만들기 도구 ───── */
-  function Map() { this.pegs = []; this.segs = []; this.spin = []; this.bump = []; this.slide = []; this.trap = []; this.ring = []; this.pad = []; this.warp = []; this.brick = []; }
+  function Map() { this.pegs = []; this.segs = []; this.spin = []; this.bump = []; this.slide = []; this.trap = []; this.ring = []; this.pad = []; this.warp = []; this.brick = []; this.w = W; this.g = G; }
   Map.prototype = {
     grid: function (y0, y1, dx, dy, r, j) { for (var y = y0, row = 0; y < y1; y += dy, row++) for (var x = (row % 2 ? dx * .5 + 40 : 40); x < W - 30; x += dx) this.pegs.push({ x: x + (j ? Math.random() * j - j / 2 : 0), y: y, r: r }); return this; },
     peg: function (x, y, r) { this.pegs.push({ x: x, y: y, r: r || 8 }); return this; },
@@ -30,6 +31,14 @@
       this.pegs = this.pegs.filter(function (p) {
         return keep.every(function (k) { var dx = p.x - k.x, dy = p.y - k.y; return dx * dx + dy * dy > Math.pow(k.r + p.r + 36, 2); });
       });
+      return this;
+    },
+    bubble: function (x, y, r) { this.pegs.push({ x: x, y: y, r: r || 18, pop: true, e: 2.4 }); return this; },   // 🫧 닿으면 터지는 방울(세게 튕김)
+    onion: function (x, y) { var m = this; [96, 66, 36].forEach(function (r) { m.bubble(x, y, r); }); return m; },   // 🧅 겹겹 방울: 바깥부터 한 겹씩 터짐
+    bubbles: function (y0, rows, dx) { dx = dx || 100; for (var r = 0; r < rows; r++) for (var x = (r % 2 ? 50 + dx / 2 : 50); x < W - 30; x += dx) this.bubble(x + rnd(-8, 8), y0 + r * 80, 18); return this; },
+    grinder: function (y, w) {   // ⚙️ 톱니 막대 줄: 끝이 맞닿은 막대 5개가 번갈아 반대로 돌며 길을 막았다 열었다
+      for (var i = 0; i < 5; i++) this.mill(80 + i * 160, y, 160, (i % 2 ? -1 : 1) * (w || 3.5), 1);
+      this.spin.slice(-5).forEach(function (s, i) { s.t = i % 2 ? Math.PI / 2 : 0; });
       return this;
     },
     gate: function (y) { this.funnel(y, 60, 180); this.mill(W / 2, y + 100, 130, 1.7, 2); this.fin = y + 330; this.h = y + 490; return this; }   // 결승 앞 좁은 문 + 막았다 열었다 하는 풍차
@@ -60,8 +69,8 @@
       // 수수께끼 워프: 크게 앞서거나, 처음으로 돌아가거나
       o = 1000;
       var MYS = [[400, 2720 + o], [150, 2470 + o], [650, 2470 + o], [285, 2180 + o], [515, 2180 + o], [200, 1110], [600, 1110], [400, 520], [400, 1820]];
-      m.grid(1830 + o, 2120 + o, 120, 90, 9, 20).portal(200, 1960 + o, MYS, true).portal(600, 1960 + o, MYS, true).portal(400, 2080 + o, MYS, true);
-      m.mill(170, 2300 + o, 150, 2.6, 2).mill(400, 2260 + o, 150, -2.8, 2).mill(630, 2300 + o, 150, 2.4, 2).bumper(285, 2420 + o, 28).bumper(515, 2420 + o, 28);
+      m.bubbles(1830 + o, 4, 110).portal(200, 1960 + o, MYS, true).portal(600, 1960 + o, MYS, true).portal(400, 2080 + o, MYS, true);
+      m.grinder(2280 + o).onion(400, 2460 + o);
       m.boost(20, 2500 + o, 760, 60, 0, 5000, true);
       m.wall(0, 2600 + o, 400, 2665 + o, 3).wall(800, 2600 + o, 400, 2665 + o, 3);
       [[160, 2800], [400, 2790], [640, 2800], [280, 2920], [520, 2920]].forEach(function (b) { m.bumper(b[0], b[1] + o, 30); });
@@ -79,7 +88,7 @@
       var MYS = [[400, 1980 + o], [150, 1440 + o], [650, 1440 + o], [400, 1330], [400, 700], [400, 330], [285, 1980 + o]];
       m.portal(250, 1740 + o, MYS, true).portal(550, 1740 + o, MYS, true);
       m.wall(0, 1860 + o, 400, 1925 + o, 3).wall(800, 1860 + o, 400, 1925 + o, 3);
-      [[170, 2030], [400, 2010], [630, 2030], [285, 2130], [515, 2130]].forEach(function (b) { m.bumper(b[0], b[1] + o, 28); });
+      m.grinder(2060 + o).bubbles(2170 + o, 1, 90);
       m.boost(20, 2200 + o, 760, 60, 0, 5000, true).hole(400, 2300 + o, 1300 + o);
       return m.tidy().gate(2380 + o);
     } },
@@ -93,7 +102,7 @@
       m.wheel(400, 1740 + o, 160, 1.7, 2);
       var MYS = [[400, 2110 + o], [150, 2140 + o], [650, 2140 + o], [400, 1080], [400, 560], [400, 1480]];
       m.portal(80, 1700 + o, MYS, true).portal(720, 1700 + o, MYS, true);
-      [[170, 1990], [400, 1970], [630, 1990]].forEach(function (b) { m.bumper(b[0], b[1] + o, 28); });
+      m.grinder(1990 + o);
       m.slider(400, 2190 + o, 200, 250, 1.8);
       return m.tidy().gate(2260 + o);
     } },
@@ -111,7 +120,7 @@
       var m = new Map().grid(260, 600, 90, 85, 8, 12);
       [[150, 760], [400, 720], [650, 760], [270, 900], [530, 900], [120, 1050], [400, 1060], [680, 1050], [270, 1200], [530, 1200]].forEach(function (b) { m.bumper(b[0], b[1], 34); });
       m.slider(400, 1360, 240, 250, 1.8).slider(400, 1500, 240, 250, -1.4);
-      m.mill(170, 1680, 160, 3, 2).mill(400, 1640, 160, -2.6, 2).mill(630, 1680, 160, 3.2, 2);
+      m.grinder(1660);
       m.grid(1820, 2080, 100, 80, 9);
       m.hole(400, 2180, 900).bumper(160, 2230, 30).bumper(640, 2230, 30).hole(90, 2330, 1300).hole(710, 2330, 1300);
       return m.gate(2420);
@@ -123,19 +132,40 @@
       spinners(m, 1920, 4);
       m.boost(20, 2540, 760, 60, 0, 5000, true);
       m.mill(250, 2780, 300, -1.3, 2).mill(550, 2780, 300, 1.3, 2);   // 큰 풍차 두 개가 맞물려 돎
-      spinners(m, 3020, 3);
-      return m.tidy().gate(3480);
+      m.grinder(3020).bubbles(3150, 3, 90).grinder(3420, -3);
+      return m.tidy().gate(3560);
     } },
     hell: { name: '🕳️ 함정 지옥 (짧음)', make: function () {
       var m = new Map().grid(250, 650, 80, 75, 8, 12);
       m.hole(160, 760, 200).hole(400, 790, 200).hole(640, 760, 200);
-      m.mill(280, 930, 170, 2.8, 2).mill(520, 930, 170, -2.8, 2);
+      m.grinder(930, 3);
       m.grid(1080, 1350, 95, 85, 9).slider(400, 1450, 220, 260, 1.9);
       m.bumper(200, 1580).bumper(600, 1580).hole(400, 1640, 900);
       return m.gate(1730);
     } }
   };
-  var ORDER = ['reverse', 'storm', 'warp', 'wheel', 'mill', 'pinball', 'hell'];
+  /* lazygyu 룰렛 맵 옮겨 오기. 원래 크기에서 1칸 = 60픽셀(구슬 지름 0.5칸 = 30픽셀로 같은 비율)
+     맵 데이터 출처: https://github.com/lazygyu/roulette — MIT License, Copyright (c) 2022 LazyGyu
+     Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
+     to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
+     and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+     The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+     segs: [ax, ay, bx, by, 두께, 튕김], spins: [x, y, 길이, 도는 빠르기, 처음 각도, 두께], pegs: [x, y, 반지름, 닿으면 터짐(1), 튕김] */
+  var LAZY = {"wof":{"w":1485,"fin":7560,"sx":600,"sy":900,"segs":[[540.0,60,540.0,1410.0,2,1],[540.0,1410.0,105.0,2055.0,2,1],[105.0,2055.0,105.0,2460,2,1],[105.0,2460,570.0,2700,2,1],[570.0,2700,570.0,2910.0,2,1],[570.0,2910.0,60.0,3360,2,1],[60.0,3360,60.0,4125.0,2,1],[60.0,4125.0,480.0,4425.0,2,1],[480.0,4425.0,480.0,4680,2,1],[480.0,4680,540.0,4740,2,1],[540.0,4740,480.0,4800,2,1],[480.0,4800,480.0,6855.0,2,1],[480.0,6855.0,891.0,7305.0,2,1],[891.0,7305.0,891.0,7605.0,2,1],[975.0,60,975.0,1455.0,2,1],[975.0,1455.0,555.0,2100,2,1],[555.0,2100,555.0,2250.0,2,1],[555.0,2250.0,1035.0,2460,2,1],[1035.0,2460,1035.0,2910.0,2,1],[1035.0,2910.0,1425.0,3210.0,2,1],[1425.0,3210.0,1125.0,3630.0,2,1],[1125.0,3630.0,1125.0,4230.0,2,1],[1125.0,4230.0,1425.0,4455.0,2,1],[1425.0,4455.0,1425.0,4680,2,1],[1425.0,4680,1365.0,4740,2,1],[1365.0,4740,1425.0,4800,2,1],[1425.0,4800,1425.0,6930.0,2,1],[1425.0,6930.0,945.0,7305.0,2,1],[945.0,7305.0,945.0,7605.0,2,1],[750.0,3150.0,405.0,3510.0,2,1],[405.0,3510.0,405.0,3885.0,2,1],[405.0,3885.0,750.0,4125.0,2,1],[750.0,4125.0,750.0,3150.0,2,1],[870.0,3150.0,870.0,3480,2,1],[870.0,3480,1035.0,3315.0,2,1],[1035.0,3315.0,870.0,3150.0,2,1],[898.5,2703.9,911.1,2683.5,2,2],[911.1,2683.5,931.5,2696.1,2,2],[931.5,2696.1,918.9,2716.5,2,2],[918.9,2716.5,898.5,2703.9,2,2],[898.5,2823.9,911.1,2803.5,2,1],[911.1,2803.5,931.5,2816.1,2,1],[931.5,2816.1,918.9,2836.5,2,1],[918.9,2836.5,898.5,2823.9,2,1],[898.5,2583.9,911.1,2563.5,2,1],[911.1,2563.5,931.5,2576.1,2,1],[931.5,2576.1,918.9,2596.5,2,1],[918.9,2596.5,898.5,2583.9,2,1],[718.5,2703.9,731.1,2683.5,2,1],[731.1,2683.5,751.5,2696.1,2,1],[751.5,2696.1,738.9,2716.5,2,1],[738.9,2716.5,718.5,2703.9,2,1],[718.5,2823.9,731.1,2803.5,2,1],[731.1,2803.5,751.5,2816.1,2,1],[751.5,2816.1,738.9,2836.5,2,1],[738.9,2836.5,718.5,2823.9,2,1],[718.5,2583.9,731.1,2563.5,2,1],[731.1,2563.5,751.5,2576.1,2,1],[751.5,2576.1,738.9,2596.5,2,1],[738.9,2596.5,718.5,2583.9,2,1],[530.1,4865.4,567.9,4926.6,6.0,1],[644.1,4865.4,681.9,4926.6,6.0,1],[758.1,4865.4,795.9,4926.6,6.0,1],[872.1,4865.4,909.9,4926.6,6.0,1],[986.1,4865.4,1023.9,4926.6,6.0,1],[1100.1,4865.4,1137.9,4926.6,6.0,1],[1208.1,4865.4,1245.9,4926.6,6.0,1],[1328.1,4865.4,1365.9,4926.6,6.0,1],[530.1,5076.6,567.9,5015.4,6.0,1],[644.1,5076.6,681.9,5015.4,6.0,1],[758.1,5076.6,795.9,5015.4,6.0,1],[872.1,5076.6,909.9,5015.4,6.0,1],[986.1,5076.6,1023.9,5015.4,6.0,1],[1100.1,5076.6,1137.9,5015.4,6.0,1],[1208.1,5076.6,1245.9,5015.4,6.0,1],[1328.1,5076.6,1365.9,5015.4,6.0,1],[555.0,6398.8,576.2,6420.0,2,1],[576.2,6420.0,555.0,6441.2,2,1],[555.0,6441.2,533.8,6420.0,2,1],[533.8,6420.0,555.0,6398.8,2,1],[750.0,6398.8,771.2,6420.0,2,1],[771.2,6420.0,750.0,6441.2,2,1],[750.0,6441.2,728.8,6420.0,2,1],[728.8,6420.0,750.0,6398.8,2,1],[945.0,6398.8,966.2,6420.0,2,1],[966.2,6420.0,945.0,6441.2,2,1],[945.0,6441.2,923.8,6420.0,2,1],[923.8,6420.0,945.0,6398.8,2,1],[1140.0,6398.8,1161.2,6420.0,2,1],[1161.2,6420.0,1140.0,6441.2,2,1],[1140.0,6441.2,1118.8,6420.0,2,1],[1118.8,6420.0,1140.0,6398.8,2,1],[1335.0,6398.8,1356.2,6420.0,2,1],[1356.2,6420.0,1335.0,6441.2,2,1],[1335.0,6441.2,1313.8,6420.0,2,1],[1313.8,6420.0,1335.0,6398.8,2,1],[645.0,6578.8,666.2,6600.0,2,1],[666.2,6600.0,645.0,6621.2,2,1],[645.0,6621.2,623.8,6600.0,2,1],[623.8,6600.0,645.0,6578.8,2,1],[840.0,6578.8,861.2,6600.0,2,1],[861.2,6600.0,840.0,6621.2,2,1],[840.0,6621.2,818.8,6600.0,2,1],[818.8,6600.0,840.0,6578.8,2,1],[1035.0,6578.8,1056.2,6600.0,2,1],[1056.2,6600.0,1035.0,6621.2,2,1],[1035.0,6621.2,1013.8,6600.0,2,1],[1013.8,6600.0,1035.0,6578.8,2,1],[1230.0,6578.8,1251.2,6600.0,2,1],[1251.2,6600.0,1230.0,6621.2,2,1],[1230.0,6621.2,1208.8,6600.0,2,1],[1208.8,6600.0,1230.0,6578.8,2,1],[555.0,6758.8,576.2,6780.0,2,1],[576.2,6780.0,555.0,6801.2,2,1],[555.0,6801.2,533.8,6780.0,2,1],[533.8,6780.0,555.0,6758.8,2,1],[750.0,6758.8,771.2,6780.0,2,1],[771.2,6780.0,750.0,6801.2,2,1],[750.0,6801.2,728.8,6780.0,2,1],[728.8,6780.0,750.0,6758.8,2,1],[945.0,6758.8,966.2,6780.0,2,1],[966.2,6780.0,945.0,6801.2,2,1],[945.0,6801.2,923.8,6780.0,2,1],[923.8,6780.0,945.0,6758.8,2,1],[1140.0,6758.8,1161.2,6780.0,2,1],[1161.2,6780.0,1140.0,6801.2,2,1],[1140.0,6801.2,1118.8,6780.0,2,1],[1118.8,6780.0,1140.0,6758.8,2,1],[1335.0,6758.8,1356.2,6780.0,2,1],[1356.2,6780.0,1335.0,6801.2,2,1],[1335.0,6801.2,1313.8,6780.0,2,1],[1313.8,6780.0,1335.0,6758.8,2,1]],"spins":[[465.0,5400,240,3.5,0,6.0],[705.0,5400,240,-3.5,0,6.0],[945.0,5400,240,3.5,0,6.0],[1185.0,5400,240,-3.5,0,6.0],[1425.0,5400,240,3.5,0,6.0],[825.0,7305.0,240,-1.2,0,6.0]],"pegs":[]},"bub":{"w":1035,"fin":5880,"sx":420,"sy":900,"segs":[[360.0,60,360.0,900.0,2,1],[360.0,900.0,360.0,3480.0,2,1],[360.0,3480.0,60.0,3900.0,2,1],[60.0,3900.0,360.0,4080.0,2,1],[360.0,4080.0,360.0,5160.0,2,1],[360.0,5160.0,372.7,5175.0,2,1],[372.7,5175.0,360.0,5190.0,2,1],[360.0,5190.0,360.0,5400.0,2,1],[360.0,5400.0,525.0,5700.0,2,1],[525.0,5700.0,525.0,5880.0,2,1],[795.0,60,795.0,3900.0,2,1],[795.0,3900.0,975.0,4140.0,2,1],[975.0,4140.0,915.0,4260.0,2,1],[915.0,4260.0,975.0,4380.0,2,1],[975.0,4380.0,795.0,4560.0,2,1],[795.0,4560.0,795.0,5160.0,2,1],[795.0,5160.0,782.3,5175.6,2,1],[782.3,5175.6,795.0,5190.0,2,1],[795.0,5190.0,795.0,5400.0,2,1],[795.0,5400.0,585.0,5700.0,2,1],[585.0,5700.0,585.0,5880.0,2,1],[795.0,4050.0,855.0,4140.0,2,1],[855.0,4140.0,795.0,4260.0,2,1],[795.0,4260.0,855.0,4380.0,2,1],[855.0,4380.0,795.0,4440.0,2,1],[795.0,4440.0,735.0,4260.0,2,1],[735.0,4260.0,795.0,4050.0,2,1],[360.0,3630.0,180.0,3870.0,2,1],[180.0,3870.0,360.0,3960.0,2,1],[360.0,3960.0,675.0,3930.0,2,1],[675.0,3930.0,360.0,3630.0,2,1],[360.0,2460.0,468.8,2550.0,2,1],[795.0,2460.0,686.2,2550.0,2,1],[468.8,2700.0,577.5,2610.0,2,1],[577.5,2610.0,686.2,2700.0,2,1],[360.0,2760.0,468.8,2850.0,2,1],[795.0,2760.0,686.2,2850.0,2,1],[468.8,3000.0,577.5,2910.0,2,1],[577.5,2910.0,686.2,3000.0,2,1],[353.6,1973.6,366.4,1986.4,9.0,1],[473.6,1973.6,486.4,1986.4,9.0,1],[593.6,1973.6,606.4,1986.4,9.0,1],[713.6,1973.6,726.4,1986.4,9.0,1],[428.6,2033.6,441.4,2046.4,9.0,1],[548.6,2033.6,561.4,2046.4,9.0,1],[668.6,2033.6,681.4,2046.4,9.0,1],[788.6,2033.6,801.4,2046.4,9.0,1],[353.6,2093.6,366.4,2106.4,9.0,1],[473.6,2093.6,486.4,2106.4,9.0,1],[593.6,2093.6,606.4,2106.4,9.0,1],[713.6,2093.6,726.4,2106.4,9.0,1],[428.6,2153.6,441.4,2166.4,9.0,1],[548.6,2153.6,561.4,2166.4,9.0,1],[668.6,2153.6,681.4,2166.4,9.0,1],[788.6,2153.6,801.4,2166.4,9.0,1],[353.6,2213.6,366.4,2226.4,9.0,1],[473.6,2213.6,486.4,2226.4,9.0,1],[593.6,2213.6,606.4,2226.4,9.0,1],[713.6,2213.6,726.4,2226.4,9.0,1],[428.6,2273.6,441.4,2286.4,9.0,1],[548.6,2273.6,561.4,2286.4,9.0,1],[668.6,2273.6,681.4,2286.4,9.0,1],[788.6,2273.6,801.4,2286.4,9.0,1],[369.0,2985.4,623.6,3240.0,2,1],[623.6,3240.0,369.0,3494.6,2,1],[369.0,3494.6,114.4,3240.0,2,1],[114.4,3240.0,369.0,2985.4,2,1],[795.0,3225.4,1049.6,3480.0,2,1],[1049.6,3480.0,795.0,3734.6,2,1],[795.0,3734.6,540.4,3480.0,2,1],[540.4,3480.0,795.0,3225.4,2,1]],"spins":[[447.0,1500,60.0,10,0,6.0],[687.0,1500,60.0,-10,0,6.0],[567.0,1500,60.0,10,0,6.0],[447.0,1740,240,-3,0,6.0],[687.0,1740,240,3,0,6.0],[477.0,3540,60.0,-5,0,6.0],[423.0,5400,120,8,0,6.0],[732.7,5400,120,-8,0,6.0],[562.5,4260.0,120,-8,0,6.0]],"pegs":[[465.0,4800,30.0,1,2.5],[585.0,4800,30.0,1,2.5],[705.0,4800,30.0,1,2.5],[525.0,4950.0,30.0,1,2.5],[645.0,4950.0,30.0,1,2.5],[585.0,5086.2,48.0,1,2.5],[447.0,5550.0,48.0,1,2.5],[687.0,5550.0,48.0,1,2.5],[562.5,5700,90.0,1,2.5],[562.5,5700,72.0,1,2.5],[401.9,4655.7,30.0,1,2.5],[521.9,4655.7,30.0,1,2.5],[641.9,4655.7,30.0,1,2.5],[754.7,4655.7,30.0,1,2.5]]}};
+  function lazyMap(k) {
+    var d = LAZY[k], m = new Map();
+    m.w = d.w; m.g = 620; m.imp = true; m.sx = d.sx; m.sy = d.sy; m.fin = d.fin; m.h = d.fin + 320;
+    d.segs.forEach(function (g) { m.segs.push({ a: [g[0], g[1]], b: [g[2], g[3]], r: g[4], e: g[5] }); });
+    d.spins.forEach(function (g) { m.spin.push({ x: g[0], y: g[1], len: g[2], w: g[3], t: g[4], arms: 1, r: g[5] }); });
+    d.pegs.forEach(function (g) { m.pegs.push({ x: g[0], y: g[1], r: g[2], pop: !!g[3], e: g[4] }); });
+    return m;
+  }
+  MAPS.wof = { name: '🎰 운명의 수레바퀴 (원작)', make: function () { return lazyMap('wof'); } };
+  MAPS.bub = { name: '🫧 버블 팝 (원작)', make: function () { return lazyMap('bub'); } };
+  var ORDER = ['reverse', 'storm', 'warp', 'wheel', 'mill', 'pinball', 'hell', 'wof', 'bub'];
 
   function bars(s) { var out = []; for (var k = 0; k < s.arms; k++) { var a = s.t + k * Math.PI / 2, ux = Math.cos(a) * s.len / 2, uy = Math.sin(a) * s.len / 2; out.push([s.x - ux, s.y - uy, s.x + ux, s.y + uy]); } return out; }
   function ringSegs(g) {   // 회전통: 원을 28조각 선분으로, 틈(gaps개) 자리만 비움
@@ -149,13 +179,13 @@
     }
     return out;
   }
-  function seg(c, ax, ay, bx, by, vel) {   // 원과 선분: 겹치면 밀어내고 튕김(vel = 움직이는 막대면 그 지점의 속도). 닿았으면 부딪친 세기(>0) 돌려줌
+  function seg(c, ax, ay, bx, by, vel, th, e) {   // 원과 선분: 겹치면 밀어내고 튕김(vel = 움직이는 막대면 그 지점의 속도). 닿았으면 부딪친 세기(>0) 돌려줌
     var dx = bx - ax, dy = by - ay, t = ((c.x - ax) * dx + (c.y - ay) * dy) / (dx * dx + dy * dy); t = Math.max(0, Math.min(1, t));
-    var px = ax + dx * t, py = ay + dy * t, nx = c.x - px, ny = c.y - py, d = Math.sqrt(nx * nx + ny * ny), m = R + 5;
+    var px = ax + dx * t, py = ay + dy * t, nx = c.x - px, ny = c.y - py, d = Math.sqrt(nx * nx + ny * ny), m = R + (th == null ? 5 : th), k = e == null ? 1.45 : e;
     if (d >= m || d === 0) return 0;
     nx /= d; ny /= d; c.x = px + nx * m; c.y = py + ny * m;
     var sv = vel ? vel(px, py) : [0, 0], rvx = c.vx - sv[0], rvy = c.vy - sv[1], vn = rvx * nx + rvy * ny;
-    if (vn < 0) { c.vx -= 1.45 * vn * nx; c.vy -= 1.45 * vn * ny; c.vx *= .995; return -vn + .001; }
+    if (vn < 0) { c.vx -= k * vn * nx; c.vy -= k * vn * ny; c.vx *= .995; return -vn + .001; }
     return .001;
   }
   function rot(g) { return function (px, py) { return [-g.w * (py - g.y), g.w * (px - g.x)]; }; }
@@ -166,7 +196,7 @@
     var C = MAPS[key].make(), cols = Math.min(names.length, 12), mix = names.slice().sort(function () { return Math.random() - .5; });
     var S = { C: C, key: key, t: 0, order: [], over: false, pick: null, evT: rnd(4, 6), wind: null, jamT: 0, boomCool: 3, leadMax: 0, leadT: 0, live: [] };
     S.balls = mix.map(function (n, i) {
-      return { n: n, x: 60 + (i % cols) * ((W - 120) / Math.max(1, cols - 1)), y: 60 + Math.floor(i / cols) * 36, vx: rnd(-20, 20), vy: 0,
+      return { n: n, x: C.imp ? C.sx + (i % 10) * 36 : 60 + (i % cols) * ((W - 120) / Math.max(1, cols - 1)), y: C.imp ? C.sy - 20 - Math.floor(i / 10) * 36 : 60 + Math.floor(i / cols) * 36, vx: rnd(-20, 20), vy: 0,
         c: 'hsl(' + Math.round(names.indexOf(n) * 137.508 % 360) + ' 88% 62%)', still: 0, done: false, traps: 0, warps: 0, wcd: 0, rk: i, rocket: 0, zap: 0, sk: rnd(3, 9), onB: false, best: 0, stall: 0, kicks: 0 };
     });
     function rank() {   // 아직 달리는 구슬: 아래(결승 쪽)에 있을수록 앞
@@ -241,7 +271,7 @@
       S.balls.forEach(function (b) {
         if (b.done) return;
         b.onB = false;
-        b.vy += G * dt;
+        b.vy += C.g * dt;
         if (b.rocket > 0) { b.rocket -= dt; b.vy += 3800 * dt; b.vx *= .98; }
         if (b.zap > 0) b.zap -= dt;
         if (b.wcd > 0) b.wcd -= dt;
@@ -251,14 +281,14 @@
         });
         b.x += b.vx * dt; b.y += b.vy * dt;
         var sp = Math.sqrt(b.vx * b.vx + b.vy * b.vy); if (sp > 1500) { b.vx *= 1500 / sp; b.vy *= 1500 / sp; }
-        if (b.x < R) { b.x = R; b.vx = Math.abs(b.vx) * .6; } if (b.x > W - R) { b.x = W - R; b.vx = -Math.abs(b.vx) * .6; }
-        C.pegs.forEach(function (p) { var dx = b.x - p.x, dy = b.y - p.y; if (Math.abs(dx) > 40 || Math.abs(dy) > 40) return; var d = Math.sqrt(dx * dx + dy * dy), m = R + p.r; if (d < m && d > 0) { dx /= d; dy /= d; b.x = p.x + dx * m; b.y = p.y + dy * m; var vn = b.vx * dx + b.vy * dy; if (vn < 0) { b.vx -= 1.5 * vn * dx; b.vy -= 1.5 * vn * dy; b.vx += (Math.random() - .5) * 30; } } });
+        if (b.x < R) { b.x = R; b.vx = Math.abs(b.vx) * .6; } if (b.x > C.w - R) { b.x = C.w - R; b.vx = -Math.abs(b.vx) * .6; }
+        C.pegs.forEach(function (p) { if (p.gone) return; var dx = b.x - p.x, dy = b.y - p.y, m = R + p.r; if (Math.abs(dx) > m || Math.abs(dy) > m) return; var d = Math.sqrt(dx * dx + dy * dy); if (d < m && d > 0) { dx /= d; dy /= d; b.x = p.x + dx * m; b.y = p.y + dy * m; var vn = b.vx * dx + b.vy * dy; if (vn < 0) { b.vx -= (p.e || 1.5) * vn * dx; b.vy -= (p.e || 1.5) * vn * dy; b.vx += (Math.random() - .5) * 30; } if (p.pop) { p.gone = true; fx({ k: 'pop', x: p.x, y: p.y, r: p.r }); beep(900 + Math.random() * 400, .06); } } });   // 🫧 터지는 방울: 닿으면 펑
         C.bump.forEach(function (p) {   // 범퍼: 닿으면 바깥으로 세게 튕김
           var dx = b.x - p.x, dy = b.y - p.y, d = Math.sqrt(dx * dx + dy * dy), m = R + p.r;
           if (d < m && d > 0) { dx /= d; dy /= d; b.x = p.x + dx * m; b.y = p.y + dy * m; var vn = b.vx * dx + b.vy * dy; if (vn < 0) { b.vx -= vn * dx; b.vy -= vn * dy; } b.vx += dx * 650; b.vy += dy * 650; p.hit = .15; if (Math.random() < .3) beep(700 + Math.random() * 300, .05); }
         });
-        C.segs.forEach(function (s) { seg(b, s.a[0], s.a[1], s.b[0], s.b[1]); });
-        C.spin.forEach(function (s) { var v = rot(s); s.bars.forEach(function (l) { seg(b, l[0], l[1], l[2], l[3], v); }); });
+        C.segs.forEach(function (s) { seg(b, s.a[0], s.a[1], s.b[0], s.b[1], null, s.r, s.e); });
+        C.spin.forEach(function (s) { var v = rot(s); s.bars.forEach(function (l) { seg(b, l[0], l[1], l[2], l[3], v, s.r); }); });
         C.slide.forEach(function (s) { seg(b, s.x - s.len / 2, s.y, s.x + s.len / 2, s.y, function () { return [s.vx, 0]; }); });
         C.ring.forEach(function (g) { var dx = b.x - g.x, dy = b.y - g.y; if (dx * dx + dy * dy > Math.pow(g.r + 40, 2)) return; var v = rot(g); g.segs.forEach(function (l) { seg(b, l[0], l[1], l[2], l[3], v); }); });
         C.brick.forEach(function (w) {
@@ -284,7 +314,7 @@
         if (sp < 25) { if ((b.still += dt) > 1.2) { b.vx += (Math.random() - .5) * 500; b.vy -= 300; b.still = 0; } } else b.still = 0;   // 끼면 살짝 흔들기
         // 오래(4초) 못 내려가는 구슬은 따로 툭 쳐 줌, 세 번째부터는 가운데로 옮겨 줌(결승 앞 풍차에 걸리는 것 방지)
         if (b.y > b.best + 30 || b.onB) { b.best = Math.max(b.best, b.y); b.stall = 0; }
-        else if ((b.stall += dt) > 4) { b.stall = 0; b.best = b.y; if (++b.kicks >= 3) { b.x = W / 2 + rnd(-10, 10); b.vx = 0; b.vy = 200; b.kicks = 0; } else { b.vx = rnd(-600, 600); b.vy = -400; } }
+        else if ((b.stall += dt) > 4) { b.stall = 0; b.best = b.y; if (++b.kicks >= 3 && !C.imp) { b.x = W / 2 + rnd(-10, 10); b.vx = 0; b.vy = 200; b.kicks = 0; } else { b.vx = rnd(-600, 600); b.vy = -400; } }
         if (b.y > C.fin && !b.done) {
           b.done = true; S.order.push(b); beep(S.order.length === 1 ? 988 : 520, .2);
           if (opt.mode !== 'last' && S.order.length === 1) choose(b);
@@ -339,7 +369,7 @@
     sel.value = MAPS[st.map] || st.map === 'random' ? st.map : 'reverse';
     mdSel.value = st.mode === 'last' ? 'last' : 'first';
     var evOn = st.events !== false; evBtn.setAttribute('aria-pressed', String(evOn));
-    var S, C, FIN, H, cam, camX, zoom, raf, last, speed = 1, AC = null, ticked = 0, toastT = 0, fxs = [], follow = null, boardT = 0, prevRk = {}, prevT = 0, leadName = null, cand = null, bigT = 0, hot = {};
+    var S, C, FIN, H, MW, cam, camX, zoom, raf, last, speed = 1, AC = null, ticked = 0, toastT = 0, fxs = [], follow = null, boardT = 0, prevRk = {}, prevT = 0, leadName = null, cand = null, bigT = 0, hot = {};
     function saveSt() { try { localStorage.setItem('marbleRace2', JSON.stringify({ map: sel.value, mode: mdSel.value, events: evOn })); } catch (e) {} }
     function beep(f, d) { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); var o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = f; g.gain.setValueAtTime(.15, AC.currentTime); g.gain.exponentialRampToValueAtTime(.001, AC.currentTime + d); o.connect(g).connect(AC.destination); o.start(); o.stop(AC.currentTime + d); } catch (e) {} }
     function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -354,10 +384,10 @@
     function start() {
       var k = sel.value === 'random' ? pickOne(ORDER) : sel.value;
       S = Race(k, names, { mode: mdSel.value, events: evOn }, { say: say, fx: addFx, beep: beep, finish: finish });
-      C = S.C; FIN = C.fin; H = C.h; fxs = []; follow = null; prevRk = {}; prevT = 0; leadName = null; cand = null; hot = {};
+      C = S.C; FIN = C.fin; H = C.h; MW = C.w; fxs = []; follow = null; prevRk = {}; prevT = 0; leadName = null; cand = null; hot = {};
       win.innerHTML = ''; slowEl.hidden = true; toast.textContent = '';
       say(sel.value === 'random' ? '🎲 ' + MAPS[k].name : MAPS[k].name + (mdSel.value === 'last' ? ' · 🐢 꼴등이 뽑혀요' : ' · 🥇 1등이 뽑혀요'));
-      cam = 0; camX = W / 2; zoom = 1; last = performance.now(); cancelAnimationFrame(raf); raf = requestAnimationFrame(frame); paintBoard();
+      cam = S.balls[0].y - 400; camX = MW / 2; zoom = 1; last = performance.now(); cancelAnimationFrame(raf); raf = requestAnimationFrame(frame); paintBoard();
     }
     function finish(b) {
       slowEl.hidden = true; var lastMode = mdSel.value === 'last';
@@ -406,22 +436,31 @@
         cx.restore();
         if (p.rb) { cx.fillStyle = '#5f8'; cx.font = '20px Jua, sans-serif'; cx.textAlign = 'left'; cx.fillText('🚀 역전 부스터 (뒤처질수록 세게)', p.x + 8, p.y - 8); }
       });
-      if (!mini) { cx.shadowBlur = 12; cx.shadowColor = '#3ff'; cx.fillStyle = '#3ff'; C.pegs.forEach(function (p) { cx.beginPath(); cx.arc(p.x, p.y, p.r * .8, 0, 7); cx.fill(); }); }
-      cx.strokeStyle = mini ? '#9aa' : '#3ff'; cx.lineWidth = mini ? 8 : 10; cx.lineCap = 'round';
-      C.segs.forEach(function (s) { line(s.a[0], s.a[1], s.b[0], s.b[1]); });
+      C.pegs.forEach(function (p) {
+        if (p.gone) return;
+        if (p.pop) {   // 🫧 터지는 방울
+          cx.fillStyle = mini ? '#cc5' : 'rgba(255,240,80,.18)'; cx.strokeStyle = '#ff5'; cx.lineWidth = mini ? 6 : 3;
+          if (!mini) { cx.shadowColor = '#ff5'; cx.shadowBlur = 14; }
+          cx.beginPath(); cx.arc(p.x, p.y, p.r, 0, 7); cx.fill(); if (!mini) cx.stroke(); return;
+        }
+        if (mini) return; cx.shadowBlur = 12; cx.shadowColor = '#3ff'; cx.fillStyle = '#3ff'; cx.beginPath(); cx.arc(p.x, p.y, p.r * .8, 0, 7); cx.fill();
+      });
+      cx.shadowBlur = mini ? 0 : 12; cx.shadowColor = '#3ff';
+      cx.strokeStyle = mini ? '#9aa' : '#3ff'; cx.lineCap = 'round';
+      C.segs.forEach(function (s) { cx.lineWidth = mini ? 8 : Math.max(5, 2 * (s.r == null ? 5 : s.r)); line(s.a[0], s.a[1], s.b[0], s.b[1]); });
       // 깨지는 벽: 금이 갈수록 흐려짐
       C.brick.forEach(function (w) {
         if (w.life <= 0) return; var k = w.life / w.max;
         cx.strokeStyle = mini ? '#c84' : 'rgb(255,' + Math.round(120 + 60 * k) + ',60)'; if (!mini) { cx.shadowColor = '#f84'; cx.shadowBlur = 12; }
         cx.lineWidth = mini ? 10 : 14; cx.setLineDash(mini ? [] : [26, 6]); line(w.a[0], w.a[1], w.b[0], w.b[1]); cx.setLineDash([]);
         if (!mini && k < .7) { cx.strokeStyle = '#000'; cx.lineWidth = 3; cx.shadowBlur = 0; for (var i = 1; i < 4; i++) { var u = i / 4, mx = w.a[0] + (w.b[0] - w.a[0]) * u, my = w.a[1] + (w.b[1] - w.a[1]) * u; if (k < 1 - i * .2) line(mx - 6, my - 7, mx + 5, my + 7); } }
-        if (!mini && w === C.brick[0]) { cx.shadowBlur = 0; cx.fillStyle = '#fa6'; cx.font = '20px Jua, sans-serif'; cx.textAlign = 'center'; cx.fillText('🧱 깨지는 벽', W / 2, Math.min(w.a[1], w.b[1]) - 14); }
+        if (!mini && w === C.brick[0]) { cx.shadowBlur = 0; cx.fillStyle = '#fa6'; cx.font = '20px Jua, sans-serif'; cx.textAlign = 'center'; cx.fillText('🧱 깨지는 벽', MW / 2, Math.min(w.a[1], w.b[1]) - 14); }
       });
       if (!mini) { cx.strokeStyle = '#ff5'; cx.shadowColor = '#ff5'; cx.shadowBlur = 12; }
       cx.lineWidth = mini ? 8 : 10;
       C.slide.forEach(function (s) { line(s.x - s.len / 2, s.y, s.x + s.len / 2, s.y); });
       if (!mini) { cx.strokeStyle = '#f5f'; cx.shadowColor = '#f5f'; }
-      C.spin.forEach(function (s) { (s.bars || bars(s)).forEach(function (l) { line(l[0], l[1], l[2], l[3]); }); if (!mini) { cx.fillStyle = '#fff'; cx.beginPath(); cx.arc(s.x, s.y, 6, 0, 7); cx.fill(); } });
+      C.spin.forEach(function (s) { cx.lineWidth = mini ? 8 : Math.max(10, 2 * (s.r || 5)); (s.bars || bars(s)).forEach(function (l) { line(l[0], l[1], l[2], l[3]); }); if (!mini) { cx.fillStyle = '#fff'; cx.beginPath(); cx.arc(s.x, s.y, 6, 0, 7); cx.fill(); } });
       if (!mini) { cx.strokeStyle = '#7f7'; cx.shadowColor = '#7f7'; }
       C.ring.forEach(function (g) { (g.segs.length ? g.segs : ringSegs(g)).forEach(function (l) { line(l[0], l[1], l[2], l[3]); }); if (!mini) { cx.fillStyle = 'rgba(120,255,120,.08)'; cx.beginPath(); cx.arc(g.x, g.y, g.r, 0, 7); cx.fill(); } });
       C.bump.forEach(function (p) { cx.fillStyle = mini ? '#f80' : p.hit > 0 ? '#fff' : '#f80'; if (!mini) { cx.shadowColor = '#f80'; cx.shadowBlur = p.hit > 0 ? 30 : 14; } cx.beginPath(); cx.arc(p.x, p.y, p.hit > 0 && !mini ? p.r * 1.12 : p.r, 0, 7); cx.fill(); });
@@ -458,6 +497,9 @@
           k = o.t / .7; cx.globalAlpha = (1 - k) * .8; cx.strokeStyle = o.c; cx.lineWidth = 4; cx.shadowBlur = 0;
           cx.beginPath(); cx.arc(o.x, o.y, 20 + k * 120, 0, 7); cx.stroke();
           cx.font = '28px Jua, sans-serif'; cx.textAlign = 'center'; cx.fillStyle = '#fff'; cx.fillText('💨', o.x, o.y - 30 - k * 30);
+        } else if (o.k === 'pop') {
+          k = o.t / .7; cx.globalAlpha = 1 - k; cx.strokeStyle = '#ff5'; cx.lineWidth = 4; cx.shadowColor = '#ff5'; cx.shadowBlur = 16;
+          cx.beginPath(); cx.arc(o.x, o.y, o.r * (1 + k * .8), 0, 7); cx.stroke();
         } else if (o.k === 'brick') {
           k = o.t / 1.2; cx.globalAlpha = 1 - k; cx.fillStyle = '#f94'; cx.shadowBlur = 0;
           o.ps.forEach(function (p) { p.vy += 1200 * dt; p.x += p.vx * dt; p.y += p.vy * dt; cx.fillRect(p.x - 7, p.y - 5, 14, 10); });
@@ -482,15 +524,15 @@
       var rw = cv.clientWidth, rh = cv.clientHeight, dpr = devicePixelRatio || 1;
       if (cv.width !== Math.round(rw * dpr) || cv.height !== Math.round(rh * dpr)) { cv.width = Math.round(rw * dpr); cv.height = Math.round(rh * dpr); }
       zoom += ((near ? 1.7 : 1) - zoom) * .06;
-      var sc = Math.min(rw / W, rh / 700) * zoom, viewH = rh / sc, viewW = rw / sc;
-      var ty = S.over && !follow ? FIN - viewH * .55 : tgt ? tgt.y - viewH * .6 : cam, tx = (near || follow) && tgt ? tgt.x : W / 2;
-      cam += (Math.max(-40, Math.min(H - viewH, ty)) - cam) * .08; camX += (tx - camX) * .08;
+      var sc = Math.min(rw / Math.min(MW, 900), rh / 700) * zoom, viewH = rh / sc, viewW = rw / sc;
+      var ty = S.over && !follow ? FIN - viewH * .55 : tgt ? tgt.y - viewH * .6 : cam, tx = ((near || follow || MW > viewW) && tgt) ? tgt.x : MW / 2;
+      cam += (Math.max(-40, Math.min(H - viewH, ty)) - cam) * .08; if (MW > viewW) tx = Math.max(viewW / 2 - 40, Math.min(MW - viewW / 2 + 40, tx)); camX += (tx - camX) * .08;
       cx.setTransform(dpr, 0, 0, dpr, 0, 0); cx.fillStyle = '#000'; cx.fillRect(0, 0, rw, rh);
       cx.setTransform(sc * dpr, 0, 0, sc * dpr, (rw / 2 - camX * sc) * dpr, -cam * sc * dpr);
-      if (S.wind) { cx.globalAlpha = .25; cx.strokeStyle = '#fff'; cx.lineWidth = 3; for (var i = 0; i < 14; i++) { var wy = cam + ((i * 97 + now / 3) % viewH), wx = ((i * 211 + now * Math.sign(S.wind.ax)) % (W + 200) + W + 200) % (W + 200) - 100; line(wx, wy, wx - Math.sign(S.wind.ax) * 80, wy); } cx.globalAlpha = 1; }
-      cx.strokeStyle = '#fff'; cx.lineWidth = 4; cx.shadowColor = '#3ff'; cx.shadowBlur = 14; line(0, cam - 50, 0, cam + viewH + 50); line(W, cam - 50, W, cam + viewH + 50);
-      cx.shadowBlur = 0; for (var x = 0; x < W; x += 40) { cx.fillStyle = (x / 40) % 2 ? '#fff' : '#333'; cx.fillRect(x, FIN, 40, 14); }
-      cx.fillStyle = '#ff5'; cx.font = '28px Jua, sans-serif'; cx.textAlign = 'center'; cx.fillText('🏁 결승선', W / 2, FIN + 50);
+      if (S.wind) { cx.globalAlpha = .25; cx.strokeStyle = '#fff'; cx.lineWidth = 3; for (var i = 0; i < 14; i++) { var wy = cam + ((i * 97 + now / 3) % viewH), wx = ((i * 211 + now * Math.sign(S.wind.ax)) % (MW + 200) + MW + 200) % (MW + 200) - 100; line(wx, wy, wx - Math.sign(S.wind.ax) * 80, wy); } cx.globalAlpha = 1; }
+      cx.strokeStyle = '#fff'; cx.lineWidth = 4; cx.shadowColor = '#3ff'; cx.shadowBlur = 14; if (!C.imp) { line(0, cam - 50, 0, cam + viewH + 50); line(MW, cam - 50, MW, cam + viewH + 50); }
+      cx.shadowBlur = 0; for (var x = 0; x < MW; x += 40) { cx.fillStyle = (x / 40) % 2 ? '#fff' : '#333'; cx.fillRect(x, FIN, 40, 14); }
+      cx.fillStyle = '#ff5'; cx.font = '28px Jua, sans-serif'; cx.textAlign = 'center'; cx.fillText('🏁 결승선', MW / 2, FIN + 50);
       drawMap(false, now);
       drawFx(dt);
       cx.font = '18px Jua, "Gowun Dodum", sans-serif';
@@ -503,7 +545,7 @@
         if (!b.done && b === lead && !S.order.length) cx.fillText('👑', b.x, b.y - R - 6);
       });
       // 미니맵 (왼쪽): 코스 전체와 지금 보는 곳
-      var mh = Math.min(rh - 24, 520), ms = mh / H, mw = W * ms;
+      var mh = Math.min(rh - 24, 520), ms = mh / H, mw = MW * ms;
       if (rw > 700) {
         cx.setTransform(dpr, 0, 0, dpr, 12 * dpr, 12 * dpr); cx.fillStyle = 'rgba(60,60,60,.75)'; cx.fillRect(0, 0, mw, mh);
         cx.setTransform(ms * dpr, 0, 0, ms * dpr, 12 * dpr, 12 * dpr);
