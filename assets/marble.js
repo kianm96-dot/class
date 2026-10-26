@@ -85,6 +85,7 @@
     }
     return m;
   }
+  var PACE = .7;   // 화면에서 경주가 흘러가는 빠르기 — 구슬·막대·이변이 모두 같이 느려져서 맵 밸런스는 그대로
   var GW = 1.9, GK = 2.4;   // 결승 막대 도는 빠르기·튕기는 힘
   var MAPS = {
     reverse: { name: '🎢 역전 대소동', make: function () {
@@ -604,7 +605,7 @@
       if (toastT > 0) { toastT -= dt; if (toastT <= 0) toast.textContent = ''; }
       if (bigT > 0) bigT -= dt;
       var n = Math.round(6 * speed * (near ? .35 : 1)) || 1;
-      for (var k = 0; k < n; k++) S.step(dt / 6);
+      for (var k = 0; k < n; k++) S.step(dt / 6 * PACE);   // PACE: ×1에서 경주가 흘러가는 빠르기(1 = 원래)
       if (near && ++ticked % 20 === 0) beep(330, .05);
       watchRank();
       if ((boardT -= dt) <= 0) { boardT = .2; paintBoard(); }
