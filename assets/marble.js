@@ -63,13 +63,13 @@
       this.hold.forEach(function (h) { h.y0 = f(h.y0); h.y1 = f(h.y1); });
       return this;
     },
-    gate: function (y) {   // 결승 앞: 넓은 세로 통로 안에서 긴 막대 세 개가 돌며 구슬을 위로 쳐 올림 → 빠지다가도 다시 올라감
-      this.funnel(y, 300, 140);
-      this.line(250, y + 140, 250, y + 680).line(550, y + 140, 550, y + 680);
-      this.mill(W / 2, y + 260, 290, 4, 1).mill(W / 2, y + 420, 290, -3.4, 1).mill(W / 2, y + 580, 290, 3, 1);
+    gate: function (y) {   // 결승 앞: 넓은 세로 통로를 가로막는 통로보다 긴 막대 세 개가 천천히 돌며(회전문) 구슬을 넘기거나 위로 쳐 올림
+      this.funnel(y, 520, 120);
+      this.line(140, y + 120, 140, y + 1000).line(660, y + 120, 660, y + 1000);
+      this.mill(W / 2, y + 300, 680, 1, 1).mill(W / 2, y + 560, 680, -.8, 1).mill(W / 2, y + 820, 680, .9, 1);
       this.spin.slice(-3).forEach(function (s, i) { s.kick = 2; s.t = i * 1.1; });   // 막대에 맞으면 막대가 움직이는 쪽으로 세게 튕김
-      this.hold.push({ y0: y + 40, y1: y + 680, k: 'goal' });
-      this.fin = y + 740; this.h = y + 900; return this;
+      this.hold.push({ y0: y + 40, y1: y + 1000, k: 'goal' });
+      this.fin = y + 1060; this.h = y + 1220; return this;
     }
   };
 
