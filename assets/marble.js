@@ -421,7 +421,7 @@
       '.mr select{background:#222;color:#3ff;border:1.5px solid #3ff;padding:5px 12px}.mr select.md{color:#ff5;border-color:#ff5}' +
       '.mr button.ev{background:#222;color:#888;border:1.5px solid #555}.mr button.ev[aria-pressed="true"]{color:#ff5;border-color:#ff5;box-shadow:0 0 10px #ff58}' +
       '.mr .spd{display:flex;background:#333;border-radius:999px;padding:3px}.mr .spd button{background:none;color:#ccc;padding:4px 12px}.mr .spd button[aria-pressed="true"]{background:#3ff;color:#000}' +
-      '.mr .st{flex:1;position:relative;min-height:0;overflow:hidden}.mr canvas{position:absolute;inset:0;width:100%;height:100%}' +
+      '.mr .st{flex:1;position:relative;min-height:0;overflow:hidden;user-select:none;-webkit-user-select:none}.mr canvas{position:absolute;inset:0;width:100%;height:100%}' +
       '.mr .board{position:absolute;right:10px;top:10px;width:min(250px,36vw);background:rgba(10,10,20,.72);border:1.5px solid rgba(51,255,255,.35);border-radius:14px;padding:6px;color:#fff;font-size:17px}' +
       '.mr .board h4{margin:2px 6px 4px;font-weight:400;font-size:15px;color:#3ff}' +
       '.mr .board .r{display:flex;gap:6px;align-items:center;padding:2px 6px;border-radius:8px;cursor:pointer;transition:background .4s}.mr .board .r:hover{background:rgba(255,255,255,.12)}' +
@@ -439,7 +439,7 @@
       '<select class="md" aria-label="뽑는 방법"><option value="first">🥇 1등이 뽑힘</option><option value="last">🐢 꼴등이 뽑힘</option></select>' +
       '<button type="button" class="ev" data-k="ev" title="번개·로켓·자리 바꾸기·돌풍·밀치기">⚡ 이변</button>' +
       '<span class="sp"></span><span class="spd" role="group" aria-label="배속"><button type="button" data-s="1" aria-pressed="true">×1</button><button type="button" data-s="2" aria-pressed="false">×2</button><button type="button" data-s="3" aria-pressed="false">×3</button></span>' +
-      '<button type="button" class="go" data-k="again">다시 굴리기</button><button type="button" data-k="close">닫기 (Esc)</button></div>' +
+      '<button type="button" class="go" data-k="again" title="화면을 더블클릭하면 배속이 바뀌어요">다시 굴리기</button><button type="button" data-k="close">닫기 (Esc)</button></div>' +
       '<div class="st"><canvas></canvas><div class="board"></div><div class="big"></div><div class="slow" hidden>⏳ 결승 직전!</div><div class="cast" hidden></div><div class="toast"></div><div class="win"></div></div>';
     document.body.appendChild(box);
     var cv = box.querySelector('canvas'), cx = cv.getContext('2d'), board = box.querySelector('.board'), big = box.querySelector('.big'), win = box.querySelector('.win'), slowEl = box.querySelector('.slow'), castEl = box.querySelector('.cast'), toast = box.querySelector('.toast'),
@@ -653,10 +653,17 @@
     function key(e) { if (e.key === 'Escape') close(); }
     addEventListener('keydown', key);
     sel.onchange = mdSel.onchange = function () { saveSt(); start(); };
+    function setSpeed(v) { speed = v; box.querySelectorAll('.spd button').forEach(function (x) { x.setAttribute('aria-pressed', String(+x.dataset.s === v)); }); }
+    // ⏩ 화면 더블클릭: ×2로 빠르게 ↔ 다시 ×1
+    box.querySelector('.st').ondblclick = function (e) {
+      if (e.target.closest('.board')) return;
+      setSpeed(speed === 2 ? 1 : 2); say(speed === 2 ? '⏩ ×2 빠르게' : '▶ 보통 빠르기 (×1)');
+      var sel = window.getSelection && window.getSelection(); if (sel) sel.removeAllRanges();
+    };
     board.onclick = function (e) { var r = e.target.closest('.r'); if (!r) return; var b = S.balls[+r.dataset.i]; follow = follow === b || b.done ? null : b; paintBoard(); };
     box.querySelector('.bar').onclick = function (e) {
       var b = e.target.closest('button'); if (!b) return;
-      if (b.dataset.s) { speed = +b.dataset.s; box.querySelectorAll('.spd button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); }); }
+      if (b.dataset.s) setSpeed(+b.dataset.s);
       else if (b.dataset.k === 'ev') { evOn = !evOn; evBtn.setAttribute('aria-pressed', String(evOn)); saveSt(); start(); }
       else if (b.dataset.k === 'close') close(); else start();
     };
