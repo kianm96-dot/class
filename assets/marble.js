@@ -63,11 +63,13 @@
       this.hold.forEach(function (h) { h.y0 = f(h.y0); h.y1 = f(h.y1); });
       return this;
     },
-    gate: function (y) {   // 결승 앞: 깔때기 + 긴 풍차, 그 밑 세로 통로 안에서 도는 막대가 빠지던 구슬을 위로 쳐 올리기도 함
-      this.funnel(y, 76, 180).mill(W / 2, y + 92, 230, 1.3, 2);
-      this.line(362, y + 180, 362, y + 360).line(438, y + 180, 438, y + 360).mill(W / 2, y + 268, 62, 3.2, 1);
-      this.hold.push({ y0: y + 40, y1: y + 360, k: 'goal' });
-      this.fin = y + 420; this.h = y + 580; return this;
+    gate: function (y) {   // 결승 앞: 넓은 세로 통로 안에서 긴 막대 세 개가 돌며 구슬을 위로 쳐 올림 → 빠지다가도 다시 올라감
+      this.funnel(y, 300, 140);
+      this.line(250, y + 140, 250, y + 680).line(550, y + 140, 550, y + 680);
+      this.mill(W / 2, y + 260, 290, 4, 1).mill(W / 2, y + 420, 290, -3.4, 1).mill(W / 2, y + 580, 290, 3, 1);
+      this.spin.slice(-3).forEach(function (s, i) { s.kick = 2; s.t = i * 1.1; });   // 막대에 맞으면 막대가 움직이는 쪽으로 세게 튕김
+      this.hold.push({ y0: y + 40, y1: y + 680, k: 'goal' });
+      this.fin = y + 740; this.h = y + 900; return this;
     }
   };
 
@@ -353,7 +355,7 @@
           if (d < m && d > 0) { dx /= d; dy /= d; b.x = p.x + dx * m; b.y = p.y + dy * m; var vn = b.vx * dx + b.vy * dy; if (vn < 0) { b.vx -= vn * dx; b.vy -= vn * dy; } b.vx += dx * 650; b.vy += dy * 650; p.hit = .15; if (Math.random() < .3) beep(700 + Math.random() * 300, .05); }
         });
         C.segs.forEach(function (s) { seg(b, s.a[0], s.a[1], s.b[0], s.b[1], null, s.r, s.e); });
-        C.spin.forEach(function (s) { var v = rot(s); s.bars.forEach(function (l) { seg(b, l[0], l[1], l[2], l[3], v, s.r); }); });
+        C.spin.forEach(function (s) { var v = rot(s); s.bars.forEach(function (l) { var hit = seg(b, l[0], l[1], l[2], l[3], v, s.r); if (s.kick && hit > 1) { var sv = v(b.x, b.y); b.vx += sv[0] * s.kick; b.vy += sv[1] * s.kick; } }); });
         C.slide.forEach(function (s) { seg(b, s.x - s.len / 2, s.y, s.x + s.len / 2, s.y, function () { return [s.vx, 0]; }); });
         C.ring.forEach(function (g) { var dx = b.x - g.x, dy = b.y - g.y; if (dx * dx + dy * dy > Math.pow(g.r + 40, 2)) return; var v = rot(g); g.segs.forEach(function (l) { seg(b, l[0], l[1], l[2], l[3], v); }); });
         C.hold.forEach(function (h) { if (b.y > h.y0 && b.y < h.y1) b.hold = true; });   // 정체 구간: 한참(4초) 막혀야 💥
