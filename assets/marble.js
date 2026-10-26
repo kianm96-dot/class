@@ -44,13 +44,13 @@
     gate: function (y) { this.funnel(y, 60, 180); this.mill(W / 2, y + 100, 130, 1.7, 2); this.fin = y + 330; this.h = y + 490; return this; }   // 결승 앞 좁은 문 + 막았다 열었다 하는 풍차
   };
 
-  function spinners(m, y0, rows, gap) {   // 🌪️ 풍차 숲: 4개 줄과 3개 줄이 번갈아, 방향·빠르기·모양 제각각
+  function spinners(m, y0, rows, gap, spd) {   // 🌪️ 풍차 숲: 4개 줄과 3개 줄이 번갈아, 방향·빠르기·모양 제각각
     gap = gap || 170;
     for (var r = 0; r < rows; r++) {
       var y = y0 + r * gap, xs = r % 2 ? [200, 400, 600] : [100, 300, 500, 700];
       xs.forEach(function (x, k) {
         var dir = (r + k) % 2 ? 1 : -1, arms = Math.random() < .3 ? 1 : 2;
-        m.mill(x, y, xs.length === 4 ? 140 : 150, dir * rnd(1.8, 3.6), arms);
+        m.mill(x, y, xs.length === 4 ? 140 : 150, dir * rnd(1.8, 3.6) * (spd || 1), arms);
       });
       if (r % 2) m.peg(30, y, 10).peg(W - 30, y, 10);
     }
@@ -105,6 +105,28 @@
       m.grinder(1990 + o);
       m.slider(400, 2190 + o, 200, 250, 1.8);
       return m.tidy().gate(2260 + o);
+    } },
+    garden: { name: '🐌 느릿느릿 정원 (느림)', make: function () {   // 중력 약하고 공기 저항 큼 → 천천히 둥실 내려감
+      var m = new Map().grid(250, 480, 80, 78, 7, 12); m.g = 380; m.drag = .5; m.vmax = 460;
+      m.wheel(400, 720, 150, .8, 2);
+      m.grinder(1060, 1.5).bubbles(1190, 3, 100);
+      m.wheel(240, 1620, 130, -.9, 2).wheel(560, 1620, 130, .9, 2);
+      spinners(m, 1880, 3, 170, .6);
+      m.onion(400, 2420).grinder(2580, -1.2);
+      m.wall(0, 2700, 400, 2765, 3).wall(800, 2700, 400, 2765, 3);
+      spinners(m, 2920, 2, 170, .6);
+      m.wheel(240, 3420, 130, .8, 2).wheel(560, 3420, 130, -.8, 2).grinder(3680, 1.3).bubbles(3810, 3, 100);
+      return m.tidy().gate(4100);
+    } },
+    sea: { name: '🫧 둥실둥실 방울 바다 (느림)', make: function () {   // 물속처럼 느림, 방울이 터진 길로 뒤 구슬이 쉽게 따라옴
+      var m = new Map().grid(250, 450, 80, 78, 7, 12); m.g = 320; m.drag = .42; m.vmax = 400;
+      m.bubbles(560, 5, 95).grinder(1010, 1.2);
+      m.onion(220, 1210).onion(580, 1210);
+      m.bubbles(1380, 4, 95).wheel(400, 1820, 150, -.7, 2);
+      m.bubbles(2040, 4, 95).onion(400, 2440).grinder(2600, -1);
+      m.bubbles(2720, 3, 95).wheel(400, 3120, 150, .6, 3);
+      m.bubbles(3340, 4, 95).onion(220, 3720).onion(580, 3720).grinder(3900, 1.1);
+      return m.tidy().gate(4020);
     } },
     mill: { name: '🌀 풍차 마을', make: function () {
       var m = new Map().grid(280, 900, 72, 78, 7, 10);
@@ -165,7 +187,7 @@
   }
   MAPS.wof = { name: '🎰 운명의 수레바퀴 (원작)', make: function () { return lazyMap('wof'); } };
   MAPS.bub = { name: '🫧 버블 팝 (원작)', make: function () { return lazyMap('bub'); } };
-  var ORDER = ['reverse', 'storm', 'warp', 'wheel', 'mill', 'pinball', 'hell', 'wof', 'bub'];
+  var ORDER = ['reverse', 'storm', 'garden', 'sea', 'warp', 'wheel', 'mill', 'pinball', 'hell', 'wof', 'bub'];
 
   function bars(s) { var out = []; for (var k = 0; k < s.arms; k++) { var a = s.t + k * Math.PI / 2, ux = Math.cos(a) * s.len / 2, uy = Math.sin(a) * s.len / 2; out.push([s.x - ux, s.y - uy, s.x + ux, s.y + uy]); } return out; }
   function ringSegs(g) {   // 회전통: 원을 28조각 선분으로, 틈(gaps개) 자리만 비움
@@ -241,7 +263,7 @@
     /* 💥 펑: 느린 구슬 3개 이상이 1초 넘게 뭉치거나 선두가 3초 동안 못 나가면 흩어짐(깨지는 벽 위에서 기다리는 건 빼고) */
     function jam(dt) {
       if ((S.boomCool -= dt) > 0) return;
-      var live = S.live, slow = live.filter(function (b) { return !b.onB && b.vx * b.vx + b.vy * b.vy < 160 * 160; }), best = null;
+      var live = S.live, sv = 160 * Math.min(1, (C.vmax || 1500) / 1200), slow = live.filter(function (b) { return !b.onB && b.vx * b.vx + b.vy * b.vy < sv * sv; }), best = null;
       slow.forEach(function (a) { var g = slow.filter(function (b) { var dx = b.x - a.x, dy = b.y - a.y; return dx * dx + dy * dy < 110 * 110; }); if (!best || g.length > best.length) best = g; });
       var lead = live[0];
       if (!lead || lead.onB || lead.y > S.leadMax + 40) { S.leadMax = lead ? lead.y : 0; S.leadT = 0; } else S.leadT += dt;
@@ -280,7 +302,8 @@
           if (b.x > p.x && b.x < p.x + p.w && b.y > p.y && b.y < p.y + p.h) { var f = p.rb ? .1 + 1.5 * b.rk / nLive : 1; b.vx += p.ax * f * dt; b.vy += p.ay * f * dt; }
         });
         b.x += b.vx * dt; b.y += b.vy * dt;
-        var sp = Math.sqrt(b.vx * b.vx + b.vy * b.vy); if (sp > 1500) { b.vx *= 1500 / sp; b.vy *= 1500 / sp; }
+        if (C.drag) { var dk = Math.pow(C.drag, dt); b.vx *= dk; b.vy *= dk; }
+        var sp = Math.sqrt(b.vx * b.vx + b.vy * b.vy), vm = C.vmax || 1500; if (sp > vm) { b.vx *= vm / sp; b.vy *= vm / sp; }
         if (b.x < R) { b.x = R; b.vx = Math.abs(b.vx) * .6; } if (b.x > C.w - R) { b.x = C.w - R; b.vx = -Math.abs(b.vx) * .6; }
         C.pegs.forEach(function (p) { if (p.gone) return; var dx = b.x - p.x, dy = b.y - p.y, m = R + p.r; if (Math.abs(dx) > m || Math.abs(dy) > m) return; var d = Math.sqrt(dx * dx + dy * dy); if (d < m && d > 0) { dx /= d; dy /= d; b.x = p.x + dx * m; b.y = p.y + dy * m; var vn = b.vx * dx + b.vy * dy; if (vn < 0) { b.vx -= (p.e || 1.5) * vn * dx; b.vy -= (p.e || 1.5) * vn * dy; b.vx += (Math.random() - .5) * 30; } if (p.pop) { p.gone = true; fx({ k: 'pop', x: p.x, y: p.y, r: p.r }); beep(900 + Math.random() * 400, .06); } } });   // 🫧 터지는 방울: 닿으면 펑
         C.bump.forEach(function (p) {   // 범퍼: 닿으면 바깥으로 세게 튕김
@@ -352,7 +375,7 @@
       '.mr .board .up{color:#6f6}.mr .board .dn{color:#f77}.mr .board .fin .no{color:#ff5}.mr .board .me{outline:2px solid #fff}.mr .board .hot{background:rgba(255,230,60,.32)}.mr .board .gap{text-align:center;color:#777;line-height:1}' +
       '.mr .big{position:absolute;left:50%;top:18%;transform:translateX(-50%);font-size:min(7vw,52px);color:#fff;white-space:nowrap;text-shadow:0 0 18px #f80,0 0 4px #000;pointer-events:none;opacity:0}' +
       '.mr .big.on{animation:mrbig 1.5s ease-out}@keyframes mrbig{0%{opacity:0;transform:translateX(-50%) scale(.4)}15%{opacity:1;transform:translateX(-50%) scale(1.15)}25%{transform:translateX(-50%) scale(1)}80%{opacity:1}100%{opacity:0}}' +
-      '.mr .slow{position:absolute;left:50%;top:14px;transform:translateX(-50%);color:#ff5;font-size:22px;letter-spacing:2px;text-shadow:0 0 10px #ff5}.mr .slow[hidden]{display:none}' +
+      '.mr .slow{position:absolute;left:50%;top:14px;transform:translateX(-50%);color:#ff5;font-size:22px;letter-spacing:2px;text-shadow:0 0 10px #ff5}.mr .slow[hidden]{display:none}.mr .cast{position:absolute;left:50%;top:56px;transform:translateX(-50%);background:#e33;color:#fff;border-radius:999px;padding:4px 16px;font-size:20px;white-space:nowrap;box-shadow:0 0 14px #f33a}.mr .cast[hidden]{display:none}' +
       '.mr .toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,.6);border-radius:999px;padding:4px 18px;font-size:24px;text-shadow:0 0 10px #f80;pointer-events:none;white-space:nowrap}.mr .toast:empty{display:none}' +
       '.mr .win{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}.mr .win div{background:#fff;border-radius:28px;padding:3vh 6vw;text-align:center;font-size:min(11vw,15vh);color:#ff7a6b;box-shadow:0 0 60px rgba(51,255,255,.6);animation:mrpop .5s ease-out}' +
       '.mr .win small{display:block;font-size:min(3.5vw,4vh);color:#6f5f57}@keyframes mrpop{from{transform:scale(.3);opacity:0}}</style>' +
@@ -362,9 +385,9 @@
       '<button type="button" class="ev" data-k="ev" title="번개·로켓·자리 바꾸기·돌풍·밀치기">⚡ 이변</button>' +
       '<span class="sp"></span><span class="spd" role="group" aria-label="배속"><button type="button" data-s="1" aria-pressed="true">×1</button><button type="button" data-s="2" aria-pressed="false">×2</button><button type="button" data-s="3" aria-pressed="false">×3</button></span>' +
       '<button type="button" class="go" data-k="again">다시 굴리기</button><button type="button" data-k="close">닫기 (Esc)</button></div>' +
-      '<div class="st"><canvas></canvas><div class="board"></div><div class="big"></div><div class="slow" hidden>⏳ 결승 직전!</div><div class="toast"></div><div class="win"></div></div>';
+      '<div class="st"><canvas></canvas><div class="board"></div><div class="big"></div><div class="slow" hidden>⏳ 결승 직전!</div><div class="cast" hidden></div><div class="toast"></div><div class="win"></div></div>';
     document.body.appendChild(box);
-    var cv = box.querySelector('canvas'), cx = cv.getContext('2d'), board = box.querySelector('.board'), big = box.querySelector('.big'), win = box.querySelector('.win'), slowEl = box.querySelector('.slow'), toast = box.querySelector('.toast'),
+    var cv = box.querySelector('canvas'), cx = cv.getContext('2d'), board = box.querySelector('.board'), big = box.querySelector('.big'), win = box.querySelector('.win'), slowEl = box.querySelector('.slow'), castEl = box.querySelector('.cast'), toast = box.querySelector('.toast'),
       sel = box.querySelector('select'), mdSel = box.querySelector('select.md'), evBtn = box.querySelector('.ev');
     sel.value = MAPS[st.map] || st.map === 'random' ? st.map : 'reverse';
     mdSel.value = st.mode === 'last' ? 'last' : 'first';
@@ -520,12 +543,16 @@
       watchRank();
       if ((boardT -= dt) <= 0) { boardT = .2; paintBoard(); }
       if (follow && follow.done) follow = null;
-      var tgt = follow || (lastMode && !near && live.length <= 5 ? live[live.length - 1] : lead);
+      // 📺 꼴등 뽑기: 1등이 들어오면 카메라가 꼴찌를 중계(남은 둘이 가까우면 둘 사이를 비춤), 끝나면 뽑힌 구슬을 비춤
+      var tail = live[live.length - 1], casting = lastMode && S.order.length > 0 && tail;
+      castEl.hidden = !(casting && !S.over);
+      if (casting && !S.over) castEl.textContent = '📺 꼴찌 중계 · ' + tail.n + ' (남은 구슬 ' + live.length + '개)';
+      var tgt = follow || (lastMode && S.over && S.pick ? S.pick : casting ? (live.length === 2 && Math.abs(live[0].y - tail.y) < 450 ? { x: (live[0].x + tail.x) / 2, y: (live[0].y + tail.y) / 2 } : tail) : lead);
       var rw = cv.clientWidth, rh = cv.clientHeight, dpr = devicePixelRatio || 1;
       if (cv.width !== Math.round(rw * dpr) || cv.height !== Math.round(rh * dpr)) { cv.width = Math.round(rw * dpr); cv.height = Math.round(rh * dpr); }
       zoom += ((near ? 1.7 : 1) - zoom) * .06;
       var sc = Math.min(rw / Math.min(MW, 900), rh / 700) * zoom, viewH = rh / sc, viewW = rw / sc;
-      var ty = S.over && !follow ? FIN - viewH * .55 : tgt ? tgt.y - viewH * .6 : cam, tx = ((near || follow || MW > viewW) && tgt) ? tgt.x : MW / 2;
+      var ty = S.over && !follow && !lastMode ? FIN - viewH * .55 : tgt ? tgt.y - viewH * .6 : cam, tx = tgt && (MW > viewW || (near && zoom > 1.2)) ? tgt.x : MW / 2;   // 맵이 화면보다 넓을 때나 확대 중일 때만 옆으로 따라감
       cam += (Math.max(-40, Math.min(H - viewH, ty)) - cam) * .08; if (MW > viewW) tx = Math.max(viewW / 2 - 40, Math.min(MW - viewW / 2 + 40, tx)); camX += (tx - camX) * .08;
       cx.setTransform(dpr, 0, 0, dpr, 0, 0); cx.fillStyle = '#000'; cx.fillRect(0, 0, rw, rh);
       cx.setTransform(sc * dpr, 0, 0, sc * dpr, (rw / 2 - camX * sc) * dpr, -cam * sc * dpr);
