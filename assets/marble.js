@@ -12,7 +12,7 @@
   function pickOne(a) { return a[Math.floor(Math.random() * a.length)]; }
 
   /* ───── 맵 만들기 도구 ───── */
-  function Map() { this.pegs = []; this.segs = []; this.spin = []; this.bump = []; this.slide = []; this.trap = []; this.ring = []; this.pad = []; this.warp = []; this.brick = []; this.w = W; this.g = G; }
+  function Map() { this.pegs = []; this.segs = []; this.spin = []; this.bump = []; this.slide = []; this.trap = []; this.ring = []; this.pad = []; this.warp = []; this.brick = []; this.door = []; this.hold = []; this.w = W; this.g = G; }
   Map.prototype = {
     grid: function (y0, y1, dx, dy, r, j) { for (var y = y0, row = 0; y < y1; y += dy, row++) for (var x = (row % 2 ? dx * .5 + 40 : 40); x < W - 30; x += dx) this.pegs.push({ x: x + (j ? Math.random() * j - j / 2 : 0), y: y, r: r }); return this; },
     peg: function (x, y, r) { this.pegs.push({ x: x, y: y, r: r || 8 }); return this; },
@@ -41,7 +41,34 @@
       this.spin.slice(-5).forEach(function (s, i) { s.t = i % 2 ? Math.PI / 2 : 0; });
       return this;
     },
-    gate: function (y) { this.funnel(y, 60, 180); this.mill(W / 2, y + 100, 130, 1.7, 2); this.fin = y + 330; this.h = y + 490; return this; }   // 결승 앞 좁은 문 + 막았다 열었다 하는 풍차
+    // 🚦 신호등 문: V자 바닥 가운데 문이 닫혔다(closed초) 잠깐 열림(open초) → 구슬이 쌓여 기다리다 한 무더기씩 빠짐
+    light: function (y, closed, open) {
+      this.line(0, y, 340, y + 90).line(W, y, 460, y + 90);
+      this.door.push({ a: [340, y + 90], b: [460, y + 90], c: closed || 3.5, o: open || 1, t: Math.random() * 3, open: false });
+      this.hold.push({ y0: y - 60, y1: y + 110, k: 'light' });
+      return this;
+    },
+    // ⏳ 모래시계 병목: 구슬 하나만 겨우 지나는 목 + 개찰구처럼 도는 짧은 막대
+    hourglass: function (y) {
+      this.line(0, y, 377, y + 240).line(W, y, 423, y + 240).mill(400, y + 196, 74, 2.4, 1);
+      this.hold.push({ y0: y - 60, y1: y + 260, k: 'hour' });
+      return this;
+    },
+    shift: function (y0, dy) {   // y0 아래에 있는 장치를 모두 dy만큼 내림(사이에 구간 끼워 넣기)
+      function f(v) { return v >= y0 ? v + dy : v; }
+      [this.pegs, this.spin, this.bump, this.slide, this.ring, this.pad, this.warp, this.trap].forEach(function (L) { L.forEach(function (o) { o.y = f(o.y); }); });
+      this.trap.forEach(function (t) { t.to = f(t.to); });
+      this.warp.forEach(function (w) { w.to = w.to.map(function (d) { return [d[0], f(d[1])]; }); });
+      [this.segs, this.brick, this.door].forEach(function (L) { L.forEach(function (o) { o.a = [o.a[0], f(o.a[1])]; o.b = [o.b[0], f(o.b[1])]; }); });
+      this.hold.forEach(function (h) { h.y0 = f(h.y0); h.y1 = f(h.y1); });
+      return this;
+    },
+    gate: function (y) {   // 결승 앞: 깔때기 + 긴 풍차, 그 밑 세로 통로 안에서 도는 막대가 빠지던 구슬을 위로 쳐 올리기도 함
+      this.funnel(y, 76, 180).mill(W / 2, y + 92, 230, 1.3, 2);
+      this.line(362, y + 180, 362, y + 360).line(438, y + 180, 438, y + 360).mill(W / 2, y + 268, 62, 3.2, 1);
+      this.hold.push({ y0: y + 40, y1: y + 360, k: 'goal' });
+      this.fin = y + 420; this.h = y + 580; return this;
+    }
   };
 
   function spinners(m, y0, rows, gap, spd) {   // 🌪️ 풍차 숲: 4개 줄과 3개 줄이 번갈아, 방향·빠르기·모양 제각각
@@ -116,7 +143,8 @@
       m.wall(0, 2700, 400, 2765, 3).wall(800, 2700, 400, 2765, 3);
       spinners(m, 2920, 2, 170, .6);
       m.wheel(240, 3420, 130, .8, 2).wheel(560, 3420, 130, -.8, 2).grinder(3680, 1.3).bubbles(3810, 3, 100);
-      return m.tidy().gate(4100);
+      m.shift(2310, 260).light(2320, 4, 1);   // 🚦 정체 구간
+      return m.tidy().gate(4360);
     } },
     sea: { name: '🫧 둥실둥실 방울 바다 (느림)', make: function () {   // 물속처럼 느림, 방울이 터진 길로 뒤 구슬이 쉽게 따라옴
       var m = new Map().grid(250, 450, 80, 78, 7, 12); m.g = 320; m.drag = .42; m.vmax = 400;
@@ -126,7 +154,19 @@
       m.bubbles(2040, 4, 95).onion(400, 2440).grinder(2600, -1);
       m.bubbles(2720, 3, 95).wheel(400, 3120, 150, .6, 3);
       m.bubbles(3340, 4, 95).onion(220, 3720).onion(580, 3720).grinder(3900, 1.1);
-      return m.tidy().gate(4020);
+      m.shift(2320, 340).hourglass(2330);   // ⏳ 정체 구간
+      return m.tidy().gate(4360);
+    } },
+    traffic: { name: '🚗 꽉 막힌 출근길', make: function () {   // 정체 구간 네 군데: 신호등 → 모래시계 → 신호등 → 모래시계
+      var m = new Map().grid(250, 480, 80, 78, 7, 12);
+      m.light(560, 3, 1.2);
+      spinners(m, 820, 2);
+      m.hourglass(1180).grinder(1620).bubbles(1740, 2, 100);
+      m.light(1960, 4, .8);
+      m.wheel(400, 2330, 140, 1.2, 2);
+      spinners(m, 2620, 2);
+      m.hourglass(2900).boost(20, 3230, 760, 60, 0, 5000, true);
+      return m.tidy().gate(3360);
     } },
     mill: { name: '🌀 풍차 마을', make: function () {
       var m = new Map().grid(280, 900, 72, 78, 7, 10);
@@ -155,7 +195,8 @@
       m.boost(20, 2540, 760, 60, 0, 5000, true);
       m.mill(250, 2780, 300, -1.3, 2).mill(550, 2780, 300, 1.3, 2);   // 큰 풍차 두 개가 맞물려 돎
       m.grinder(3020).bubbles(3150, 3, 90).grinder(3420, -3);
-      return m.tidy().gate(3560);
+      m.shift(1400, 340).hourglass(1410);   // ⏳ 정체 구간
+      return m.tidy().gate(3900);
     } },
     hell: { name: '🕳️ 함정 지옥 (짧음)', make: function () {
       var m = new Map().grid(250, 650, 80, 75, 8, 12);
@@ -187,7 +228,7 @@
   }
   MAPS.wof = { name: '🎰 운명의 수레바퀴 (원작)', make: function () { return lazyMap('wof'); } };
   MAPS.bub = { name: '🫧 버블 팝 (원작)', make: function () { return lazyMap('bub'); } };
-  var ORDER = ['reverse', 'storm', 'garden', 'sea', 'warp', 'wheel', 'mill', 'pinball', 'hell', 'wof', 'bub'];
+  var ORDER = ['reverse', 'traffic', 'storm', 'garden', 'sea', 'warp', 'wheel', 'mill', 'pinball', 'hell', 'wof', 'bub'];
 
   function bars(s) { var out = []; for (var k = 0; k < s.arms; k++) { var a = s.t + k * Math.PI / 2, ux = Math.cos(a) * s.len / 2, uy = Math.sin(a) * s.len / 2; out.push([s.x - ux, s.y - uy, s.x + ux, s.y + uy]); } return out; }
   function ringSegs(g) {   // 회전통: 원을 28조각 선분으로, 틈(gaps개) 자리만 비움
@@ -267,10 +308,10 @@
       slow.forEach(function (a) { var g = slow.filter(function (b) { var dx = b.x - a.x, dy = b.y - a.y; return dx * dx + dy * dy < 110 * 110; }); if (!best || g.length > best.length) best = g; });
       var lead = live[0];
       if (!lead || lead.onB || lead.y > S.leadMax + 40) { S.leadMax = lead ? lead.y : 0; S.leadT = 0; } else S.leadT += dt;
-      var stuck = lead && S.leadT > 3 && !S.over;
+      var stuck = lead && S.leadT > (lead.hold ? 6 : 3) && !S.over;
       if (stuck) best = live.filter(function (b) { var dx = b.x - lead.x, dy = b.y - lead.y; return dx * dx + dy * dy < 160 * 160; });
       else if (!best || best.length < 3) { S.jamT = 0; return; }
-      else if ((S.jamT += dt) < 1) return;
+      else if ((S.jamT += dt) < (best.some(function (b) { return b.hold; }) ? 4 : 1)) return;
       S.leadT = 0; S.leadMax = lead ? lead.y : 0;
       var x = 0, y = 0; best.forEach(function (b) { x += b.x; y += b.y; }); x /= best.length; y /= best.length;
       S.balls.forEach(function (b) {
@@ -287,12 +328,13 @@
       C.slide.forEach(function (s) { s.t += dt; s.x = s.x0 + Math.sin(s.t * s.w) * s.amp; s.vx = Math.cos(s.t * s.w) * s.amp * s.w; s.x = Math.max(s.len / 2, Math.min(W - s.len / 2, s.x)); });
       C.bump.forEach(function (p) { if (p.hit > 0) p.hit -= dt; });
       C.warp.forEach(function (w) { w.t += dt; });
+      C.door.forEach(function (d) { d.t += dt; var was = d.open; d.open = d.t % (d.c + d.o) > d.c; if (d.open && !was) beep(660, .12); });
       if (S.wind && (S.wind.t -= dt) <= 0) S.wind = null;
       rank(); jam(dt); events(dt); skills(dt);
       var nLive = Math.max(1, S.live.length - 1);
       S.balls.forEach(function (b) {
         if (b.done) return;
-        b.onB = false;
+        b.onB = false; b.hold = false;
         b.vy += C.g * dt;
         if (b.rocket > 0) { b.rocket -= dt; b.vy += 3800 * dt; b.vx *= .98; }
         if (b.zap > 0) b.zap -= dt;
@@ -314,6 +356,8 @@
         C.spin.forEach(function (s) { var v = rot(s); s.bars.forEach(function (l) { seg(b, l[0], l[1], l[2], l[3], v, s.r); }); });
         C.slide.forEach(function (s) { seg(b, s.x - s.len / 2, s.y, s.x + s.len / 2, s.y, function () { return [s.vx, 0]; }); });
         C.ring.forEach(function (g) { var dx = b.x - g.x, dy = b.y - g.y; if (dx * dx + dy * dy > Math.pow(g.r + 40, 2)) return; var v = rot(g); g.segs.forEach(function (l) { seg(b, l[0], l[1], l[2], l[3], v); }); });
+        C.hold.forEach(function (h) { if (b.y > h.y0 && b.y < h.y1) b.hold = true; });   // 정체 구간: 한참(4초) 막혀야 💥
+        C.door.forEach(function (d) { if (!d.open) seg(b, d.a[0], d.a[1], d.b[0], d.b[1]); });
         C.brick.forEach(function (w) {
           if (w.life <= 0) return;
           var hit = seg(b, w.a[0], w.a[1], w.b[0], w.b[1]); if (!hit) return;
@@ -337,7 +381,7 @@
         if (sp < 25) { if ((b.still += dt) > 1.2) { b.vx += (Math.random() - .5) * 500; b.vy -= 300; b.still = 0; } } else b.still = 0;   // 끼면 살짝 흔들기
         // 오래(4초) 못 내려가는 구슬은 따로 툭 쳐 줌, 세 번째부터는 가운데로 옮겨 줌(결승 앞 풍차에 걸리는 것 방지)
         if (b.y > b.best + 30 || b.onB) { b.best = Math.max(b.best, b.y); b.stall = 0; }
-        else if ((b.stall += dt) > 4) { b.stall = 0; b.best = b.y; if (++b.kicks >= 3 && !C.imp) { b.x = W / 2 + rnd(-10, 10); b.vx = 0; b.vy = 200; b.kicks = 0; } else { b.vx = rnd(-600, 600); b.vy = -400; } }
+        else if ((b.stall += dt) > (b.hold ? 9 : 4)) { b.stall = 0; b.best = b.y; if (++b.kicks >= 3 && !C.imp) { b.x = W / 2 + rnd(-10, 10); b.vx = 0; b.vy = 200; b.kicks = 0; } else { b.vx = rnd(-600, 600); b.vy = -400; } }
         if (b.y > C.fin && !b.done) {
           b.done = true; S.order.push(b); beep(S.order.length === 1 ? 988 : 520, .2);
           if (opt.mode !== 'last' && S.order.length === 1) choose(b);
@@ -471,6 +515,18 @@
       cx.shadowBlur = mini ? 0 : 12; cx.shadowColor = '#3ff';
       cx.strokeStyle = mini ? '#9aa' : '#3ff'; cx.lineCap = 'round';
       C.segs.forEach(function (s) { cx.lineWidth = mini ? 8 : Math.max(5, 2 * (s.r == null ? 5 : s.r)); line(s.a[0], s.a[1], s.b[0], s.b[1]); });
+      C.door.forEach(function (d) {   // 🚦 문: 닫히면 빨강, 열리면 초록 점선 + 남은 초
+        var left = d.open ? d.c + d.o - d.t % (d.c + d.o) : d.c - d.t % (d.c + d.o);
+        cx.lineWidth = mini ? 8 : 12; cx.strokeStyle = d.open ? '#3f6' : '#f33';
+        if (!mini) { cx.shadowColor = cx.strokeStyle; cx.shadowBlur = 16; cx.setLineDash(d.open ? [8, 14] : []); }
+        line(d.a[0], d.a[1], d.b[0], d.b[1]); cx.setLineDash([]);
+        if (mini) return;
+        var mx = (d.a[0] + d.b[0]) / 2, my = d.a[1] + 50;
+        cx.shadowBlur = 0; cx.fillStyle = '#222'; cx.fillRect(mx - 38, my - 18, 76, 34);
+        cx.fillStyle = d.open ? '#3f6' : '#f33'; cx.beginPath(); cx.arc(mx - 20, my - 1, 11, 0, 7); cx.fill();
+        cx.fillStyle = '#fff'; cx.font = '22px Jua, sans-serif'; cx.textAlign = 'center'; cx.fillText(Math.ceil(left), mx + 14, my + 7);
+      });
+      if (!mini) C.hold.forEach(function (h) { cx.shadowBlur = 0; cx.fillStyle = h.k === 'light' ? '#f88' : '#fd8'; cx.font = '20px Jua, sans-serif'; cx.textAlign = 'center'; if (h.k !== 'goal') cx.fillText(h.k === 'light' ? '🚦 신호등 정체' : '⏳ 모래시계 병목 (한 줄로!)', MW / 2, h.y0 + 30); });
       // 깨지는 벽: 금이 갈수록 흐려짐
       C.brick.forEach(function (w) {
         if (w.life <= 0) return; var k = w.life / w.max;
