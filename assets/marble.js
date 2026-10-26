@@ -35,11 +35,15 @@
     gate: function (y) { this.funnel(y, 60, 180); this.mill(W / 2, y + 100, 130, 1.7, 2); this.fin = y + 330; this.h = y + 490; return this; }   // 결승 앞 좁은 문 + 막았다 열었다 하는 풍차
   };
 
-  function zigzag(m, y0, n, gap) {   // 지그재그 계단(발판 끝에 도는 막대, 발판 위 혹)
-    for (var i = 0; i < n; i++) {
-      var y = y0 + i * gap, L = i % 2;
-      if (L) m.line(W, y, 230, y + 70).mill(115, y + 70, 150, 3.4, 1); else m.line(0, y, W - 230, y + 70).mill(W - 115, y + 70, 150, -3.4, 1);
-      [330, 470].forEach(function (x) { m.peg(x, (L ? y + (W - x) / (W - 230) * 70 : y + x / (W - 230) * 70) + 2, 8); });
+  function spinners(m, y0, rows, gap) {   // 🌪️ 풍차 숲: 4개 줄과 3개 줄이 번갈아, 방향·빠르기·모양 제각각
+    gap = gap || 170;
+    for (var r = 0; r < rows; r++) {
+      var y = y0 + r * gap, xs = r % 2 ? [200, 400, 600] : [100, 300, 500, 700];
+      xs.forEach(function (x, k) {
+        var dir = (r + k) % 2 ? 1 : -1, arms = Math.random() < .3 ? 1 : 2;
+        m.mill(x, y, xs.length === 4 ? 140 : 150, dir * rnd(1.8, 3.6), arms);
+      });
+      if (r % 2) m.peg(30, y, 10).peg(W - 30, y, 10);
     }
     return m;
   }
@@ -47,12 +51,12 @@
     reverse: { name: '🎢 역전 대소동', make: function () {
       var m = new Map().grid(250, 520, 80, 78, 7, 12), o;
       m.funnel(560, 200, 110).wheel(400, 860, 150, 1.1, 2);
-      // 갈림길: 왼쪽 = 부스터 지름길(되돌이 구멍 조심), 오른쪽 = 느린 계단(안전)
+      // 갈림길: 왼쪽 = 부스터 지름길(되돌이 구멍 조심), 오른쪽 = 풍차 길
       m.peg(400, 1080, 14).line(400, 1100, 400, 1760);
       m.boost(20, 1150, 370, 70, 0, 4200).hole(200, 1330, 540).peg(100, 1450, 9).peg(300, 1450, 9).peg(200, 1510, 9);
       m.boost(20, 1570, 370, 60, 0, 4200).hole(300, 1690, 1110);
-      m.line(400, 1170, 720, 1225).line(800, 1300, 480, 1355).line(400, 1430, 720, 1485).line(800, 1560, 480, 1615);
-      zigzag(m, 1860, 4, 230);
+      m.mill(600, 1210, 170, 2.8, 2).mill(500, 1410, 140, -3.2, 2).mill(700, 1410, 140, 3, 1).mill(600, 1610, 170, -2.6, 2);
+      spinners(m, 1880, 5);
       // 수수께끼 워프: 크게 앞서거나, 처음으로 돌아가거나
       o = 1000;
       var MYS = [[400, 2720 + o], [150, 2470 + o], [650, 2470 + o], [285, 2180 + o], [515, 2180 + o], [200, 1110], [600, 1110], [400, 520], [400, 1820]];
@@ -70,7 +74,7 @@
       m.portal(110, 790, [[650, 1560 + o]]).portal(690, 790, [[400, 330]]);   // 왼쪽 = 지름길, 오른쪽 = 처음으로
       m.wheel(400, 1000, 140, -1.3, 2);
       m.boost(20, 1200, 370, 60, 2600, 900).boost(410, 1200, 370, 60, -2600, 900);
-      zigzag(m, 1340, 3, 220);
+      spinners(m, 1360, 4);
       m.grid(1300 + o, 1640 + o, 90, 85, 8, 14);
       var MYS = [[400, 1980 + o], [150, 1440 + o], [650, 1440 + o], [400, 1330], [400, 700], [400, 330], [285, 1980 + o]];
       m.portal(250, 1740 + o, MYS, true).portal(550, 1740 + o, MYS, true);
@@ -84,7 +88,7 @@
       m.funnel(470, 260, 90).wheel(400, 750, 150, 1.2, 2);
       m.boost(20, 940, 760, 50, 0, 3500, true);
       m.funnel(1000, 240, 90).wheel(400, 1280, 150, -1.4, 3);
-      zigzag(m, 1500, 3, 220);
+      spinners(m, 1520, 3);
       m.wall(0, 1470 + o, 400, 1530 + o, 3).wall(800, 1470 + o, 400, 1530 + o, 3);
       m.wheel(400, 1740 + o, 160, 1.7, 2);
       var MYS = [[400, 2110 + o], [150, 2140 + o], [650, 2140 + o], [400, 1080], [400, 560], [400, 1480]];
@@ -97,8 +101,7 @@
       var m = new Map().grid(280, 900, 72, 78, 7, 10);
       [[170, 1000, 2.4], [400, 1060, -3], [630, 1000, 2.7]].forEach(function (s) { m.mill(s[0], s[1], 150, s[2], 2); });
       m.funnel(1150, 140, 150);
-      for (var i = 0; i < 7; i++) m.line(70 + i * 105, 1430, 110 + i * 105, 1370);
-      for (i = 0; i < 4; i++) { var x = 100 + i * 200; m.line(x - 90, 1540, x - 26, 1600).line(x + 26, 1600, x + 90, 1540); }
+      spinners(m, 1400, 2);
       m.grid(1720, 2160, 110, 95, 10).mill(250, 1920, 170, -2.2, 1).mill(560, 2020, 170, 2.6, 1);
       m.slider(400, 2280, 220, 260, 1.6).bumper(170, 2400).bumper(630, 2400).bumper(400, 2520, 38).bumper(120, 2660).bumper(680, 2660).slider(400, 2760, 180, 240, -2.1);
       m.hole(90, 2840, 1680).hole(710, 2840, 1680);
@@ -113,17 +116,15 @@
       m.hole(400, 2180, 900).bumper(160, 2230, 30).bumper(640, 2230, 30).hole(90, 2330, 1300).hole(710, 2330, 1300);
       return m.gate(2420);
     } },
-    stairs: { name: '🪜 지그재그 계단', make: function () {
-      var m = new Map().grid(250, 500, 80, 80, 7, 10);
-      for (var i = 0; i < 7; i++) {
-        var y = 600 + i * 300;
-        var surf = function (x) { return i % 2 ? y + (W - x) / (W - 230) * 70 : y + x / (W - 230) * 70; };
-        if (i % 2) { m.line(W, y, 230, y + 70).mill(115, y + 70, 150, 3.4, 1).bumper(560, y - 110, 26); [470, 330].forEach(function (x) { m.pegs.push({ x: x, y: surf(x) + 2, r: 8 }); }); }
-        else { m.line(0, y, W - 230, y + 70).mill(W - 115, y + 70, 150, -3.4, 1).bumper(240, y - 110, 26); [330, 470].forEach(function (x) { m.pegs.push({ x: x, y: surf(x) + 2, r: 8 }); }); }
-        if (i === 2 || i === 4) m.hole(i % 2 ? 560 : 240, surf(i % 2 ? 560 : 240) - 70, 600 + (i - 2) * 300);
-      }
-      m.slider(400, 2700, 260, 240, 2);
-      return m.gate(2820);
+    storm: { name: '🌪️ 풍차 폭풍', make: function () {
+      var m = new Map().grid(250, 480, 80, 78, 7, 12);
+      spinners(m, 600, 5);
+      m.mill(400, 1560, 560, .9, 1);   // 거대 막대: 천천히 돌며 한쪽을 막았다 열었다
+      spinners(m, 1920, 4);
+      m.boost(20, 2540, 760, 60, 0, 5000, true);
+      m.mill(250, 2780, 300, -1.3, 2).mill(550, 2780, 300, 1.3, 2);   // 큰 풍차 두 개가 맞물려 돎
+      spinners(m, 3020, 3);
+      return m.tidy().gate(3480);
     } },
     hell: { name: '🕳️ 함정 지옥 (짧음)', make: function () {
       var m = new Map().grid(250, 650, 80, 75, 8, 12);
@@ -134,7 +135,7 @@
       return m.gate(1730);
     } }
   };
-  var ORDER = ['reverse', 'warp', 'wheel', 'mill', 'pinball', 'stairs', 'hell'];
+  var ORDER = ['reverse', 'storm', 'warp', 'wheel', 'mill', 'pinball', 'hell'];
 
   function bars(s) { var out = []; for (var k = 0; k < s.arms; k++) { var a = s.t + k * Math.PI / 2, ux = Math.cos(a) * s.len / 2, uy = Math.sin(a) * s.len / 2; out.push([s.x - ux, s.y - uy, s.x + ux, s.y + uy]); } return out; }
   function ringSegs(g) {   // 회전통: 원을 28조각 선분으로, 틈(gaps개) 자리만 비움
