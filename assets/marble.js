@@ -1,5 +1,5 @@
 /* 🎱 구슬 레이스 뽑기 (수업 진행 도구). 이름 구슬이 맵을 굴러 내려가 결승 앞 좁은 문을 먼저 빠져나온 구슬이 뽑힘.
-   window.MarbleRace(이름 배열, 끝났을 때 함수(뽑힌 이름)) → 화면 전체에 띄움.
+   window.MarbleRace(이름 배열, 끝났을 때 함수(뽑힌 이름)). 위쪽에서 🥇 1등 당첨 / 🐢 꼴등 당첨(다른 구슬이 모두 도착하고 마지막까지 남은 구슬)을 고름 → 화면 전체에 띄움.
    막혀서 구슬 여러 개가 뭉쳐 멈추면 💥 펑 터져 흩어짐. 맵 4개(+무작위): 장치 = 핀, 빙빙 도는 막대·풍차, 범퍼(닿으면 튕겨 나감), 좌우로 움직이는 막대, 되돌이 구멍(빠지면 위로 되돌아감 · 구슬마다 2번까지), 선.
    ×1 ×2 ×3 배속, 1등이 결승에 가까워지면 느린 화면 + 확대, 왼쪽 미니맵. 물리는 직접 계산(원-원, 원-선분), 외부 라이브러리 없음. */
 (function () {
@@ -70,7 +70,7 @@
     if (vn < 0) { c.vx -= 1.45 * vn * nx; c.vy -= 1.45 * vn * ny; c.vx *= .995; }
   }
   window.MarbleRace = function (names, done) {
-    var pick = 'mill'; try { pick = localStorage.getItem('marbleMap') || 'mill'; } catch (e) {}
+    var pick = 'mill', mode = 'first'; try { pick = localStorage.getItem('marbleMap') || 'mill'; mode = localStorage.getItem('marbleMode') === 'last' ? 'last' : 'first'; } catch (e) {}
     var box = document.createElement('div'); box.className = 'mr';
     box.innerHTML = '<style>.mr{position:fixed;inset:0;z-index:60;background:#000;display:flex;flex-direction:column;font-family:Jua,"Gowun Dodum",sans-serif}' +
       '.mr .bar{display:flex;gap:8px;align-items:center;padding:8px 12px;color:#fff;font-size:18px;background:#111;flex-wrap:wrap}.mr .bar .sp{flex:1}' +
@@ -84,19 +84,21 @@
       '.mr .win{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}.mr .win div{background:#fff;border-radius:28px;padding:3vh 6vw;text-align:center;font-size:min(11vw,15vh);color:#ff7a6b;box-shadow:0 0 60px rgba(51,255,255,.6);animation:mrpop .5s ease-out}' +
       '.mr .win small{display:block;font-size:min(3.5vw,4vh);color:#6f5f57}@keyframes mrpop{from{transform:scale(.3);opacity:0}}</style>' +
       '<div class="bar">🎱 구슬 레이스 · ' + names.length + '명<select aria-label="맵 고르기">' + ORDER.map(function (k) { return '<option value="' + k + '">' + MAPS[k].name + '</option>'; }).join('') + '<option value="random">🎲 무작위 맵</option></select>' +
+      '<select class="mode" aria-label="당첨 방법"><option value="first">🥇 1등 당첨</option><option value="last">🐢 꼴등 당첨</option></select>' +
       '<span class="sp"></span><span class="spd" role="group" aria-label="배속"><button type="button" data-s="1" aria-pressed="true">×1</button><button type="button" data-s="2" aria-pressed="false">×2</button><button type="button" data-s="3" aria-pressed="false">×3</button></span>' +
       '<button type="button" class="go" data-k="again">다시 굴리기</button><button type="button" data-k="close">닫기 (Esc)</button></div>' +
       '<div class="st"><canvas></canvas><div class="rank"></div><div class="slow" hidden>⏳ 결승 직전!</div><div class="toast"></div><div class="win"></div></div>';
     document.body.appendChild(box);
-    var cv = box.querySelector('canvas'), cx = cv.getContext('2d'), rank = box.querySelector('.rank'), win = box.querySelector('.win'), slowEl = box.querySelector('.slow'), toast = box.querySelector('.toast'), sel = box.querySelector('select');
+    var cv = box.querySelector('canvas'), cx = cv.getContext('2d'), rank = box.querySelector('.rank'), win = box.querySelector('.win'), slowEl = box.querySelector('.slow'), toast = box.querySelector('.toast'), sel = box.querySelector('select'), modeSel = box.querySelector('select.mode');
+    modeSel.value = mode;
     sel.value = MAPS[pick] || pick === 'random' ? pick : 'mill';
-    var C, FIN, H, balls, cam, camX, zoom, order, raf, last, over, speed = 1, AC = null, ticked = 0, toastT = 0, booms = [], jamT = 0, boomCool = 0, leadMax = 0, leadT = 0;
+    var C, FIN, H, balls, cam, camX, zoom, order, raf, last, over, speed = 1, AC = null, ticked = 0, toastT = 0, booms = [], jamT = 0, boomCool = 0, leadMax = 0, leadT = 0, winBall = null;
     function beep(f, d) { try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); var o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = f; g.gain.setValueAtTime(.15, AC.currentTime); g.gain.exponentialRampToValueAtTime(.001, AC.currentTime + d); o.connect(g).connect(AC.destination); o.start(); o.stop(AC.currentTime + d); } catch (e) {} }
     function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
     function say(t) { toast.textContent = t; toastT = 1.6; }
     function start() {
       var k = sel.value === 'random' ? ORDER[Math.floor(Math.random() * ORDER.length)] : sel.value;
-      C = MAPS[k].make(); booms = []; jamT = 0; boomCool = 3; leadMax = 0; leadT = 0; FIN = C.fin; H = C.h; order = []; over = false; win.innerHTML = ''; rank.innerHTML = ''; slowEl.hidden = true;
+      C = MAPS[k].make(); winBall = null; booms = []; jamT = 0; boomCool = 3; leadMax = 0; leadT = 0; FIN = C.fin; H = C.h; order = []; over = false; win.innerHTML = ''; rank.innerHTML = ''; slowEl.hidden = true;
       if (sel.value === 'random') say('🎲 ' + MAPS[k].name);
       var cols = Math.min(names.length, 12), mix = names.slice().sort(function () { return Math.random() - .5; });
       balls = mix.map(function (n, i) { return { n: n, x: 60 + (i % cols) * ((W - 120) / Math.max(1, cols - 1)), y: 60 + Math.floor(i / cols) * 36, vx: Math.random() * 40 - 20, vy: 0, c: 'hsl(' + Math.round(names.indexOf(n) * 360 / names.length) + ' 85% 62%)', still: 0, done: false, traps: 0 }; });
@@ -145,7 +147,7 @@
           var dx = b.x - t.x, dy = b.y - t.y; if (dx * dx + dy * dy < t.r * t.r) { b.traps++; b.x = 80 + Math.random() * (W - 160); b.y = t.to; b.vx = 0; b.vy = 0; beep(220, .25); say('↩ ' + b.n + ' 되돌아감!'); }
         });
         if (sp < 25) { if ((b.still += dt) > 1.2) { b.vx += (Math.random() - .5) * 500; b.vy -= 300; b.still = 0; } } else b.still = 0;   // 끼면 살짝 흔들기
-        if (b.y > FIN && !b.done) { b.done = true; order.push(b); beep(order.length === 1 ? 988 : 520, .2); if (order.length === 1) finish(b); paintRank(); }
+        if (b.y > FIN && !b.done) { b.done = true; order.push(b); beep(order.length === 1 ? 988 : 520, .2); if (!over && mode === 'first') finish(b); paintRank(); }
       });
       for (var i = 0; i < balls.length; i++) for (var j = i + 1; j < balls.length; j++) {   // 구슬끼리
         var a = balls[i], c = balls[j]; if (a.done || c.done) continue;
@@ -153,10 +155,18 @@
         if (d < 2 * R && d > 0) { dx /= d; dy /= d; var o = (2 * R - d) / 2; a.x -= dx * o; a.y -= dy * o; c.x += dx * o; c.y += dy * o; var vn = (c.vx - a.vx) * dx + (c.vy - a.vy) * dy; if (vn < 0) { a.vx += vn * dx * .9; a.vy += vn * dy * .9; c.vx -= vn * dx * .9; c.vy -= vn * dy * .9; } }
       }
     }
-    function paintRank() { rank.innerHTML = order.slice(0, 5).map(function (b, i) { return '<b style="color:' + b.c + '">' + esc(b.n) + ' #' + (i + 1) + '</b>'; }).join('<br>'); }
+    function paintRank() {
+      if (mode === 'last') {   // 꼴등 당첨: 남은 구슬 수와 마지막으로 도착한 구슬들
+        var left = balls.filter(function (b) { return !b.done; });
+        if (!over && left.length === 1) finish(left[0]);
+        rank.innerHTML = '<b style="color:#ff5">남은 구슬 ' + left.length + '</b><br>' + order.slice(-4).reverse().map(function (b) { return '<b style="color:' + b.c + ';opacity:.7">' + esc(b.n) + ' #' + (order.indexOf(b) + 1) + '</b>'; }).join('<br>');
+        return;
+      }
+      rank.innerHTML = order.slice(0, 5).map(function (b, i) { return '<b style="color:' + b.c + '">' + esc(b.n) + ' #' + (i + 1) + '</b>'; }).join('<br>');
+    }
     function finish(b) {
-      over = true; slowEl.hidden = true;
-      setTimeout(function () { win.innerHTML = '<div>' + esc(b.n) + '<small>🎉 1등으로 도착!</small></div>'; beep(1175, .6); }, 300);
+      over = true; slowEl.hidden = true; winBall = b;
+      setTimeout(function () { win.innerHTML = '<div>' + esc(b.n) + '<small>' + (mode === 'last' ? '🐢 마지막까지 남았어요!' : '🎉 1등으로 도착!') + '</small></div>'; beep(1175, .6); }, 300);
       if (done) done(b.n);
     }
     function line(x1, y1, x2, y2) { cx.beginPath(); cx.moveTo(x1, y1); cx.lineTo(x2, y2); cx.stroke(); }
@@ -179,7 +189,7 @@
     function frame(now) {
       var dt = Math.min(.033, (now - last) / 1000); last = now;
       var live = balls.filter(function (b) { return !b.done; }), lead = live.reduce(function (m, b) { return !m || b.y > m.y ? b : m; }, null);
-      var near = !over && lead && lead.y > FIN - 380;   // 1등이 결승 가까이: 느린 화면 + 확대
+      var near = !over && lead && lead.y > FIN - 380 && (mode === 'first' || live.length <= 2);   // 1등(꼴등 당첨이면 마지막 둘 중 앞선 구슬)이 결승 가까이: 느린 화면 + 확대
       slowEl.hidden = !near;
       if (toastT > 0) { toastT -= dt; if (toastT <= 0) toast.textContent = ''; }
       var n = Math.round(6 * speed * (near ? .35 : 1)) || 1;
@@ -189,7 +199,7 @@
       if (cv.width !== Math.round(rw * dpr) || cv.height !== Math.round(rh * dpr)) { cv.width = Math.round(rw * dpr); cv.height = Math.round(rh * dpr); }
       zoom += ((near ? 1.7 : 1) - zoom) * .06;
       var sc = Math.min(rw / W, rh / 700) * zoom, viewH = rh / sc, viewW = rw / sc;
-      var ty = over ? FIN - viewH * .55 : lead ? lead.y - viewH * .6 : cam, tx = near && lead ? lead.x : W / 2;
+      var ty = over ? (mode === 'last' && winBall ? winBall.y - viewH * .5 : FIN - viewH * .55) : lead ? lead.y - viewH * .6 : cam, tx = near && lead ? lead.x : W / 2;
       cam += (Math.max(-40, Math.min(H - viewH, ty)) - cam) * .08; camX += (tx - camX) * .08;
       cx.setTransform(dpr, 0, 0, dpr, 0, 0); cx.fillStyle = '#000'; cx.fillRect(0, 0, rw, rh);
       cx.setTransform(sc * dpr, 0, 0, sc * dpr, (rw / 2 - camX * sc) * dpr, -cam * sc * dpr);
@@ -208,7 +218,7 @@
       cx.font = '18px Jua, "Gowun Dodum", sans-serif';
       balls.forEach(function (b) {
         cx.fillStyle = b.c; cx.shadowColor = b.c; cx.shadowBlur = 10; cx.beginPath(); cx.arc(b.x, b.y, R, 0, 7); cx.fill(); cx.shadowBlur = 0;
-        if (order[0] === b || (lead === b && near)) { cx.strokeStyle = '#fff'; cx.lineWidth = 3; cx.stroke(); }
+        if (winBall === b || (lead === b && near)) { cx.strokeStyle = '#fff'; cx.lineWidth = 3; cx.stroke(); }
         cx.fillStyle = b.c; cx.textAlign = 'center'; cx.fillText(b.n, b.x, b.y + R + 18);
       });
       // 미니맵 (왼쪽): 코스 전체와 지금 보는 곳
@@ -226,6 +236,7 @@
     function key(e) { if (e.key === 'Escape') close(); }
     addEventListener('keydown', key);
     sel.onchange = function () { try { localStorage.setItem('marbleMap', sel.value); } catch (e) {} start(); };
+    modeSel.onchange = function () { mode = modeSel.value; try { localStorage.setItem('marbleMode', mode); } catch (e) {} start(); };
     box.querySelector('.bar').onclick = function (e) {
       var b = e.target.closest('button'); if (!b) return;
       if (b.dataset.s) { speed = +b.dataset.s; box.querySelectorAll('.spd button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); }); }
